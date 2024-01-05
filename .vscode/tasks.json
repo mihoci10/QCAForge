@@ -10,6 +10,13 @@
         // ideally you should also configure a `problemMatcher`
         // see https://code.visualstudio.com/docs/editor/tasks#_can-a-background-task-be-used-as-a-prelaunchtask-in-launchjson
         "isBackground": true,
+        "problemMatcher": {
+          "pattern": [
+            {
+              "regexp": "",
+            }
+          ]
+        },
         // change this to your `beforeDevCommand`:
         "command": "npm",
         "args": ["run", "dev"]
