@@ -5,8 +5,8 @@ export default new THREE.ShaderMaterial({
     transparent: true,
     vertexShader: 
     `
-        attribute vec3 localPosition;
-		varying vec3 localPos;
+        attribute vec2 localPosition;
+		varying vec2 localPos;
         void main() {
             localPos = localPosition;
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
@@ -14,13 +14,13 @@ export default new THREE.ShaderMaterial({
     `,
     fragmentShader: 
     `
-        varying vec3 localPos;
+        varying vec2 localPos;
         float polarization = 1.0f;
         out vec4 outColor;
 
         float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
         {
-            vec2 value = abs(localPos.xy - pos);
+            vec2 value = abs(localPos - pos);
 
             vec2 mask = smoothstep(bandStart - fade, bandStart, value);
             mask -= smoothstep(bandStop, bandStop + fade, value);
@@ -31,7 +31,7 @@ export default new THREE.ShaderMaterial({
         float HollowCircleMask(vec2 pos, float radiusStart, float radiusStop, float fade)
         {
             radiusStop = max(radiusStart, radiusStop);
-            float value = length(localPos.xy - pos);
+            float value = length(localPos - pos);
 
             float mask = smoothstep(radiusStart - fade, radiusStart, value);
             mask -= smoothstep(radiusStop, radiusStop + fade, value);
@@ -40,19 +40,19 @@ export default new THREE.ShaderMaterial({
         }
 
         void main() {
-            vec2 fragSize = fwidth(localPos.xy);
+            vec2 fragSize = fwidth(localPos);
 
-            float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.01);
+            float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
-            mask += HollowCircleMask(vec2(0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
-            mask += HollowCircleMask(vec2(0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
-            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
-            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
+            mask += HollowCircleMask(vec2(0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
+            mask += HollowCircleMask(vec2(0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
+            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
+            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
 
-            mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polarization * (0.2 + (length(fragSize))), 0.0);
-            mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polarization * (0.2 + (length(fragSize))), 0.0);
-            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polarization * (0.2 + (length(fragSize))), 0.0);
-            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polarization * (0.2 + (length(fragSize))), 0.0);
+            mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polarization * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polarization * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polarization * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polarization * (0.2 + (length(fragSize))), 0.001);
 
             outColor = vec4(vec3(1), mask);
         }

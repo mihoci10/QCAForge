@@ -7,6 +7,6 @@ export enum CellType{
 
 export interface Cell{
     type: CellType;
-    position: THREE.Vector2;
+    position: THREE.Vector3;
     polarization: number;
 }
