@@ -30,35 +30,38 @@ export class CellGeometry{
             const cell = cells[i];
 
             indeces[(i*6) + 0] = (i*4) + 0;
-            indeces[(i*6) + 1] = (i*4) + 1;
-            indeces[(i*6) + 2] = (i*4) + 2;
-            indeces[(i*6) + 3] = (i*4) + 2;
-            indeces[(i*6) + 4] = (i*4) + 3;
-            indeces[(i*6) + 5] = (i*4) + 0;
+            indeces[(i*6) + 1] = (i*4) + 2;
+            indeces[(i*6) + 2] = (i*4) + 1;
+            indeces[(i*6) + 3] = (i*4) + 1;
+            indeces[(i*6) + 4] = (i*4) + 2;
+            indeces[(i*6) + 5] = (i*4) + 3;
 
             let cnt = 0;
             for (let x = 0; x < posOffs.length; x++){
                 for (let y = 0; y < posOffs.length; y++){
-                    positionBuf[i*(4 + 3) + cnt + 0] = cell.position.x + posOffs[x]/2;
-                    positionBuf[i*(4 + 3) + cnt + 1] = cell.position.y + posOffs[y]/2;
-                    positionBuf[i*(4 + 3) + cnt + 2] = cell.position.z;
+                    positionBuf[i*(4 * 3) + cnt + 0] = cell.position.x + posOffs[x]/2;
+                    positionBuf[i*(4 * 3) + cnt + 1] = cell.position.y + posOffs[y]/2;
+                    positionBuf[i*(4 * 3) + cnt + 2] = cell.position.z;
                     cnt += 3;
                 }
-            }           
+            }          
             
             cnt = 0
             for (let x = 0; x < posOffs.length; x++){
                 for (let y = 0; y < posOffs.length; y++){
-                    localPositionBuf[i*(4 + 2) + cnt + 0] = posOffs[x];
-                    localPositionBuf[i*(4 + 2) + cnt + 1] = posOffs[y];
+                    localPositionBuf[i*(4 * 2) + cnt + 0] = posOffs[x];
+                    localPositionBuf[i*(4 * 2) + cnt + 1] = posOffs[y];
                     cnt += 2;
                 }
-            }           
+            }          
         }
 
-        this.positionAttribute.set(positionBuf);
-        this.localPositionAttribute.set(localPositionBuf)
+        console.log(positionBuf)
+        
+        this.positionAttribute = new THREE.BufferAttribute(positionBuf, 3);
+        this.localPositionAttribute = new THREE.BufferAttribute(localPositionBuf, 2);
 
+        this.geometry.instanceCount = cells.length;
         this.geometry.setIndex(indeces);
         this.geometry.setAttribute('position', this.positionAttribute)
         this.geometry.setAttribute('localPosition', this.localPositionAttribute)

@@ -4,7 +4,7 @@
     import CellMaterial from './CellMaterial';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { CellGeometry } from './CellGeometry';
-    import { CellType } from './Cell';
+    import { CellType, type Cell } from './Cell';
 
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
@@ -31,12 +31,19 @@
         cellMaterial = CellMaterial;
         cellGeometry = new CellGeometry();
 
-        cellGeometry.update([{type: CellType.Normal, polarization: 1, position: new THREE.Vector3(0, 0, 0)}])
+        let cells: Cell[] = [];
+        for (let i = 0; i < 100; i++) {
+            for (let j = 0; j < 100; j++) {
+                cells.push({type: CellType.Normal, polarization: 1, position: new THREE.Vector3(i, j, 0)})
+            }
+        }
+
+        cellGeometry.update(cells);
 
         cellMesh = new THREE.Mesh(cellGeometry.getGeometry(), cellMaterial);
 
         scene.add(cellMesh);
-        //scene.add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()))
+        
         cellMesh.position.x -= 0.5;
         cellMesh.position.y -= 0.5;
 
