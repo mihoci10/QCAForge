@@ -67,8 +67,11 @@ export class CellGeometry{
         console.log(positionBuf)
         
         this.positionAttribute = new THREE.BufferAttribute(positionBuf, 3);
+        this.positionAttribute.setUsage(THREE.StaticDrawUsage);
         this.localPositionAttribute = new THREE.BufferAttribute(localPositionBuf, 2);
+        this.localPositionAttribute.setUsage(THREE.StaticDrawUsage);
         this.polarizationAttribute = new THREE.BufferAttribute(polarizationBuf, 1);
+        this.polarizationAttribute.setUsage(THREE.StaticDrawUsage);
 
         this.geometry.instanceCount = cells.length;
         this.geometry.setIndex(indeces);
