@@ -6,16 +6,19 @@ export default new THREE.ShaderMaterial({
     vertexShader: 
     `
         attribute vec2 localPosition;
+        attribute float polarization;
 		varying vec2 localPos;
+        varying float polar;
         void main() {
             localPos = localPosition;
+            polar = polarization;
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
         }
     `,
     fragmentShader: 
     `
         varying vec2 localPos;
-        float polarization = 1.0f;
+        varying float polar;
         out vec4 outColor;
 
         float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
@@ -49,10 +52,10 @@ export default new THREE.ShaderMaterial({
             mask += HollowCircleMask(vec2(-0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
             mask += HollowCircleMask(vec2(-0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
 
-            mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polarization * (0.2 + (length(fragSize))), 0.001);
-            mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polarization * (0.2 + (length(fragSize))), 0.001);
-            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polarization * (0.2 + (length(fragSize))), 0.001);
-            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polarization * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.001);
 
             outColor = vec4(vec3(1), mask);
         }

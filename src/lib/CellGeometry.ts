@@ -6,6 +6,7 @@ export class CellGeometry{
 
     private positionAttribute: THREE.BufferAttribute;
     private localPositionAttribute: THREE.BufferAttribute;
+    private polarizationAttribute: THREE.BufferAttribute;
 
     constructor (){
         this.geometry = new THREE.InstancedBufferGeometry();
@@ -13,6 +14,7 @@ export class CellGeometry{
 
         this.positionAttribute = new THREE.BufferAttribute(new Float32Array(0), 3);
         this.localPositionAttribute = new THREE.BufferAttribute(new Float32Array(0), 2);
+        this.polarizationAttribute = new THREE.BufferAttribute(new Float32Array(0), 1);
     }
 
     getGeometry(): THREE.InstancedBufferGeometry{
@@ -23,6 +25,7 @@ export class CellGeometry{
         let indeces = new Array(cells.length * 6);
         let positionBuf = new Float32Array(cells.length * 4 * 3);
         let localPositionBuf = new Float32Array(cells.length * 4 * 2);
+        let polarizationBuf = new Float32Array(cells.length * 4);
 
         const posOffs = [-1, 1];
 
@@ -53,17 +56,24 @@ export class CellGeometry{
                     localPositionBuf[i*(4 * 2) + cnt + 1] = posOffs[y];
                     cnt += 2;
                 }
-            }          
+            }
+            
+            polarizationBuf[i*4 + 0] = cell.polarization;
+            polarizationBuf[i*4 + 1] = cell.polarization;
+            polarizationBuf[i*4 + 2] = cell.polarization;
+            polarizationBuf[i*4 + 3] = cell.polarization;
         }
 
         console.log(positionBuf)
         
         this.positionAttribute = new THREE.BufferAttribute(positionBuf, 3);
         this.localPositionAttribute = new THREE.BufferAttribute(localPositionBuf, 2);
+        this.polarizationAttribute = new THREE.BufferAttribute(polarizationBuf, 1);
 
         this.geometry.instanceCount = cells.length;
         this.geometry.setIndex(indeces);
-        this.geometry.setAttribute('position', this.positionAttribute)
-        this.geometry.setAttribute('localPosition', this.localPositionAttribute)
+        this.geometry.setAttribute('position', this.positionAttribute);
+        this.geometry.setAttribute('localPosition', this.localPositionAttribute);
+        this.geometry.setAttribute('polarization', this.polarizationAttribute);
     }
 }

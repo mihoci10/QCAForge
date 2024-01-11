@@ -20,7 +20,7 @@
         camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         camera.position.z += 1;
 
-        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer = new THREE.WebGLRenderer({antialias: true, powerPreference: 'high-performance'});
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
         renderer.setSize( window.innerWidth, window.innerHeight );
@@ -32,9 +32,9 @@
         cellGeometry = new CellGeometry();
 
         let cells: Cell[] = [];
-        for (let i = 0; i < 100; i++) {
-            for (let j = 0; j < 100; j++) {
-                cells.push({type: CellType.Normal, polarization: 1, position: new THREE.Vector3(i, j, 0)})
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < 10; j++) {
+                cells.push({type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
             }
         }
 
