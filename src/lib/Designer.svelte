@@ -64,5 +64,21 @@
 
 <svelte:window on:resize={() => windowResize()}/>
 
-<div id='canvas'/>
+<div id='canvas'>
+    <div class="toolbar"></div>
+</div>
 
+<style>
+    #canvas{
+        position: relative;
+    }
+    
+    .toolbar{
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 10%;
+        height: 100%;
+        background-color: aqua;
+    }
+</style>
