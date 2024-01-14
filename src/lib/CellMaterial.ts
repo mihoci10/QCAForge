@@ -47,15 +47,15 @@ export default new THREE.ShaderMaterial({
 
             float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
-            mask += HollowCircleMask(vec2(0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
-            mask += HollowCircleMask(vec2(0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
-            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
-            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.001);
+            mask += HollowCircleMask(vec2(0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
+            mask += HollowCircleMask(vec2(0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
+            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
+            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
 
-            mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.001);
-            mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.001);
-            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.001);
-            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.001);
+            mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.01);
+            mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.01);
+            mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.01);
+            mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.01);
 
             outColor = vec4(vec3(1), mask);
         }

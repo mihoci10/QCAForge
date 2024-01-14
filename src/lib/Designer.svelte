@@ -1,4 +1,5 @@
 <script lang="ts">
+	import {AppShell, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
     import { onMount } from 'svelte';
     import * as THREE from 'three'
     import CellMaterial from './CellMaterial';
@@ -14,6 +15,8 @@
     let cellMaterial: THREE.ShaderMaterial;
     let cellGeometry: CellGeometry;
     let cellMesh: THREE.Mesh;
+
+    let inputMode: number = 0;
 
     onMount(() => {
         scene = new THREE.Scene();
@@ -64,21 +67,15 @@
 
 <svelte:window on:resize={() => windowResize()}/>
 
-<div id='canvas'>
-    <div class="toolbar"></div>
+<div id='canvas' class="relative">
+    <div class="absolute top-2 left-1">
+        <AppRail width="w-8">
+            <AppRailTile bind:group={inputMode} name="tile-1" value={0} title="tile-1">
+                A
+            </AppRailTile>
+            <AppRailTile bind:group={inputMode} name="tile-2" value={1} title="tile-2">
+                B
+            </AppRailTile>
+        </AppRail>
+    </div>
 </div>
-
-<style>
-    #canvas{
-        position: relative;
-    }
-    
-    .toolbar{
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        width: 10%;
-        height: 100%;
-        background-color: aqua;
-    }
-</style>
