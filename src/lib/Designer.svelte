@@ -1,6 +1,10 @@
 <script lang="ts">
-	import {AppShell, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
+	import {AppRail, AppRailTile} from '@skeletonlabs/skeleton'
+    import Icon from '@iconify/svelte';
+    import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
+    import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
     import { onMount } from 'svelte';
+
     import * as THREE from 'three'
     import CellMaterial from './CellMaterial';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -71,10 +75,10 @@
     <div class="absolute top-2 left-1">
         <AppRail width="w-8">
             <AppRailTile bind:group={inputMode} name="tile-1" value={0} title="tile-1">
-                A
+                <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
             </AppRailTile>
             <AppRailTile bind:group={inputMode} name="tile-2" value={1} title="tile-2">
-                B
+                <Icon width={24} icon={addBoxOutline} style="margin: auto;"/>
             </AppRailTile>
         </AppRail>
     </div>
