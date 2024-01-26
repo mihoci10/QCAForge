@@ -3,58 +3,67 @@
     import Icon from '@iconify/svelte';
     import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
     import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
 
     import * as THREE from 'three'
-    import CellMaterial from './CellMaterial';
+    import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { CellGeometry } from './CellGeometry';
     import { CellType, type Cell } from './Cell';
+    import { CellScene } from './CellScene';
 
-    let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
 
-    let cellMaterial: THREE.ShaderMaterial;
+    let scene: CellScene;
     let cellGeometry: CellGeometry;
-    let cellMesh: THREE.Mesh;
+    let drawInstancedMesh: THREE.Mesh;
+    let pickInstancedMesh: THREE.Mesh;
 
     let inputMode: number = 0;
+    let mouseStartPos: THREE.Vector2|undefined;
 
     onMount(() => {
-        scene = new THREE.Scene();
+        scene = new CellScene();
         camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         camera.position.z += 1;
 
         renderer = new THREE.WebGLRenderer({antialias: true, powerPreference: 'high-performance'});
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.getElementById('canvas')?.appendChild(renderer.domElement);
 
         controls = new OrbitControls(camera, renderer.domElement);
 
-        cellMaterial = CellMaterial;
         cellGeometry = new CellGeometry();
 
+        let cnt = 0;
         let cells: Cell[] = [];
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
-                cells.push({type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
+                cells.push({id: cnt, type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
+                cnt++;
             }
         }
 
         cellGeometry.update(cells);
 
-        cellMesh = new THREE.Mesh(cellGeometry.getGeometry(), cellMaterial);
+        drawInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), DrawableCellMaterial);
+        pickInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), PickableCellMaterial);
 
-        scene.add(cellMesh);
-        
-        cellMesh.position.x -= 0.5;
-        cellMesh.position.y -= 0.5;
+        scene.addMesh(drawInstancedMesh, pickInstancedMesh);
 
         renderer.setAnimationLoop(render);
+    });
+
+    onDestroy(() => {
+        renderer.dispose();
+        cellGeometry.dispose();
+        DrawableCellMaterial.dispose();
+        PickableCellMaterial.dispose();
     });
 
     function windowResize(){
@@ -65,11 +74,57 @@
 
     function render(){
         controls.update();
-        renderer.render(scene, camera);
+        renderer.render(scene.getDrawCtx(), camera);
     }
+
+    function renderPickBuffer(x1: number, y1: number, x2: number, y2: number){
+        const width = Math.abs(x2 - x1);
+        const height = Math.abs(y2 - y1);
+        const pickingTexture = new THREE.WebGLRenderTarget( 
+            width, 
+            height, 
+            {
+                type: THREE.UnsignedIntType,
+                format: THREE.RGBAFormat,
+                internalFormat: 'RGBA32I',
+            } 
+        );
+
+        renderer.setRenderTarget(pickingTexture);
+        renderer.setClearColor(new THREE.Color(-1, -1, -1));
+        renderer.render(scene.getPickCtx(), camera);
+        renderer.setRenderTarget(null);
+
+        const pickingBuffer = new Int32Array(width * height * 4);
+        renderer.readRenderTargetPixels(
+            pickingTexture, 
+            Math.min(x1, x2), Math.min(y1, y2), 
+            width, height, 
+            pickingBuffer
+        );
+
+        return pickingBuffer;
+    }
+
+    function mouseDown(e: MouseEvent){
+        mouseStartPos = new THREE.Vector2(e.x, e.y);
+        console.log(mouseStartPos);
+    }
+
+    function mouseUp(e: MouseEvent){
+        //let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, e.x, e.y);
+        //console.log(result);
+        mouseStartPos = undefined;
+    }
+
+    function mouseMove(e: MouseEvent){
+        
+    }
+    
 </script>
 
-<svelte:window on:resize={() => windowResize()}/>
+<svelte:window 
+    on:resize={() => windowResize()}/>
 
 <div id='canvas' class="relative">
     <div class="absolute top-2 left-1">
