@@ -36,11 +36,15 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.getElementById('canvas')?.appendChild(renderer.domElement);
 
+        renderer.domElement.addEventListener('mousedown', mouseDown);
+        renderer.domElement.addEventListener('mousemove', mouseMove);
+        renderer.domElement.addEventListener('mouseup', mouseUp);
+
         controls = new OrbitControls(camera, renderer.domElement);
 
         cellGeometry = new CellGeometry();
 
-        let cnt = 0;
+        let cnt = 1;
         let cells: Cell[] = [];
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
@@ -67,6 +71,7 @@
     });
 
     function windowResize(){
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize( window.innerWidth, window.innerHeight );
         camera.aspect = window.innerWidth / window.innerHeight; 
         camera.updateProjectionMatrix();
@@ -74,8 +79,9 @@
 
     function render(){
         controls.update();
+        renderer.setRenderTarget(null);
         renderer.render(scene.getDrawCtx(), camera);
-    }
+    }   
 
     function renderPickBuffer(x1: number, y1: number, x2: number, y2: number){
         const width = Math.abs(x2 - x1);
@@ -84,18 +90,18 @@
             width, 
             height, 
             {
-                type: THREE.UnsignedIntType,
+                minFilter: THREE.NearestFilter,
+                magFilter: THREE.NearestFilter,
                 format: THREE.RGBAFormat,
-                internalFormat: 'RGBA32I',
+                colorSpace: THREE.LinearSRGBColorSpace
             } 
         );
 
         renderer.setRenderTarget(pickingTexture);
         renderer.setClearColor(new THREE.Color(-1, -1, -1));
         renderer.render(scene.getPickCtx(), camera);
-        renderer.setRenderTarget(null);
-
-        const pickingBuffer = new Int32Array(width * height * 4);
+        
+        const pickingBuffer = new Uint8Array(pickingTexture.width * pickingTexture.height * 4);
         renderer.readRenderTargetPixels(
             pickingTexture, 
             Math.min(x1, x2), Math.min(y1, y2), 
@@ -107,13 +113,19 @@
     }
 
     function mouseDown(e: MouseEvent){
-        mouseStartPos = new THREE.Vector2(e.x, e.y);
+        var bounds = renderer.domElement.getBoundingClientRect();
+        const relX = e.x - bounds.left;
+        const relY = e.y - bounds.top;
+        mouseStartPos = new THREE.Vector2(relX, relY);
         console.log(mouseStartPos);
     }
 
     function mouseUp(e: MouseEvent){
-        //let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, e.x, e.y);
-        //console.log(result);
+        var bounds = renderer.domElement.getBoundingClientRect();
+        const relX = e.x - bounds.left;
+        const relY = e.y - bounds.top;
+        let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, relX, relY);
+        console.log(result);
         mouseStartPos = undefined;
     }
 
@@ -123,8 +135,7 @@
     
 </script>
 
-<svelte:window 
-    on:resize={() => windowResize()}/>
+<svelte:window on:resize={() => windowResize()}/>
 
 <div id='canvas' class="relative">
     <div class="absolute top-2 left-1">

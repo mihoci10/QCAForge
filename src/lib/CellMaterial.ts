@@ -68,7 +68,7 @@ flat varying int cellId;
 out vec4 outColor;
 
 void main() {
-    outColor = vec4(cellId, 0, 0, 255);
+    outColor = vec4(cellId);
 }
 `
 
