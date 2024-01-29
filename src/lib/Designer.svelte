@@ -84,16 +84,15 @@
     }   
 
     function renderPickBuffer(x1: number, y1: number, x2: number, y2: number){
-        const width = Math.abs(x2 - x1);
-        const height = Math.abs(y2 - y1);
+        const width = Math.max(Math.abs(x2 - x1), 2);
+        const height = Math.max(Math.abs(y2 - y1), 2);
         const pickingTexture = new THREE.WebGLRenderTarget( 
-            width, 
-            height, 
+            renderer.domElement.width, 
+            renderer.domElement.height, 
             {
-                minFilter: THREE.NearestFilter,
-                magFilter: THREE.NearestFilter,
-                format: THREE.RGBAFormat,
-                colorSpace: THREE.LinearSRGBColorSpace
+                type: THREE.IntType,
+                format: THREE.RGBAIntegerFormat,
+                internalFormat: 'RGBA32I',
             } 
         );
 
@@ -101,11 +100,12 @@
         renderer.setClearColor(new THREE.Color(-1, -1, -1));
         renderer.render(scene.getPickCtx(), camera);
         
-        const pickingBuffer = new Uint8Array(pickingTexture.width * pickingTexture.height * 4);
+        const pickingBuffer = new Int32Array(width * height);
+        console.log(width, height)
         renderer.readRenderTargetPixels(
             pickingTexture, 
-            Math.min(x1, x2), Math.min(y1, y2), 
-            width, height, 
+            Math.min(x1, x2), renderer.domElement.height - Math.min(y1, y2), 
+            width - 1, height - 1, 
             pickingBuffer
         );
 

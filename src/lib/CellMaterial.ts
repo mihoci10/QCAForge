@@ -65,10 +65,10 @@ const pickableFragmentSrc = `
 varying vec2 localPos;
 varying float polar;
 flat varying int cellId;
-out vec4 outColor;
+out int out_id;
 
 void main() {
-    outColor = vec4(cellId);
+    out_id = cellId;
 }
 `
 
