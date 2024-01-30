@@ -122,7 +122,7 @@
         console.log(width, height)
         renderer.readRenderTargetPixels(
             pickingTexture, 
-            Math.min(x1, x2), renderer.domElement.height - Math.min(y1, y2), 
+            Math.min(x1, x2), renderer.domElement.height - Math.max(y1, y2), 
             width, height, 
             pickingBuffer
         );
