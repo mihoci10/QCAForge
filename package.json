@@ -33,6 +33,7 @@
   },
   "type": "module",
   "dependencies": {
+    "stats.js": "^0.17.0",
     "three": "^0.160.0"
   }
 }

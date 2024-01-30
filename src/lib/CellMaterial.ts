@@ -76,10 +76,12 @@ export let DrawableCellMaterial = new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
     fragmentShader: drawableFragmentSrc,
+    transparent: false,
 });
 
 export let PickableCellMaterial = new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
     fragmentShader: pickableFragmentSrc,
+    transparent: false,
 });

@@ -4,6 +4,7 @@
     import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
     import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
     import { onDestroy, onMount } from 'svelte';
+    import Stats from 'stats.js'
 
     import * as THREE from 'three'
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
@@ -21,30 +22,40 @@
     let drawInstancedMesh: THREE.Mesh;
     let pickInstancedMesh: THREE.Mesh;
 
+    let stats: Stats;
+    let statsDrawCall: Stats.Panel;
+
     let inputMode: number = 0;
     let mouseStartPos: THREE.Vector2|undefined;
+    let selectedCells: number[] = [];
 
     onMount(() => {
         scene = new CellScene();
         camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         camera.position.z += 1;
 
-        renderer = new THREE.WebGLRenderer({antialias: true, powerPreference: 'high-performance'});
+        renderer = new THREE.WebGLRenderer();
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        //renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.getElementById('canvas')?.appendChild(renderer.domElement);
+
+        stats = new Stats();
+        document.body.appendChild(stats.dom)
+        statsDrawCall = stats.addPanel(new Stats.Panel('Draw calls', '#ff8', '#221'));
+        stats.showPanel(0);
 
         renderer.domElement.addEventListener('mousedown', mouseDown);
         renderer.domElement.addEventListener('mousemove', mouseMove);
         renderer.domElement.addEventListener('mouseup', mouseUp);
 
         controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableRotate = false;
 
         cellGeometry = new CellGeometry();
 
-        let cnt = 1;
+        let cnt = 0;
         let cells: Cell[] = [];
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
@@ -56,7 +67,9 @@
         cellGeometry.update(cells);
 
         drawInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), DrawableCellMaterial);
+        drawInstancedMesh.matrixAutoUpdate = false;
         pickInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), PickableCellMaterial);
+        pickInstancedMesh.matrixAutoUpdate = false;
 
         scene.addMesh(drawInstancedMesh, pickInstancedMesh);
 
@@ -71,7 +84,7 @@
     });
 
     function windowResize(){
-        renderer.setPixelRatio(window.devicePixelRatio);
+        //renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize( window.innerWidth, window.innerHeight );
         camera.aspect = window.innerWidth / window.innerHeight; 
         camera.updateProjectionMatrix();
@@ -80,12 +93,16 @@
     function render(){
         controls.update();
         renderer.setRenderTarget(null);
+        stats.begin();
         renderer.render(scene.getDrawCtx(), camera);
+        stats.end();
+
+        statsDrawCall.update(renderer.info.render.calls, 10);
     }   
 
     function renderPickBuffer(x1: number, y1: number, x2: number, y2: number){
-        const width = Math.max(Math.abs(x2 - x1), 2);
-        const height = Math.max(Math.abs(y2 - y1), 2);
+        const width = Math.max(Math.abs(x2 - x1), 1);
+        const height = Math.max(Math.abs(y2 - y1), 1);
         const pickingTexture = new THREE.WebGLRenderTarget( 
             renderer.domElement.width, 
             renderer.domElement.height, 
@@ -100,12 +117,12 @@
         renderer.setClearColor(new THREE.Color(-1, -1, -1));
         renderer.render(scene.getPickCtx(), camera);
         
-        const pickingBuffer = new Int32Array(width * height);
+        const pickingBuffer = new Int32Array(width * height * 4);
         console.log(width, height)
         renderer.readRenderTargetPixels(
             pickingTexture, 
             Math.min(x1, x2), renderer.domElement.height - Math.min(y1, y2), 
-            width - 1, height - 1, 
+            width, height, 
             pickingBuffer
         );
 
@@ -124,8 +141,16 @@
         var bounds = renderer.domElement.getBoundingClientRect();
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
+
+        selectedCells.length = 0;
         let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, relX, relY);
-        console.log(result);
+        for (let i = 0; i < result.length/4; i++) {
+            const id = result[i*4];
+            if (id >= 0)
+                selectedCells.push(id);
+        }
+        cellGeometry.update()
+        
         mouseStartPos = undefined;
     }
 

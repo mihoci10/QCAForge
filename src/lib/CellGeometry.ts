@@ -7,7 +7,7 @@ export class CellGeometry{
     private positionAttribute: THREE.BufferAttribute;
     private localPositionAttribute: THREE.BufferAttribute;
     private polarizationAttribute: THREE.BufferAttribute;
-    private idAttribute: THREE.BufferAttribute;
+    private metaAttribute: THREE.BufferAttribute;
 
     constructor (){
         this.geometry = new THREE.InstancedBufferGeometry();
@@ -16,7 +16,7 @@ export class CellGeometry{
         this.positionAttribute = new THREE.BufferAttribute(new Float32Array(0), 3);
         this.localPositionAttribute = new THREE.BufferAttribute(new Float32Array(0), 2);
         this.polarizationAttribute = new THREE.BufferAttribute(new Float32Array(0), 1);
-        this.idAttribute = new THREE.BufferAttribute(new Int32Array(0), 1);
+        this.metaAttribute = new THREE.BufferAttribute(new Int32Array(0), 1);
     }
 
     getGeometry(): THREE.InstancedBufferGeometry{
@@ -27,12 +27,18 @@ export class CellGeometry{
         this.geometry.dispose();
     }
 
-    update(cells: Cell[]){
+    _getCellMetadata(cell: Cell): number{
+        let result = 0;
+        result = cell.id << 16;
+        return result;
+    }
+
+    update(cells: Cell[], selected: ){
         let indeces = new Array(cells.length * 6);
         let positionBuf = new Float32Array(cells.length * 4 * 3);
         let localPositionBuf = new Float32Array(cells.length * 4 * 2);
         let polarizationBuf = new Float32Array(cells.length * 4);
-        let idBuf = new Int32Array(cells.length * 4);
+        let metaBuff = new Int32Array(cells.length * 4);
 
         const posOffs = [-1, 1];
 
@@ -70,10 +76,12 @@ export class CellGeometry{
             polarizationBuf[i*4 + 2] = cell.polarization;
             polarizationBuf[i*4 + 3] = cell.polarization;
 
-            idBuf[i*4 + 0] = cell.id;
-            idBuf[i*4 + 1] = cell.id;
-            idBuf[i*4 + 2] = cell.id;
-            idBuf[i*4 + 3] = cell.id;
+            let metadata = this._getCellMetadata(cell);
+
+            metaBuff[i*4 + 0] = metadata;
+            metaBuff[i*4 + 1] = metadata;
+            metaBuff[i*4 + 2] = metadata;
+            metaBuff[i*4 + 3] = metadata;
         }
         
         this.positionAttribute = new THREE.BufferAttribute(positionBuf, 3);
@@ -82,14 +90,14 @@ export class CellGeometry{
         this.localPositionAttribute.setUsage(THREE.StaticDrawUsage);
         this.polarizationAttribute = new THREE.BufferAttribute(polarizationBuf, 1);
         this.polarizationAttribute.setUsage(THREE.StaticDrawUsage);
-        this.idAttribute = new THREE.BufferAttribute(idBuf, 1);
-        this.idAttribute.setUsage(THREE.StaticDrawUsage);
+        this.metaAttribute = new THREE.BufferAttribute(metaBuff, 1);
+        this.metaAttribute.setUsage(THREE.StaticDrawUsage);
 
         this.geometry.instanceCount = cells.length;
         this.geometry.setIndex(indeces);
         this.geometry.setAttribute('position', this.positionAttribute);
         this.geometry.setAttribute('localPosition', this.localPositionAttribute);
         this.geometry.setAttribute('polarization', this.polarizationAttribute);
-        this.geometry.setAttribute('inId', this.idAttribute);
+        this.geometry.setAttribute('inId', this.metaAttribute);
     }
 }
