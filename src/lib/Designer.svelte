@@ -27,7 +27,9 @@
 
     let inputMode: number = 0;
     let mouseStartPos: THREE.Vector2|undefined;
-    let selectedCells: number[] = [];
+
+    let cells: Cell[] = [];
+    let selectedCells: Set<number> = new Set<number>();
 
     onMount(() => {
         scene = new CellScene();
@@ -56,7 +58,6 @@
         cellGeometry = new CellGeometry();
 
         let cnt = 0;
-        let cells: Cell[] = [];
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
                 cells.push({id: cnt, type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
@@ -64,7 +65,7 @@
             }
         }
 
-        cellGeometry.update(cells);
+        cellGeometry.update(cells, selectedCells);
 
         drawInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), DrawableCellMaterial);
         drawInstancedMesh.matrixAutoUpdate = false;
@@ -142,14 +143,15 @@
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
 
-        selectedCells.length = 0;
+        selectedCells.clear();
         let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, relX, relY);
         for (let i = 0; i < result.length/4; i++) {
             const id = result[i*4];
             if (id >= 0)
-                selectedCells.push(id);
+                selectedCells.add(id);
         }
-        cellGeometry.update()
+
+        cellGeometry.update(cells, selectedCells);
         
         mouseStartPos = undefined;
     }

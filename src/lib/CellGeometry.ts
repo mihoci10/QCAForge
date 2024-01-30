@@ -27,13 +27,15 @@ export class CellGeometry{
         this.geometry.dispose();
     }
 
-    _getCellMetadata(cell: Cell): number{
+    _getCellMetadata(cell: Cell, selected: boolean): number{
         let result = 0;
         result = cell.id << 16;
+        if (selected)
+            result |= (0b1000000);
         return result;
     }
 
-    update(cells: Cell[], selected: ){
+    update(cells: Cell[], selectedCells: Set<number>){
         let indeces = new Array(cells.length * 6);
         let positionBuf = new Float32Array(cells.length * 4 * 3);
         let localPositionBuf = new Float32Array(cells.length * 4 * 2);
@@ -76,7 +78,7 @@ export class CellGeometry{
             polarizationBuf[i*4 + 2] = cell.polarization;
             polarizationBuf[i*4 + 3] = cell.polarization;
 
-            let metadata = this._getCellMetadata(cell);
+            let metadata = this._getCellMetadata(cell, selectedCells.has(cell.id));
 
             metaBuff[i*4 + 0] = metadata;
             metaBuff[i*4 + 1] = metadata;
@@ -98,6 +100,6 @@ export class CellGeometry{
         this.geometry.setAttribute('position', this.positionAttribute);
         this.geometry.setAttribute('localPosition', this.localPositionAttribute);
         this.geometry.setAttribute('polarization', this.polarizationAttribute);
-        this.geometry.setAttribute('inId', this.metaAttribute);
+        this.geometry.setAttribute('inMetadata', this.metaAttribute);
     }
 }

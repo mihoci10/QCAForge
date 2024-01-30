@@ -3,14 +3,14 @@ import * as THREE from 'three'
 const commonVertexSrc = `
 attribute vec2 localPosition;
 attribute float polarization;
-attribute int inId;
+attribute int inMetadata;
 varying vec2 localPos;
 varying float polar;
-flat varying int cellId;
+flat varying int metadata;
 void main() {
     localPos = localPosition;
     polar = polarization;
-    cellId = inId;
+    metadata = inMetadata;
     gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 }
 `
@@ -18,7 +18,7 @@ void main() {
 const drawableFragmentSrc = `
 varying vec2 localPos;
 varying float polar;
-flat varying int cellId;
+flat varying int metadata;
 out vec4 outColor;
 
 float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
@@ -44,6 +44,7 @@ float HollowCircleMask(vec2 pos, float radiusStart, float radiusStop, float fade
 
 void main() {
     vec2 fragSize = fwidth(localPos);
+    bool selected = bool(metadata & (1 << 6));
 
     float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
@@ -57,18 +58,21 @@ void main() {
     mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.01);
     mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.01);
 
-    outColor = vec4(vec3(mask), 1);
+    if (selected)
+        outColor = vec4(mask, 0, 0, 1);
+    else
+        outColor = vec4(vec3(mask), 1);
 }
 `
 
 const pickableFragmentSrc = `
 varying vec2 localPos;
 varying float polar;
-flat varying int cellId;
+flat varying int metadata;
 out int out_id;
 
 void main() {
-    out_id = cellId;
+    out_id = metadata >> 16;
 }
 `
 
