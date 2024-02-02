@@ -9,9 +9,16 @@ export class CellScene{
         this.pickScene = new THREE.Scene();
     }
 
-    addMesh(drawMesh: THREE.Mesh, pickMesh: THREE.Mesh): void{
+    addMesh(drawMesh: THREE.Mesh, pickMesh: THREE.Mesh|undefined): void{
         this.drawScene.add(drawMesh);
-        this.pickScene.add(pickMesh);
+        if (pickMesh != undefined)
+            this.pickScene.add(pickMesh);
+    }
+
+    removeMesh(drawMesh: THREE.Mesh, pickMesh: THREE.Mesh|undefined): void{
+        this.drawScene.remove(drawMesh);
+        if (pickMesh != undefined)
+            this.pickScene.remove(pickMesh);
     }
 
     getDrawCtx(): THREE.Scene{

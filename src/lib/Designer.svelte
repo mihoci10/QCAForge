@@ -22,10 +22,14 @@
     let drawInstancedMesh: THREE.Mesh;
     let pickInstancedMesh: THREE.Mesh;
 
+    let ghostGeometry: CellGeometry;
+    let ghostMesh: THREE.Mesh;
+
     let stats: Stats;
     let statsDrawCall: Stats.Panel;
 
-    let inputMode: number = 0;
+    let inputModeIdx: number = -1;
+    $: inputMode = inputModeChanged(inputModeIdx);
     let mouseStartPos: THREE.Vector2|undefined;
 
     let cells: Cell[] = [];
@@ -56,16 +60,17 @@
         controls.enableRotate = false;
 
         cellGeometry = new CellGeometry();
+        ghostGeometry = new CellGeometry();
 
         let cnt = 0;
-        for (let i = 0; i < 10; i++) {
-            for (let j = 0; j < 10; j++) {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
                 cells.push({id: cnt, type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
                 cnt++;
             }
         }
 
-        cellGeometry.update(cells, selectedCells);
+        cellGeometry.update(cells, selectedCells, false);
 
         drawInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), DrawableCellMaterial);
         drawInstancedMesh.matrixAutoUpdate = false;
@@ -80,6 +85,7 @@
     onDestroy(() => {
         renderer.dispose();
         cellGeometry.dispose();
+        ghostGeometry.dispose();
         DrawableCellMaterial.dispose();
         PickableCellMaterial.dispose();
     });
@@ -130,6 +136,18 @@
         return pickingBuffer;
     }
 
+    function createGhostMesh(){
+        ghostGeometry.update([{id: 0, polarization: 0, position: new THREE.Vector3(0, 0, 0), type: CellType.Normal}], new Set(), true);
+        ghostMesh = new THREE.Mesh(ghostGeometry.getGeometry(), DrawableCellMaterial);
+        scene.addMesh(ghostMesh, undefined);
+    }
+
+    function removeGhostMesh(){
+        ghostGeometry.update([], new Set(), true);
+        if (ghostMesh != undefined)
+            scene.removeMesh(ghostMesh, undefined);
+    }
+
     function mouseDown(e: MouseEvent){
         var bounds = renderer.domElement.getBoundingClientRect();
         const relX = e.x - bounds.left;
@@ -151,13 +169,40 @@
                 selectedCells.add(id);
         }
 
-        cellGeometry.update(cells, selectedCells);
+        cellGeometry.update(cells, selectedCells, false);
         
         mouseStartPos = undefined;
     }
 
     function mouseMove(e: MouseEvent){
         
+    }
+
+    function inputModeChanged(newInputModeIdx: number){
+        let oldInputMode = inputMode;
+        let newInputMode = newInputModeIdx;
+        console.log(oldInputMode);
+        console.log(newInputMode);
+
+        switch (oldInputMode){
+            case 0: {
+
+            }
+            case 1: {
+                removeGhostMesh();
+            }
+        }
+
+        switch (newInputMode){
+            case 0: {
+
+            }
+            case 1: {
+                createGhostMesh();
+            }
+        }
+
+        return newInputMode;
     }
     
 </script>
