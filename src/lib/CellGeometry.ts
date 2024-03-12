@@ -27,9 +27,9 @@ export class CellGeometry{
         this.geometry.dispose();
     }
 
-    _getCellMetadata(cell: Cell, selected: boolean, ghosted: boolean): number{
+    _getCellMetadata(id: number, selected: boolean, ghosted: boolean): number{
         let result = 0;
-        result = cell.id << 16;
+        result = id << 16;
         if (selected)
             result |= (0b1000000);
         if (ghosted)
@@ -80,7 +80,7 @@ export class CellGeometry{
             polarizationBuf[i*4 + 2] = cell.polarization;
             polarizationBuf[i*4 + 3] = cell.polarization;
 
-            let metadata = this._getCellMetadata(cell, selectedCells.has(cell.id), ghostMode);
+            let metadata = this._getCellMetadata(i, selectedCells.has(i), ghostMode);
 
             metaBuff[i*4 + 0] = metadata;
             metaBuff[i*4 + 1] = metadata;

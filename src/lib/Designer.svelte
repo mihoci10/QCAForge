@@ -65,7 +65,7 @@
         let cnt = 0;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
-                cells.push({id: cnt, type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
+                cells.push({type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
                 cnt++;
             }
         }
@@ -137,7 +137,7 @@
     }
 
     function createGhostMesh(){
-        ghostGeometry.update([{id: 0, polarization: 0, position: new THREE.Vector3(0, 0, 0), type: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{polarization: 0, position: new THREE.Vector3(0, 0, 0), type: CellType.Normal}], new Set(), true);
         ghostMesh = new THREE.Mesh(ghostGeometry.getGeometry(), DrawableCellMaterial);
         scene.addMesh(ghostMesh, undefined);
     }
