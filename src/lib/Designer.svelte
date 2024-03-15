@@ -28,7 +28,7 @@
     let stats: Stats;
     let statsDrawCall: Stats.Panel;
 
-    let inputModeIdx: number = -1;
+    let inputModeIdx: number = 0;
     $: inputMode = inputModeChanged(inputModeIdx);
     let mouseStartPos: THREE.Vector2|undefined;
 
@@ -175,30 +175,51 @@
     }
 
     function mouseMove(e: MouseEvent){
-        
+        const mousePos = new THREE.Vector3(( e.clientX / window.innerWidth ) * 2 - 1,
+        - ( e.clientY / window.innerHeight ) * 2 + 1,
+        0);
+
+        var tempVec = mousePos.unproject(camera);
+
+        var planeNormal = new THREE.Vector3(0, 0, 1).normalize();
+        var plane = new THREE.Plane(planeNormal);
+
+        tempVec.sub(camera.position);
+        tempVec.normalize();
+        var vectorOrigin = camera.position;
+        var vector = new THREE.Ray(vectorOrigin, tempVec);
+
+        var intersectionPoint = new THREE.Vector3();
+        vector.intersectPlane(plane, intersectionPoint);
+
+        console.log(e.clientX );
+
+        if (inputMode == 1){
+            ghostGeometry.update([{id: 0, polarization: 0, position: intersectionPoint, type: CellType.Normal}], new Set(), true);
+        }
     }
 
     function inputModeChanged(newInputModeIdx: number){
         let oldInputMode = inputMode;
         let newInputMode = newInputModeIdx;
-        console.log(oldInputMode);
-        console.log(newInputMode);
 
         switch (oldInputMode){
             case 0: {
-
+                break;
             }
             case 1: {
                 removeGhostMesh();
+                break;
             }
         }
 
         switch (newInputMode){
             case 0: {
-
+                break;
             }
             case 1: {
                 createGhostMesh();
+                break;
             }
         }
 
@@ -212,10 +233,10 @@
 <div id='canvas' class="relative">
     <div class="absolute top-2 left-1">
         <AppRail width="w-8">
-            <AppRailTile bind:group={inputMode} name="tile-1" value={0} title="tile-1">
+            <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
                 <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
             </AppRailTile>
-            <AppRailTile bind:group={inputMode} name="tile-2" value={1} title="tile-2">
+            <AppRailTile bind:group={inputModeIdx} name="tile-2" value={1} title="tile-2">
                 <Icon width={24} icon={addBoxOutline} style="margin: auto;"/>
             </AppRailTile>
         </AppRail>

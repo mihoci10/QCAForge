@@ -4,7 +4,7 @@
 </script>
 
 <AppShell>
-	<svelte:fragment slot="sidebarLeft">
+	<!-- <svelte:fragment slot="sidebarLeft">
 		<AppRail>
 			<AppRailTile group="" name="tile-1" value={0} title="tile-1">
 				Item 1
@@ -13,7 +13,7 @@
 				Item 2
 			</AppRailTile>
 		</AppRail>
-	</svelte:fragment>
+	</svelte:fragment> -->
 
 	<slot />
 </AppShell>
