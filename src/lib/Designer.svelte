@@ -175,8 +175,17 @@
     }
 
     function mouseMove(e: MouseEvent){
-        const mousePos = new THREE.Vector3(( e.clientX / window.innerWidth ) * 2 - 1,
-        - ( e.clientY / window.innerHeight ) * 2 + 1,
+        var bounds = renderer.domElement.getBoundingClientRect();
+        const relX = e.x - bounds.left;
+        const relY = e.y - bounds.top;
+        if (inputMode == 1){
+            repositionGhostMesh(relX, relY);
+        }
+    }
+
+    function repositionGhostMesh(mouse_x: number, mouse_y: number){
+        const mousePos = new THREE.Vector3(( mouse_x / window.innerWidth ) * 2 - 1,
+        - ( mouse_y / window.innerHeight ) * 2 + 1,
         0);
 
         var tempVec = mousePos.unproject(camera);
@@ -192,11 +201,7 @@
         var intersectionPoint = new THREE.Vector3();
         vector.intersectPlane(plane, intersectionPoint);
 
-        console.log(e.clientX );
-
-        if (inputMode == 1){
-            ghostGeometry.update([{id: 0, polarization: 0, position: intersectionPoint, type: CellType.Normal}], new Set(), true);
-        }
+        ghostGeometry.update([{polarization: 0, position: intersectionPoint, type: CellType.Normal}], new Set(), true);
     }
 
     function inputModeChanged(newInputModeIdx: number){
