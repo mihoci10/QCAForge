@@ -152,17 +152,37 @@
         var bounds = renderer.domElement.getBoundingClientRect();
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
-        mouseStartPos = new THREE.Vector2(relX, relY);
-        console.log(mouseStartPos);
+
+        if (e.button == 0)
+            startSelectRegion(relX, relY);
     }
 
     function mouseUp(e: MouseEvent){
         var bounds = renderer.domElement.getBoundingClientRect();
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
+        
+        if (e.button == 0)
+            endSelectRegion(relX, relY);
+    }
 
+    function mouseMove(e: MouseEvent){
+        var bounds = renderer.domElement.getBoundingClientRect();
+        const relX = e.x - bounds.left;
+        const relY = e.y - bounds.top;
+
+        if (inputMode == 1){
+            repositionGhostMesh(relX, relY);
+        }
+    }
+
+    function startSelectRegion(mouse_x: number, mouse_y: number){
+        mouseStartPos = new THREE.Vector2(mouse_x, mouse_y);
+    }
+
+    function endSelectRegion(mouse_x: number, mouse_y: number){
         selectedCells.clear();
-        let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, relX, relY);
+        let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
         for (let i = 0; i < result.length/4; i++) {
             const id = result[i*4];
             if (id >= 0)
@@ -172,15 +192,6 @@
         cellGeometry.update(cells, selectedCells, false);
         
         mouseStartPos = undefined;
-    }
-
-    function mouseMove(e: MouseEvent){
-        var bounds = renderer.domElement.getBoundingClientRect();
-        const relX = e.x - bounds.left;
-        const relY = e.y - bounds.top;
-        if (inputMode == 1){
-            repositionGhostMesh(relX, relY);
-        }
     }
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
