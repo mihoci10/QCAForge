@@ -5,7 +5,7 @@
 
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail>
+		<AppRail width="w-10"> 
 			<AppRailTile group="" name="tile-1" value={0} title="tile-1">
 				Item 1
 			</AppRailTile>

@@ -44,11 +44,11 @@
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
         //renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize( window.innerWidth, window.innerHeight);
         document.getElementById('canvas')?.appendChild(renderer.domElement);
 
         stats = new Stats();
-        document.body.appendChild(stats.dom)
+        renderer.domElement.appendChild(stats.dom)
         statsDrawCall = stats.addPanel(new Stats.Panel('Draw calls', '#ff8', '#221'));
         stats.showPanel(0);
 
@@ -153,8 +153,10 @@
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
 
-        if (e.button == 0)
-            startSelectRegion(relX, relY);
+        if (inputMode == 0){
+            if (e.button == 0)
+                startSelectRegion(relX, relY);
+        }
     }
 
     function mouseUp(e: MouseEvent){
@@ -162,8 +164,10 @@
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
         
-        if (e.button == 0)
-            endSelectRegion(relX, relY);
+        if (inputMode == 0){
+            if (e.button == 0)
+                endSelectRegion(relX, relY);
+        }
     }
 
     function mouseMove(e: MouseEvent){

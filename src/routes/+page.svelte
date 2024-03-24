@@ -1,5 +1,5 @@
 <script>
-	import Designer from "$lib/Designer.svelte";
+	import Simulation from "$lib/Simulation.svelte";
 </script>
 
-<Designer/>
+<Simulation/>
