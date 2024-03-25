@@ -66,6 +66,7 @@ checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "qca-core",
  "serde",
  "serde_json",
  "tauri",
@@ -1989,6 +1990,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "134c189feb4956b20f6f547d2cf727d4c0fe06722b20a0eec87ed445a97f92da"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "qca-core"
+version = "0.1.0"
+source = "git+https://github.com/mihoci10/QCASim.git#6ad910ba2e91fcdc92893807cb1a5f708accc48d"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

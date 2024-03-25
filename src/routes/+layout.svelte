@@ -1,7 +1,18 @@
 <script lang="ts">
 	import '../app.postcss';
-	import {AppShell, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
+	import {AppShell, AppRail, AppRailTile, Modal, type ModalComponent} from '@skeletonlabs/skeleton'
+
+	import SimModelOptions from '$lib/SimModelOptions.svelte';
+	import { initializeStores } from '@skeletonlabs/skeleton';
+
+	initializeStores();
+	
+	const modalRegistry: Record<string, ModalComponent> = {
+		simModelOptions: { ref: SimModelOptions },
+	};
 </script>
+
+<Modal components={modalRegistry}/>
 
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">
