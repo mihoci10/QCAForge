@@ -16,6 +16,8 @@
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
+    let container: HTMLElement; 
+    let canvas: HTMLCanvasElement;
 
     let scene: CellScene;
     let cellGeometry: CellGeometry;
@@ -37,15 +39,15 @@
 
     onMount(() => {
         scene = new CellScene();
-        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
         camera.position.z += 1;
 
-        renderer = new THREE.WebGLRenderer();
+        renderer = new THREE.WebGLRenderer({canvas: canvas});
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
         //renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize( window.innerWidth, window.innerHeight);
-        document.getElementById('canvas')?.appendChild(renderer.domElement);
+
+        windowResize();
 
         stats = new Stats();
         renderer.domElement.appendChild(stats.dom)
@@ -92,8 +94,9 @@
 
     function windowResize(){
         //renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        camera.aspect = window.innerWidth / window.innerHeight; 
+        renderer.setSize( container.clientWidth, container.clientHeight, false);
+        renderer.domElement.className += " flex";
+        camera.aspect = container.clientWidth / container.clientHeight; 
         camera.updateProjectionMatrix();
     }
 
@@ -199,8 +202,8 @@
     }
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
-        const mousePos = new THREE.Vector3(( mouse_x / window.innerWidth ) * 2 - 1,
-        - ( mouse_y / window.innerHeight ) * 2 + 1,
+        const mousePos = new THREE.Vector3(( mouse_x / container.clientWidth ) * 2 - 1,
+        - ( mouse_y / container.clientHeight ) * 2 + 1,
         0);
 
         var tempVec = mousePos.unproject(camera);
@@ -250,8 +253,8 @@
 
 <svelte:window on:resize={() => windowResize()}/>
 
-<div id='canvas' class="relative">
-    <div class="absolute top-2 left-1">
+<div id='canvas' class="relative flex flex-auto" bind:this={container}>
+    <div class="absolute top-2 left-1 z-10">
         <AppRail width="w-8">
             <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
                 <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
@@ -261,4 +264,5 @@
             </AppRailTile>
         </AppRail>
     </div>
+    <canvas bind:this={canvas} class="absolute z-0"/>
 </div>
