@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Designer from "$lib/Designer.svelte";
     import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+    import { invoke } from '@tauri-apps/api/tauri';
 
     const modalStore = getModalStore();
 
@@ -11,6 +12,10 @@
         };
         modalStore.trigger(modal);
     }
+
+    invoke('get_sim_models').then((res) => {
+        console.log(res);
+    })
 </script>
 
 <div class="h-screen flex flex-col">

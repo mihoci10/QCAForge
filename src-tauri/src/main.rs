@@ -29,7 +29,9 @@ fn main() {
 
 #[tauri::command]
 fn get_sim_models(state: State<SimulationModels>) -> String {
+  format!("{}{}{}", "[", 
   state.model_list.lock().unwrap().iter().map(|model| {
-    "model".to_string()
-  }).collect()
+    format!("\"{}\"", model.get_name())
+  }).collect::<Vec<String>>().join(","),
+   "]")
 }
