@@ -9,24 +9,28 @@
         const modal: ModalSettings = {
             type: 'component',
             component: 'simModelOptions',
+            title: `${selected_model} settings`,
+            meta: {sim_model_id: selected_model}
         };
         modalStore.trigger(modal);
     }
 
+    let selected_model: string | undefined;
+    let sim_models: string[] = [];
+
     invoke('get_sim_models').then((res) => {
-        console.log(res);
-    })
+        let o = JSON.parse(res as string);
+        sim_models = o;
+    });
 </script>
 
 <div class="h-screen flex flex-col">
     <div class="flex flex-row">
         <span class="mx-2 my-auto">Simulation model</span>
-        <select class="select w-48">
-            <option value="1">Option 1</option>
-            <option value="2">Option 2</option>
-            <option value="3">Option 3</option>
-            <option value="4">Option 4</option>
-            <option value="5">Option 5</option>
+        <select bind:value={selected_model} class="select w-48">
+            {#each sim_models as name}
+                <option value={name}>{name}</option>
+            {/each}
         </select>
         <button type="button" class="btn variant-filled" on:click={openModelOptions}>
             Options

@@ -1,17 +1,15 @@
 <script lang="ts">
 	import type { SvelteComponent } from 'svelte';
 
+    import { invoke } from '@tauri-apps/api/tauri';
 	// Stores
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
 
-	// Form Data
-	const formData = {
-		name: 'Jane Doe',
-		tel: '214-555-1234',
-		email: 'jdoe@email.com'
-	};
+	if ($modalStore[0]){
+		console.log("onform")
+	}
 
 	// Base Classes
 	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
@@ -24,21 +22,13 @@
 {#if $modalStore[0]}
 	<div class="modal-example-form {cBase}">
 		<header class={cHeader}>{$modalStore[0].title ?? '(title missing)'}</header>
-		<article>{$modalStore[0].body ?? '(body missing)'}</article>
-		<!-- Enable for debugging: -->
-		<form class="modal-form {cForm}">
-			<label class="label">
-				<span>Name</span>
-				<input class="input" type="text" bind:value={formData.name} placeholder="Enter name..." />
-			</label>
-			<label class="label">
-				<span>Phone Number</span>
-				<input class="input" type="tel" bind:value={formData.tel} placeholder="Enter phone..." />
-			</label>
-			<label class="label">
-				<span>Email</span>
-				<input class="input" type="email" bind:value={formData.email} placeholder="Enter email address..." />
-			</label>
-		</form>
+		
+		{#await invoke('get_sim_model_options_list', {simModelId: $modalStore[0].meta.sim_model_id})}
+		<p>...waiting</p>
+		{:then response}
+			<p>{response}</p>
+		{:catch error}
+			<p style="color: red">{error}</p>
+		{/await}
 	</div>
 {/if}

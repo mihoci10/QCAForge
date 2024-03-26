@@ -3,7 +3,7 @@
 
 use std::sync::Mutex;
 
-use qca_core::sim::{bistable::BistableModel, SimulationModelTrait};
+use qca_core::sim::{bistable::BistableModel, settings::OptionsList, SimulationModelTrait};
 use tauri::{Manager, State};
 
 struct SimulationModels{
@@ -21,7 +21,7 @@ fn main() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
-      get_sim_models
+      get_sim_models, get_sim_model_options_list
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
@@ -31,7 +31,19 @@ fn main() {
 fn get_sim_models(state: State<SimulationModels>) -> String {
   format!("{}{}{}", "[", 
   state.model_list.lock().unwrap().iter().map(|model| {
-    format!("\"{}\"", model.get_name())
+    format!("\"{}\"", model.get_unique_id())
   }).collect::<Vec<String>>().join(","),
    "]")
+}
+
+#[tauri::command]
+fn get_sim_model_options_list(sim_model_id: String, state: State<SimulationModels>) -> Result<OptionsList, String> {
+  match state.model_list.lock().unwrap().iter()
+    .filter(|model| sim_model_id == model.get_unique_id())
+    .next() {
+      Some(r) => 
+        Ok(r.get_options_list()),
+      None => 
+        Err("No model with such id exists".into())
+  }
 }
