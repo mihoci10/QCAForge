@@ -7,10 +7,6 @@
 
 	const modalStore = getModalStore();
 
-	if ($modalStore[0]){
-		console.log("onform")
-	}
-
 	// Base Classes
 	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
 	const cHeader = 'text-2xl font-bold';
@@ -26,7 +22,22 @@
 		{#await invoke('get_sim_model_options_list', {simModelId: $modalStore[0].meta.sim_model_id})}
 		<p>...waiting</p>
 		{:then response}
-			<p>{response}</p>
+		<form class="modal-form {cForm}">
+		{#each response as option}
+			{#if option.type === 'Header'}
+				<p class="text-lg font-bold">{option.label}</p>
+			{:else if option.type === 'Break'}
+				<hr>
+			{:else if option.type === 'Input'}
+				{#if option.descriptor.type === 'NumberInput'}
+					<label class="label">
+						<span>{option.name}</span>
+						<input name="" class="input" type="number"/>
+					</label>
+				{/if}
+			{/if}
+		{/each}
+		</form>
 		{:catch error}
 			<p style="color: red">{error}</p>
 		{/await}
