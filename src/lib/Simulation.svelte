@@ -6,13 +6,20 @@
     const modalStore = getModalStore();
 
     function openModelOptions(){
-        const modal: ModalSettings = {
-            type: 'component',
-            component: 'simModelOptions',
-            title: `${selected_model} settings`,
-            meta: {sim_model_id: selected_model}
-        };
-        modalStore.trigger(modal);
+        new Promise((resolve) => {
+	        const modal: ModalSettings = {
+                type: 'component',
+                component: 'simModelOptions',
+                title: `${selected_model} settings`,
+                meta: {sim_model_id: selected_model},
+                response: (r:any) => resolve(r),
+            };
+            modalStore.trigger(modal);
+        }).then((r: any) => {
+            invoke('set_sim_model_options', {simModelId: selected_model, simModelOptions: JSON.stringify(r)}).then((res) => {
+                console.log(res)
+            });
+        });
     }
 
     let selected_model: string | undefined;
@@ -32,7 +39,7 @@
                 <option value={name}>{name}</option>
             {/each}
         </select>
-        <button type="button" class="btn variant-filled" on:click={openModelOptions}>
+        <button type="button" class="btn variant-filled mx-2" disabled={!selected_model} on:click={openModelOptions}>
             Options
         </button>
     </div>
