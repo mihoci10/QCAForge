@@ -28,12 +28,9 @@ fn main() {
 }
 
 #[tauri::command]
-fn get_sim_models(state: State<SimulationModels>) -> String {
-  format!("{}{}{}", "[", 
-  state.model_list.lock().unwrap().iter().map(|model| {
-    format!("\"{}\"", model.get_unique_id())
-  }).collect::<Vec<String>>().join(","),
-   "]")
+fn get_sim_models(state: State<SimulationModels>) -> Vec<String> {
+  state.model_list.lock().unwrap().iter()
+    .map(|model| model.get_unique_id()).collect()
 }
 
 #[tauri::command]

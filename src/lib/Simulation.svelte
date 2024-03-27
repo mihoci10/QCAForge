@@ -6,18 +6,24 @@
     const modalStore = getModalStore();
 
     function openModelOptions(){
-        new Promise((resolve) => {
-	        const modal: ModalSettings = {
-                type: 'component',
-                component: 'simModelOptions',
-                title: `${selected_model} settings`,
-                meta: {sim_model_id: selected_model},
-                response: (r:any) => resolve(r),
-            };
-            modalStore.trigger(modal);
-        }).then((r: any) => {
+        invoke('get_sim_model_options', {simModelId: selected_model})
+            .then((res) => {
+            let default_values = res;
+            console.log(default_values)
+            return new Promise((resolve) => {
+                const modal: ModalSettings = {
+                    type: 'component',
+                    component: 'simModelOptions',
+                    title: `${selected_model} settings`,
+                    meta: {sim_model_id: selected_model, default_values: default_values},
+                    response: (r:any) => resolve(r),
+                };
+                modalStore.trigger(modal);
+                })
+            .then((r: any) => {
             invoke('set_sim_model_options', {simModelId: selected_model, simModelOptions: JSON.stringify(r)}).then((res) => {
-                console.log(res)
+                    
+                });
             });
         });
     }
@@ -26,8 +32,7 @@
     let sim_models: string[] = [];
 
     invoke('get_sim_models').then((res) => {
-        let o = JSON.parse(res as string);
-        sim_models = o;
+        sim_models = res as string[];
     });
 </script>
 

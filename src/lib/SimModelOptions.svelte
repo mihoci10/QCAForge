@@ -18,7 +18,7 @@
 		let data_obj = new Object();
 
 		for (var [key, value] of form_data.entries()) { 
-			data_obj[key] = value;
+			data_obj[key] = {type: $modalStore[0].meta.default_values[key].type, value: parseFloat(value)};
 		}
 
 		if ($modalStore[0].response) {
@@ -45,7 +45,7 @@
 				{#if option.descriptor.type === 'NumberInput'}
 					<label class="label">
 						<span>{option.name}</span>
-						<input name={option.unique_id} class="input" type="number"/>
+						<input value={$modalStore[0].meta.default_values[option.unique_id].value} name={option.unique_id} class="input" type="number"/>
 					</label>
 				{/if}
 			{/if}
