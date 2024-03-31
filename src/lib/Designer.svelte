@@ -10,7 +10,7 @@
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { CellGeometry } from './CellGeometry';
-    import { CellType, type Cell } from './Cell';
+    import { CellType, type Cell, deserializeCells } from './Cell';
     import { CellScene } from './CellScene';
 
     let camera: THREE.PerspectiveCamera;
@@ -68,7 +68,7 @@
         let cnt = 0;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
-                cells.push({type: CellType.Normal, polarization: Math.random() * 2 - 1, position: new THREE.Vector3(i, j, 0)})
+                cells.push({typ: CellType.Fixed, clock_phase_shift: 0, polarization: Math.random() * 2 - 1, pos_x: i, pos_y: j})
                 cnt++;
             }
         }
@@ -141,7 +141,7 @@
     }
 
     function createGhostMesh(){
-        ghostGeometry.update([{polarization: 0, position: new THREE.Vector3(0, 0, 0), type: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{polarization: 0, pos_x: 0, pos_y: 0, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
         ghostMesh = new THREE.Mesh(ghostGeometry.getGeometry(), DrawableCellMaterial);
         scene.addMesh(ghostMesh, undefined);
     }
@@ -238,7 +238,7 @@
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
         
-        cells.push({type: CellType.Normal, polarization: 0, position: world_pos})
+        cells.push({typ: CellType.Normal, polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0})
         cellGeometry.update(cells, selectedCells, false);
     }
 
@@ -246,7 +246,7 @@
         let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
-        ghostGeometry.update([{polarization: 0, position: world_pos, type: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
     }
 
     function inputModeChanged(newInputModeIdx: number){

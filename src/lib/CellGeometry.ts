@@ -59,9 +59,9 @@ export class CellGeometry{
             let cnt = 0;
             for (let x = 0; x < posOffs.length; x++){
                 for (let y = 0; y < posOffs.length; y++){
-                    positionBuf[i*(4 * 3) + cnt + 0] = cell.position.x + posOffs[x]/2;
-                    positionBuf[i*(4 * 3) + cnt + 1] = cell.position.y + posOffs[y]/2;
-                    positionBuf[i*(4 * 3) + cnt + 2] = cell.position.z;
+                    positionBuf[i*(4 * 3) + cnt + 0] = cell.pos_x + posOffs[x]/2;
+                    positionBuf[i*(4 * 3) + cnt + 1] = cell.pos_y + posOffs[y]/2;
+                    positionBuf[i*(4 * 3) + cnt + 2] = 0;
                     cnt += 3;
                 }
             }          
