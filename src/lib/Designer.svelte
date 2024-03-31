@@ -157,9 +157,14 @@
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
 
+        mouseStartPos = new THREE.Vector2(relX, relY);
+
         if (inputMode == 0){
             if (e.button == 0)
                 startSelectRegion(relX, relY);
+        }else if (inputMode == 1){
+            if (e.button == 0)
+                startCellPlace(relX, relY);
         }
     }
 
@@ -171,6 +176,9 @@
         if (inputMode == 0){
             if (e.button == 0)
                 endSelectRegion(relX, relY);
+        }else if (inputMode == 1){
+            if (e.button == 0)
+                endCellPlace(relX, relY);
         }
     }
 
@@ -185,7 +193,6 @@
     }
 
     function startSelectRegion(mouse_x: number, mouse_y: number){
-        mouseStartPos = new THREE.Vector2(mouse_x, mouse_y);
     }
 
     function endSelectRegion(mouse_x: number, mouse_y: number){
@@ -202,7 +209,7 @@
         mouseStartPos = undefined;
     }
 
-    function repositionGhostMesh(mouse_x: number, mouse_y: number){
+    function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
         const mousePos = new THREE.Vector3(( mouse_x / container.clientWidth ) * 2 - 1,
         - ( mouse_y / container.clientHeight ) * 2 + 1,
         0);
@@ -219,10 +226,27 @@
 
         var intersectionPoint = new THREE.Vector3();
         vector.intersectPlane(plane, intersectionPoint);
+        return intersectionPoint
+    }
 
-        intersectionPoint.x = Math.floor((intersectionPoint.x + snapDivider / 2) / snapDivider);
-        intersectionPoint.y = Math.floor((intersectionPoint.y + snapDivider / 2) / snapDivider);
-        ghostGeometry.update([{polarization: 0, position: intersectionPoint, type: CellType.Normal}], new Set(), true);
+    function startCellPlace(mouse_x: number, mouse_y: number){
+
+    }
+
+    function endCellPlace(mouse_x: number, mouse_y: number){
+        let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
+        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
+        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
+        
+        cells.push({type: CellType.Normal, polarization: 0, position: world_pos})
+        cellGeometry.update(cells, selectedCells, false);
+    }
+
+    function repositionGhostMesh(mouse_x: number, mouse_y: number){
+        let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
+        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
+        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
+        ghostGeometry.update([{polarization: 0, position: world_pos, type: CellType.Normal}], new Set(), true);
     }
 
     function inputModeChanged(newInputModeIdx: number){
