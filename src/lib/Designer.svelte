@@ -26,6 +26,7 @@
 
     let ghostGeometry: CellGeometry;
     let ghostMesh: THREE.Mesh;
+    let snapDivider: number = 1;
 
     let stats: Stats;
     let statsDrawCall: Stats.Panel;
@@ -219,6 +220,8 @@
         var intersectionPoint = new THREE.Vector3();
         vector.intersectPlane(plane, intersectionPoint);
 
+        intersectionPoint.x = Math.floor((intersectionPoint.x + snapDivider / 2) / snapDivider);
+        intersectionPoint.y = Math.floor((intersectionPoint.y + snapDivider / 2) / snapDivider);
         ghostGeometry.update([{polarization: 0, position: intersectionPoint, type: CellType.Normal}], new Set(), true);
     }
 
