@@ -8,10 +8,10 @@
 
     import * as THREE from 'three'
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { CellGeometry } from './CellGeometry';
-    import { CellType, type Cell, deserializeCells } from './Cell';
+    import { CellType, type Cell } from './Cell';
     import { CellScene } from './CellScene';
+    import { OrbitControls } from './utils/OrbitControls';
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -215,7 +215,7 @@
     function endSelectRegion(mouse_x: number, mouse_y: number){
         if (!multiselect)
             selectedCells.clear();
-        
+
         let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
         for (let i = 0; i < result.length/4; i++) {
             const id = result[i*4];
