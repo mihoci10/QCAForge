@@ -34,6 +34,7 @@
     let inputModeIdx: number = 0;
     $: inputMode = inputModeChanged(inputModeIdx);
     let mouseStartPos: THREE.Vector2|undefined;
+    let multiselect: boolean = false;
 
     let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
@@ -195,9 +196,12 @@
     }
 
     function keyDown(e: KeyboardEvent){
+        multiselect = e.shiftKey;
     }
 
     function keyUp(e: KeyboardEvent){
+        multiselect = false;
+
         switch(e.code){
             case 'Delete': {
                 deleteCells(selectedCells);
@@ -209,7 +213,9 @@
     }
 
     function endSelectRegion(mouse_x: number, mouse_y: number){
-        selectedCells.clear();
+        if (!multiselect)
+            selectedCells.clear();
+        
         let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
         for (let i = 0; i < result.length/4; i++) {
             const id = result[i*4];
