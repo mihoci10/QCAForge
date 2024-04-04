@@ -58,6 +58,8 @@
         renderer.domElement.addEventListener('mousedown', mouseDown);
         renderer.domElement.addEventListener('mousemove', mouseMove);
         renderer.domElement.addEventListener('mouseup', mouseUp);
+        window.addEventListener('keydown', keyDown);
+        window.addEventListener('keyup', keyUp);
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = false;
@@ -192,6 +194,17 @@
         }
     }
 
+    function keyDown(e: KeyboardEvent){
+    }
+
+    function keyUp(e: KeyboardEvent){
+        switch(e.code){
+            case 'Delete': {
+                deleteCells(selectedCells);
+            }
+        }
+    }
+
     function startSelectRegion(mouse_x: number, mouse_y: number){
     }
 
@@ -239,6 +252,13 @@
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
         
         cells.push({typ: CellType.Normal, polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0})
+        cellGeometry.update(cells, selectedCells, false);
+    }
+
+    function deleteCells(cell_ids: Set<number>){
+        cells = cells.filter((_, i) => !cell_ids.has(i));
+
+        selectedCells.clear()
         cellGeometry.update(cells, selectedCells, false);
     }
 
