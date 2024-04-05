@@ -12,6 +12,7 @@
     import { CellType, type Cell } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
+    import { Pane, Splitpanes } from 'svelte-splitpanes';
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -306,16 +307,22 @@
 
 <svelte:window on:resize={() => windowResize()}/>
 
-<div id='canvas' class="relative flex flex-auto" bind:this={container}>
-    <div class="absolute top-2 left-1 z-10">
-        <AppRail width="w-8">
-            <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
-                <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
-            </AppRailTile>
-            <AppRailTile bind:group={inputModeIdx} name="tile-2" value={1} title="tile-2">
-                <Icon width={24} icon={addBoxOutline} style="margin: auto;"/>
-            </AppRailTile>
-        </AppRail>
-    </div>
-    <canvas bind:this={canvas} class="absolute z-0"/>
-</div>
+<Splitpanes on:resize={() => windowResize()}>
+    <Pane minSize={5} size={15}>
+    </Pane>
+    <Pane class="flex flex-auto" minSize={10}>
+        <div class="relative flex-auto"  bind:this={container}>
+            <div class="absolute top-2 left-1 z-10">
+                <AppRail width="w-8">
+                    <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
+                        <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
+                    </AppRailTile>
+                    <AppRailTile bind:group={inputModeIdx} name="tile-2" value={1} title="tile-2">
+                        <Icon width={24} icon={addBoxOutline} style="margin: auto;"/>
+                    </AppRailTile>
+                </AppRail>
+            </div>
+            <canvas bind:this={canvas} class="absolute z-0"/>
+        </div>
+    </Pane>
+</Splitpanes>
