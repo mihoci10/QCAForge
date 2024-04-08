@@ -35,6 +35,7 @@
   "dependencies": {
     "@tauri-apps/api": "^1.5.3",
     "stats.js": "^0.17.0",
+    "svelte-splitpanes": "^0.8.0",
     "three": "^0.160.0"
   }
 }
