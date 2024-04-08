@@ -183,6 +183,8 @@
             if (e.button == 0)
                 endCellPlace(relX, relY);
         }
+        
+        mouseStartPos = undefined;
     }
 
     function mouseMove(e: MouseEvent){
@@ -191,7 +193,10 @@
         const relY = e.y - bounds.top;
 
         if (inputMode == 1){
-            repositionGhostMesh(relX, relY);
+            if (mouseStartPos != undefined)
+                repositionGhostMesh(mouseStartPos!.x, mouseStartPos!.y);
+            else
+                repositionGhostMesh(relX, relY);
         }
     }
 
@@ -224,8 +229,6 @@
         }
 
         cellGeometry.update(cells, selectedCells, false);
-        
-        mouseStartPos = undefined;
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -253,7 +256,7 @@
     }
 
     function endCellPlace(mouse_x: number, mouse_y: number){
-        let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
+        let world_pos =  screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
         
