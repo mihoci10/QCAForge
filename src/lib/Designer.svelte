@@ -223,10 +223,16 @@
             selectedCells.clear();
 
         let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+
         for (let i = 0; i < result.length/4; i++) {
             const id = result[i*4];
             if (id >= 0)
-                selectedCells.add(id);
+            {
+                if (multiselect && selectedCells.has(id))
+                    selectedCells.delete(id);
+                else
+                    selectedCells.add(id);
+            }
         }
 
         cellGeometry.update(cells, selectedCells, false);
@@ -311,7 +317,8 @@
 <svelte:window on:resize={() => windowResize()}/>
 
 <Splitpanes on:resize={() => windowResize()}>
-    <Pane minSize={5} size={15}>
+    <Pane minSize={5} size={15} class='card rounded-none'>
+        asd
     </Pane>
     <Pane class="flex flex-auto" minSize={10}>
         <div class="relative flex-auto"  bind:this={container}>
