@@ -36,9 +36,11 @@
     $: inputMode = inputModeChanged(inputModeIdx);
     let mouseStartPos: THREE.Vector2|undefined;
     let multiselect: boolean = false;
+    let mouseDragging: boolean = false;
 
     let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
+    let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
 
     onMount(() => {
         scene = new CellScene();
@@ -156,6 +158,19 @@
             scene.removeMesh(ghostMesh, undefined);
     }
 
+    function shouldMouseDrag(mouse_x: number, mouse_y: number): boolean{
+        let id = getCellOnPos(mouse_x, mouse_y);
+
+        if (id == -1)
+            return false;
+
+        if (selectedCells.size > 0 && selectedCells.has(id))
+            return true;
+        
+        applySelectRegion(mouse_x, mouse_y);
+        return selectedCells.size > 0;
+    }
+
     function mouseDown(e: MouseEvent){
         var bounds = renderer.domElement.getBoundingClientRect();
         const relX = e.x - bounds.left;
@@ -165,7 +180,16 @@
 
         if (inputMode == 0){
             if (e.button == 0)
-                startSelectRegion(relX, relY);
+            {
+                if(!multiselect){
+                    mouseDragging = shouldMouseDrag(relX, relY);
+                    if (mouseDragging)
+                        startMouseDrag()
+                }
+
+                if(!mouseDragging)
+                    startSelectRegion(relX, relY);
+            }
         }else if (inputMode == 1){
             if (e.button == 0)
                 startCellPlace(relX, relY);
@@ -178,14 +202,15 @@
         const relY = e.y - bounds.top;
         
         if (inputMode == 0){
-            if (e.button == 0)
-                endSelectRegion(relX, relY);
+            if (e.button == 0 && !mouseDragging)
+                applySelectRegion(relX, relY);
         }else if (inputMode == 1){
             if (e.button == 0)
                 endCellPlace(relX, relY);
         }
         
         mouseStartPos = undefined;
+        mouseDragging = false;
     }
 
     function mouseMove(e: MouseEvent){
@@ -193,7 +218,12 @@
         const relX = e.x - bounds.left;
         const relY = e.y - bounds.top;
 
-        if (inputMode == 1){
+        if (inputMode == 0){
+            if (mouseStartPos != undefined && mouseDragging){
+                repositionCells(relX, relY);
+            }
+        }
+        else if (inputMode == 1){
             if (mouseStartPos != undefined)
                 repositionGhostMesh(mouseStartPos!.x, mouseStartPos!.y);
             else
@@ -215,10 +245,33 @@
         }
     }
 
+    function startMouseDrag(){
+        cachedCellsPos = {};
+        selectedCells.forEach((id) => {
+            cachedCellsPos[id] = [cells[id].pos_x, cells[id].pos_y];
+        });
+    }
+
+    function endMouseDrag(){
+        cachedCellsPos = {};
+    }
+
     function startSelectRegion(mouse_x: number, mouse_y: number){
     }
 
-    function endSelectRegion(mouse_x: number, mouse_y: number){
+    function getCellOnPos(mouse_x: number, mouse_y: number){
+        let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+
+        for (let i = 0; i < result.length/4; i++) {
+            const id = result[i*4];
+            if (id >= 0)
+                return id
+        }
+
+        return -1;
+    }
+
+    function applySelectRegion(mouse_x: number, mouse_y: number){
         if (!multiselect)
             selectedCells.clear();
 
@@ -275,6 +328,28 @@
         cells = cells.filter((_, i) => !cell_ids.has(i));
 
         selectedCells.clear()
+        cellGeometry.update(cells, selectedCells, false);
+    }
+
+    function repositionCells(mouse_x: number, mouse_y: number){
+        let orig_world_pos =  screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
+        orig_world_pos.x = Math.floor((orig_world_pos.x + snapDivider / 2) / snapDivider);
+        orig_world_pos.y = Math.floor((orig_world_pos.y + snapDivider / 2) / snapDivider);
+
+        let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
+        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
+        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
+
+        let diff_x = world_pos.x - orig_world_pos.x;
+        let diff_y = world_pos.y - orig_world_pos.y;
+
+        for (let key in cachedCellsPos) {
+            let id = parseInt(key);
+            let pos = cachedCellsPos[id];
+            cells[id].pos_x = pos[0] + diff_x;
+            cells[id].pos_y = pos[1] + diff_y;
+        }
+
         cellGeometry.update(cells, selectedCells, false);
     }
 
