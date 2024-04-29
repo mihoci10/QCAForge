@@ -38,6 +38,9 @@
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
 
+    let selectedClockMode: string = "0";
+    $: selectedClockMode, selectedClockModeChanged();
+
     let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
@@ -289,6 +292,19 @@
         }
 
         cellGeometry.update(cells, selectedCells, false);
+        selectedCellsUpdated();
+    }
+
+    function selectedCellsUpdated(){
+        let clockModes: Set<number> = new Set();
+        selectedCells.forEach((id) => {
+            clockModes.add(cells[id].clock_phase_shift)
+        });
+
+        if (clockModes.size > 1)
+            selectedClockMode = 'multiple';
+        else
+            selectedClockMode = (clockModes.values().next().value).toString();
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -329,6 +345,7 @@
 
         selectedCells.clear()
         cellGeometry.update(cells, selectedCells, false);
+        selectedCellsUpdated();
     }
 
     function repositionCells(mouse_x: number, mouse_y: number){
@@ -386,14 +403,46 @@
 
         return newInputMode;
     }
+
+    function selectedClockModeChanged(){
+        selectedCells.forEach((id) => {
+            cells[id].clock_phase_shift = parseInt(selectedClockMode);
+        });
+    }
     
 </script>
 
 <svelte:window on:resize={() => windowResize()}/>
 
 <Splitpanes on:resize={() => windowResize()}>
-    <Pane minSize={5} size={15} class='card rounded-none'>
-        asd
+    <Pane minSize={5} size={15}>
+        <div class='bg-surface-500 h-full '>
+            <form>
+                <label class="label">
+                    <span>Clock mode</span>
+                    <select class="select" bind:value={selectedClockMode}>
+                        <option value="multiple" hidden>Multiple values</option>
+                        <option value=0>Clock 0</option>
+                        <option value=1>Clock 1</option>
+                        <option value=2>Clock 2</option>
+                        <option value=3>Clock 3</option>
+                    </select>
+                </label>
+                <label class="label">
+                    <span>Position</span>
+                    <div class='flex'>
+                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                            <div class="input-group-shim bg-red-500">X</div>
+                            <input type="number"/>
+                        </div>
+                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                            <div class="input-group-shim bg-green-500">Y</div>
+                            <input type="number"/>
+                        </div>
+                    </div>
+                </label>
+            </form>
+        </div>
     </Pane>
     <Pane class="flex flex-auto" minSize={10}>
         <div class="relative flex-auto"  bind:this={container}>
