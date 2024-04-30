@@ -41,7 +41,7 @@
     let selectedClockMode: string = "0";
     $: selectedClockMode, selectedClockModeChanged();
 
-    let cells: Cell[] = [];
+    export let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
 

@@ -1,13 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{sync::Mutex};
+use std::{fmt::format, sync::Mutex};
 
-use qca_core::sim::{bistable::BistableModel, settings::OptionsList, settings::OptionsValueList, SimulationModelTrait};
+use qca_core::sim::{bistable::BistableModel, run_simulation, settings::{OptionsList, OptionsValueList}, QCACell, SimulationModelTrait};
 use tauri::{Manager, State};
 
 struct SimulationModels{
-  model_list: Mutex<Vec<Box<dyn SimulationModelTrait + Send>>>,
+  model_list: Mutex<Vec<Box<dyn SimulationModelTrait>>>,
 }
 
 fn main() {
@@ -21,7 +21,7 @@ fn main() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
-      get_sim_models, get_sim_model_options_list, set_sim_model_options, get_sim_model_options
+      get_sim_models, get_sim_model_options_list, set_sim_model_options, get_sim_model_options, run_sim_model
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
@@ -75,6 +75,29 @@ fn get_sim_model_options(sim_model_id: String, state: State<SimulationModels>) -
   
   match model {
     Some(model) => Ok(model.get_options_value_list()),
+    None => Err("No model with such id exists".into()),
+  }
+}
+
+#[tauri::command]
+fn run_sim_model(sim_model_id: String, cells: String, state: State<SimulationModels>) -> Result<String, String> {
+  let model_binding = state.model_list.lock().unwrap();
+  let model = model_binding.iter()
+    .find(|model| model.get_unique_id() == sim_model_id);
+
+  
+  let cells_obj: Result<Vec<QCACell>, serde_json::Error> = serde_json::from_str(&cells);
+  
+  match model {
+    Some(model) => {
+      match cells_obj{
+          Ok(cells) => {
+            let mut inst = run_simulation(model, cells);
+            Ok(format!("{:?}", inst.get_states()))
+          },
+          Err(err) => Err(format!("Parsing error: {}", err.to_string())),
+      }
+    },
     None => Err("No model with such id exists".into()),
   }
 }
