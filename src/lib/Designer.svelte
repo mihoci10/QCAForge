@@ -300,10 +300,10 @@
         selectedCells.forEach((id) => {
             clockModes.add(cells[id].clock_phase_shift)
         });
-
+        
         if (clockModes.size > 1)
             selectedClockMode = 'multiple';
-        else
+        else if (clockModes.size == 1)
             selectedClockMode = (clockModes.values().next().value).toString();
     }
 
