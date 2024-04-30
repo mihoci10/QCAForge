@@ -1,8 +1,8 @@
 export enum CellType{
     Normal = 0,
-    Fixed = 1,
-    Input = 2,
-    Output = 3
+    Input = 1,
+    Output = 2,
+    Fixed = 3,
 }
 
 export interface Cell{

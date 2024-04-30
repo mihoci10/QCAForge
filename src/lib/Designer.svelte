@@ -41,6 +41,9 @@
     let selectedClockMode: string = "0";
     $: selectedClockMode, selectedClockModeChanged();
 
+    let selectedCellType: string = "0";
+    $: selectedCellType, selectedCellTypeChanged();
+
     export let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
@@ -297,14 +300,23 @@
 
     function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
+        let cellTypes: Set<CellType> = new Set();
+
         selectedCells.forEach((id) => {
-            clockModes.add(cells[id].clock_phase_shift)
+            clockModes.add(cells[id].clock_phase_shift);
+            cellTypes.add(cells[id].typ);
         });
         
         if (clockModes.size > 1)
             selectedClockMode = 'multiple';
         else if (clockModes.size == 1)
             selectedClockMode = (clockModes.values().next().value).toString();
+        
+            console.log(cellTypes);
+        if (cellTypes.size > 1)
+            selectedCellType = 'multiple';
+        else if (cellTypes.size == 1)
+            selectedCellType = (cellTypes.values().next().value).toString();
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -409,6 +421,12 @@
             cells[id].clock_phase_shift = parseInt(selectedClockMode);
         });
     }
+
+    function selectedCellTypeChanged(){
+        selectedCells.forEach((id) => {
+            cells[id].typ = parseInt(selectedCellType);
+        });
+    }
     
 </script>
 
@@ -426,6 +444,16 @@
                         <option value=1>Clock 1</option>
                         <option value=2>Clock 2</option>
                         <option value=3>Clock 3</option>
+                    </select>
+                </label>
+                <label class="label">
+                    <span>Cell type</span>
+                    <select class="select" bind:value={selectedCellType}>
+                        <option value="multiple" hidden>Multiple values</option>
+                        <option value=0>Normal</option>
+                        <option value=1>Input</option>
+                        <option value=2>Output</option>
+                        <option value=3>Fixed</option>
                     </select>
                 </label>
                 <label class="label">
