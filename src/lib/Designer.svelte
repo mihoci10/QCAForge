@@ -417,12 +417,18 @@
     }
 
     function selectedClockModeChanged(){
+        if (isNaN(+selectedClockMode))
+            return;
+
         selectedCells.forEach((id) => {
             cells[id].clock_phase_shift = parseInt(selectedClockMode);
         });
     }
 
     function selectedCellTypeChanged(){
+        if (isNaN(+selectedCellType))
+            return;
+
         selectedCells.forEach((id) => {
             cells[id].typ = parseInt(selectedCellType);
         });
