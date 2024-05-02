@@ -48,15 +48,19 @@ void main() {
 
     float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
+    float dotSizeMax = 0.15;
+    float dotSizePos = abs(polar / 2.0 + 0.5) * dotSizeMax;
+    float dotSizeNeg = dotSizeMax - dotSizePos;
+
     mask += HollowCircleMask(vec2(0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
     mask += HollowCircleMask(vec2(0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
     mask += HollowCircleMask(vec2(-0.5, 0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
     mask += HollowCircleMask(vec2(-0.5, -0.5), 0.2, 0.2 + (length(fragSize)), 0.01);
 
-    mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.01);
-    mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.01);
-    mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, -polar * (0.2 + (length(fragSize))), 0.01);
-    mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, polar * (0.2 + (length(fragSize))), 0.01);
+    mask += HollowCircleMask(vec2(0.5, 0.5), 0.0, dotSizePos + length(fragSize), 0.01);
+    mask += HollowCircleMask(vec2(0.5, -0.5), 0.0, dotSizeNeg + length(fragSize), 0.01);
+    mask += HollowCircleMask(vec2(-0.5, 0.5), 0.0, dotSizeNeg + length(fragSize), 0.01);
+    mask += HollowCircleMask(vec2(-0.5, -0.5), 0.0, dotSizePos + length(fragSize), 0.01);
 
     if (selected)
         outColor = vec4(mask, 0, 0, 1);
