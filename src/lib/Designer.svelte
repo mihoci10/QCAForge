@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {AppRail, AppRailTile} from '@skeletonlabs/skeleton'
+	import {Accordion, AccordionItem, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
     import Icon from '@iconify/svelte';
     import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
     import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
@@ -9,10 +9,15 @@
     import * as THREE from 'three'
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { CellGeometry } from './CellGeometry';
-    import { CellType, type Cell } from './Cell';
+    import { CellType, type Cell, serializeCells } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
     import { Pane, Splitpanes } from 'svelte-splitpanes';
+
+    import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+    import { invoke } from '@tauri-apps/api/tauri';
+
+    const modalStore = getModalStore();
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -44,9 +49,15 @@
     let selectedCellType: string = "0";
     $: selectedCellType, selectedCellTypeChanged();
 
+    let polarizationInput: number = 0;
+    $: polarizationInput, polarizationInputChanged();
+
     export let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
+
+    let selected_model: string | undefined;
+    let sim_models: string[] = [];
 
     onMount(() => {
         scene = new CellScene();
@@ -95,6 +106,10 @@
         scene.addMesh(drawInstancedMesh, pickInstancedMesh);
 
         renderer.setAnimationLoop(render);
+
+        invoke('get_sim_models').then((res) => {
+            sim_models = res as string[];
+        });
     });
 
     onDestroy(() => {
@@ -104,6 +119,40 @@
         DrawableCellMaterial.dispose();
         PickableCellMaterial.dispose();
     });
+
+    function openModelOptions(){
+        invoke('get_sim_model_options', {simModelId: selected_model})
+            .then((res) => {
+            let default_values = res;
+            console.log(default_values)
+            return new Promise((resolve) => {
+                const modal: ModalSettings = {
+                    type: 'component',
+                    component: 'simModelOptions',
+                    title: `${selected_model} settings`,
+                    meta: {sim_model_id: selected_model, default_values: default_values},
+                    response: (r:any) => resolve(r),
+                };
+                modalStore.trigger(modal);
+                })
+            .then((r: any) => {
+            invoke('set_sim_model_options', {simModelId: selected_model, simModelOptions: JSON.stringify(r)}).then((res) => {
+                    
+                });
+            });
+        });
+    }
+
+    function runSimulation(){
+        invoke('run_sim_model', {simModelId: selected_model, cells: serializeCells(cells)})
+            .then((r: any) => {
+                let results: number[] = JSON.parse(r);
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].polarization = results[i];        
+                }
+            })
+            .catch((err: any) => console.error(err));
+    }
 
     function windowResize(){
         //renderer.setPixelRatio(window.devicePixelRatio);
@@ -141,7 +190,6 @@
         renderer.render(scene.getPickCtx(), camera);
         
         const pickingBuffer = new Int32Array(width * height * 4);
-        console.log(width, height)
         renderer.readRenderTargetPixels(
             pickingTexture, 
             Math.min(x1, x2), renderer.domElement.height - Math.max(y1, y2), 
@@ -301,10 +349,12 @@
     function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
+        let polarizations : Set<Number> = new Set();
 
         selectedCells.forEach((id) => {
             clockModes.add(cells[id].clock_phase_shift);
             cellTypes.add(cells[id].typ);
+            polarizations.add(cells[id].polarization);
         });
         
         if (clockModes.size > 1)
@@ -312,11 +362,15 @@
         else if (clockModes.size == 1)
             selectedClockMode = (clockModes.values().next().value).toString();
         
-            console.log(cellTypes);
         if (cellTypes.size > 1)
             selectedCellType = 'multiple';
         else if (cellTypes.size == 1)
             selectedCellType = (cellTypes.values().next().value).toString();
+        
+        if (cellTypes.size > 1)
+            polarizationInput = NaN;
+        else if (cellTypes.size == 1)
+            polarizationInput = parseFloat((polarizations.values().next().value).toString());
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -433,6 +487,15 @@
             cells[id].typ = parseInt(selectedCellType);
         });
     }
+
+    function polarizationInputChanged(){
+        if (isNaN(polarizationInput))
+            return;
+
+        selectedCells.forEach((id) => {
+            cells[id].polarization = polarizationInput;
+        });
+    }
     
 </script>
 
@@ -441,41 +504,73 @@
 <Splitpanes on:resize={() => windowResize()}>
     <Pane minSize={5} size={15}>
         <div class='bg-surface-500 h-full '>
-            <form>
-                <label class="label">
-                    <span>Clock mode</span>
-                    <select class="select" bind:value={selectedClockMode}>
-                        <option value="multiple" hidden>Multiple values</option>
-                        <option value=0>Clock 0</option>
-                        <option value=1>Clock 1</option>
-                        <option value=2>Clock 2</option>
-                        <option value=3>Clock 3</option>
-                    </select>
-                </label>
-                <label class="label">
-                    <span>Cell type</span>
-                    <select class="select" bind:value={selectedCellType}>
-                        <option value="multiple" hidden>Multiple values</option>
-                        <option value=0>Normal</option>
-                        <option value=1>Input</option>
-                        <option value=2>Output</option>
-                        <option value=3>Fixed</option>
-                    </select>
-                </label>
-                <label class="label">
-                    <span>Position</span>
-                    <div class='flex'>
-                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                            <div class="input-group-shim bg-red-500">X</div>
-                            <input type="number"/>
-                        </div>
-                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                            <div class="input-group-shim bg-green-500">Y</div>
-                            <input type="number"/>
-                        </div>
-                    </div>
-                </label>
-            </form>
+            <Accordion>
+                <AccordionItem open>
+                    <svelte:fragment slot="lead"><Icon icon="material-symbols:science"/></svelte:fragment>
+                    <svelte:fragment slot="summary">Simulation settings</svelte:fragment>
+                    <svelte:fragment slot="content">
+                        <form>
+                            <label class="label">
+                                <span>Model</span>
+                                <div class="flex">
+                                    <select bind:value={selected_model} class="select">
+                                        {#each sim_models as name}
+                                            <option value={name}>{name}</option>
+                                        {/each}
+                                    </select>
+                                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model} on:click={openModelOptions}>
+                                        <Icon icon="material-symbols:settings" />
+                                    </button>
+                                </div>
+                            </label>
+                        </form>
+                    </svelte:fragment>
+                </AccordionItem>
+                <AccordionItem open>
+                    <svelte:fragment slot="lead"><Icon icon="material-symbols:build-rounded"/></svelte:fragment>
+                    <svelte:fragment slot="summary">Cell properties</svelte:fragment>
+                    <svelte:fragment slot="content">
+                        <form>
+                            <label class="label">
+                                <span>Clock mode</span>
+                                <select class="select" bind:value={selectedClockMode}>
+                                    <option value="multiple" hidden>Multiple values</option>
+                                    <option value=0>Clock 0</option>
+                                    <option value=1>Clock 1</option>
+                                    <option value=2>Clock 2</option>
+                                    <option value=3>Clock 3</option>
+                                </select>
+                            </label>
+                            <label class="label">
+                                <span>Cell type</span>
+                                <select class="select" bind:value={selectedCellType}>
+                                    <option value="multiple" hidden>Multiple values</option>
+                                    <option value=0>Normal</option>
+                                    <option value=1>Input</option>
+                                    <option value=2>Output</option>
+                                    <option value=3>Fixed</option>
+                                </select>
+                            </label>
+                            <label class="label">
+                                <span>Polarization</span>
+                                <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarizationInput}/>
+                            </label> <label class="label">
+                                <span>Position</span>
+                                <div class='flex'>
+                                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                                        <div class="input-group-shim bg-red-500">X</div>
+                                        <input type="number"/>
+                                    </div>
+                                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                                        <div class="input-group-shim bg-green-500">Y</div>
+                                        <input type="number"/>
+                                    </div>
+                                </div>
+                            </label>
+                        </form>
+                    </svelte:fragment>
+                </AccordionItem>
+            </Accordion>
         </div>
     </Pane>
     <Pane class="flex flex-auto" minSize={10}>
