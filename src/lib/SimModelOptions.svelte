@@ -45,7 +45,19 @@
 				{#if option.descriptor.type === 'NumberInput'}
 					<label class="label">
 						<span>{option.name}</span>
-						<input value={$modalStore[0].meta.default_values[option.unique_id].value} name={option.unique_id} class="input" type="number"/>
+						
+						<div class="input-group input-group-divider grid-cols-[1fr_auto]">
+							<input class="input" type="number"
+								value={$modalStore[0].meta.default_values[option.unique_id].value} 
+								name={option.unique_id}
+								min={option.descriptor.min}
+								max={option.descriptor.max}
+								step={option.descriptor.whole_num ? "1" : "any"}
+							/>
+							{#if option.descriptor.unit}
+								<div class="input-group-shim">{option.descriptor.unit}</div>
+							{/if}
+						</div>
 					</label>
 				{/if}
 			{/if}

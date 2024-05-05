@@ -57,10 +57,10 @@
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
 
-    let selected_model: string | undefined;
+    export let selected_model: string | undefined;
     let sim_models: string[] = [];
     let layers: Layer[] = [{name: "Main Layer", visible: true}];
-    let selectedLayers: Layer[] = [];
+    let selectedLayer: string = "0";
 
     onMount(() => {
         scene = new CellScene();
@@ -94,7 +94,7 @@
         let cnt = 0;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
-                cells.push({typ: CellType.Fixed, clock_phase_shift: 0, polarization: Math.random() * 2 - 1, pos_x: i, pos_y: j})
+                cells.push({typ: CellType.Fixed, clock_phase_shift: 0, z_index:0, polarization: Math.random() * 2 - 1, pos_x: i, pos_y: j})
                 cnt++;
             }
         }
@@ -127,7 +127,6 @@
         invoke('get_sim_model_options', {simModelId: selected_model})
             .then((res) => {
             let default_values = res;
-            console.log(default_values)
             return new Promise((resolve) => {
                 const modal: ModalSettings = {
                     type: 'component',
@@ -146,9 +145,10 @@
         });
     }
 
-    function runSimulation(){
+    export function runSimulation(){
         invoke('run_sim_model', {simModelId: selected_model, cells: serializeCells(cells)})
             .then((r: any) => {
+                console.log(r);
                 let results: number[] = JSON.parse(r);
                 for (let i = 0; i < cells.length; i++) {
                     cells[i].polarization = results[i];        
@@ -204,7 +204,7 @@
     }
 
     function createGhostMesh(){
-        ghostGeometry.update([{polarization: 0, pos_x: 0, pos_y: 0, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{polarization: 0, pos_x: 0, pos_y: 0, clock_phase_shift: 0, z_index:0, typ: CellType.Normal}], new Set(), true);
         ghostMesh = new THREE.Mesh(ghostGeometry.getGeometry(), DrawableCellMaterial);
         scene.addMesh(ghostMesh, undefined);
     }
@@ -405,7 +405,7 @@
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
         
-        cells.push({typ: CellType.Normal, polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0})
+        cells.push({typ: CellType.Normal, polarization: 0, z_index:0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0})
         cellGeometry.update(cells, selectedCells, false);
     }
 
@@ -443,7 +443,7 @@
         let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
-        ghostGeometry.update([{polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, z_index:0, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
     }
 
     function inputModeChanged(newInputModeIdx: number){
@@ -504,9 +504,9 @@
 
 <svelte:window on:resize={() => windowResize()}/>
 
-<Splitpanes on:resize={() => windowResize()}>
+<Splitpanes class="h-full overflow-y-auto" on:resize={() => windowResize()}>
     <Pane minSize={5} size={15}>
-        <div class='bg-surface-500 h-full '>
+        <div class='bg-surface-500 h-full overflow-y-auto'>
             <TreeView>
                 <TreeViewItem open>
                     Simulation settings
@@ -547,10 +547,10 @@
                                 <Icon icon="mdi:arrow-down"/>
                             </button>
                         </div>
-                        <div class="overflow-y-auto h-32">
-                            <ListBox>
+                        <div class="overflow-y-auto h-32 m-2 bg-surface-800">
+                            <ListBox padding="p-0">
                                 {#each layers as layer, i}
-                                    <ListBoxItem bind:group={selectedLayers} name="medium" value={i}>
+                                    <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i.toString()}>
                                         <svelte:fragment slot="lead">
                                             <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
                                                 <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
@@ -615,8 +615,8 @@
             </TreeView>
         </div>
     </Pane>
-    <Pane class="flex flex-auto" minSize={10}>
-        <div class="relative flex-auto"  bind:this={container}>
+    <Pane class="flex flex-1" minSize={10}>
+        <div class="relative flex-1" bind:this={container}>
             <div class="absolute top-2 left-1 z-10">
                 <AppRail width="w-8">
                     <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">

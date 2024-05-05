@@ -81,8 +81,8 @@ fn get_sim_model_options(sim_model_id: String, state: State<SimulationModels>) -
 
 #[tauri::command]
 fn run_sim_model(sim_model_id: String, cells: String, state: State<SimulationModels>) -> Result<String, String> {
-  let model_binding = state.model_list.lock().unwrap();
-  let model = model_binding.iter()
+  let mut model_binding = state.model_list.lock().unwrap();
+  let model = model_binding.iter_mut()
     .find(|model| model.get_unique_id() == sim_model_id);
 
   
@@ -92,8 +92,8 @@ fn run_sim_model(sim_model_id: String, cells: String, state: State<SimulationMod
     Some(model) => {
       match cells_obj{
           Ok(cells) => {
-            let mut inst = run_simulation(model, cells);
-            Ok(format!("{:?}", inst.get_states()))
+            run_simulation(model, cells);
+            Ok("".into())
           },
           Err(err) => Err(format!("Parsing error: {}", err.to_string())),
       }
