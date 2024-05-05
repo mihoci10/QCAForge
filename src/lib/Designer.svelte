@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {Accordion, AccordionItem, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
+	import {TreeView, TreeViewItem, AppRail, AppRailTile, ListBox, ListBoxItem} from '@skeletonlabs/skeleton'
     import Icon from '@iconify/svelte';
     import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
     import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
@@ -16,6 +16,7 @@
 
     import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
     import { invoke } from '@tauri-apps/api/tauri';
+    import type { Layer } from './Layer';
 
     const modalStore = getModalStore();
 
@@ -58,6 +59,8 @@
 
     let selected_model: string | undefined;
     let sim_models: string[] = [];
+    let layers: Layer[] = [{name: "Main Layer", visible: true}];
+    let selectedLayers: Layer[] = [];
 
     onMount(() => {
         scene = new CellScene();
@@ -504,11 +507,11 @@
 <Splitpanes on:resize={() => windowResize()}>
     <Pane minSize={5} size={15}>
         <div class='bg-surface-500 h-full '>
-            <Accordion>
-                <AccordionItem open>
+            <TreeView>
+                <TreeViewItem open>
+                    Simulation settings
                     <svelte:fragment slot="lead"><Icon icon="material-symbols:science"/></svelte:fragment>
-                    <svelte:fragment slot="summary">Simulation settings</svelte:fragment>
-                    <svelte:fragment slot="content">
+                    <svelte:fragment slot="children">
                         <form>
                             <label class="label">
                                 <span>Model</span>
@@ -525,11 +528,50 @@
                             </label>
                         </form>
                     </svelte:fragment>
-                </AccordionItem>
-                <AccordionItem open>
+                </TreeViewItem>
+                <TreeViewItem open>
+                    Layers
+                    <svelte:fragment slot="lead"><Icon icon="material-symbols:layers"/></svelte:fragment>
+                    <svelte:fragment slot="children">
+                        <div>
+                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+                                <Icon icon="mdi:plus"/>
+                            </button>
+                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+                                <Icon icon="mdi:minus"/>
+                            </button>
+                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+                                <Icon icon="mdi:arrow-up"/>
+                            </button>
+                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+                                <Icon icon="mdi:arrow-down"/>
+                            </button>
+                        </div>
+                        <div class="overflow-y-auto h-32">
+                            <ListBox>
+                                {#each layers as layer, i}
+                                    <ListBoxItem bind:group={selectedLayers} name="medium" value={i}>
+                                        <svelte:fragment slot="lead">
+                                            <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
+                                                <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
+                                            </button>
+                                        </svelte:fragment>
+                                        {layer.name}
+                                        <svelte:fragment slot="trail">
+                                            <button type="button" class="btn-icon">
+                                                <Icon icon="material-symbols:settings" />
+                                            </button>
+                                        </svelte:fragment>
+                                    </ListBoxItem>
+                                {/each}
+                            </ListBox>
+                        </div>
+                    </svelte:fragment>
+                </TreeViewItem>
+                <TreeViewItem open>
+                    Cell properties
                     <svelte:fragment slot="lead"><Icon icon="material-symbols:build-rounded"/></svelte:fragment>
-                    <svelte:fragment slot="summary">Cell properties</svelte:fragment>
-                    <svelte:fragment slot="content">
+                    <svelte:fragment slot="children">
                         <form>
                             <label class="label">
                                 <span>Clock mode</span>
@@ -569,8 +611,8 @@
                             </label>
                         </form>
                     </svelte:fragment>
-                </AccordionItem>
-            </Accordion>
+                </TreeViewItem>
+            </TreeView>
         </div>
     </Pane>
     <Pane class="flex flex-auto" minSize={10}>
