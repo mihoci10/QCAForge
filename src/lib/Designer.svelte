@@ -126,7 +126,8 @@
     function openModelOptions(){
         invoke('get_sim_model_options', {simModelId: selected_model})
             .then((res) => {
-            let default_values = res;
+            let default_values = JSON.parse(res);
+            console.log(default_values)
             return new Promise((resolve) => {
                 const modal: ModalSettings = {
                     type: 'component',
@@ -138,9 +139,9 @@
                 modalStore.trigger(modal);
                 })
             .then((r: any) => {
-            invoke('set_sim_model_options', {simModelId: selected_model, simModelOptions: JSON.stringify(r)}).then((res) => {
-                    
-                });
+                if (r)
+                    invoke('set_sim_model_options', {simModelId: selected_model, simModelOptions: JSON.stringify(r)}).then((res) => {    
+                    });
             });
         });
     }

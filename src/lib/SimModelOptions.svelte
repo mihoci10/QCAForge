@@ -1,10 +1,7 @@
 <script lang="ts">
-	import type { SvelteComponent } from 'svelte';
-
     import { invoke } from '@tauri-apps/api/tauri';
 	// Stores
 	import { getModalStore } from '@skeletonlabs/skeleton';
-    import type { stringify } from 'querystring';
 
 	const modalStore = getModalStore();
 
@@ -18,7 +15,7 @@
 		let data_obj = new Object();
 
 		for (var [key, value] of form_data.entries()) { 
-			data_obj[key] = {type: $modalStore[0].meta.default_values[key].type, value: parseFloat(value)};
+			data_obj[key] = parseFloat(value);
 		}
 
 		if ($modalStore[0].response) {
@@ -48,7 +45,7 @@
 						
 						<div class="input-group input-group-divider grid-cols-[1fr_auto]">
 							<input class="input" type="number"
-								value={$modalStore[0].meta.default_values[option.unique_id].value} 
+								value={$modalStore[0].meta.default_values[option.unique_id]} 
 								name={option.unique_id}
 								min={option.descriptor.min}
 								max={option.descriptor.max}

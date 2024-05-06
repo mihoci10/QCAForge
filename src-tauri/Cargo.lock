@@ -1980,9 +1980,10 @@ dependencies = [
 [[package]]
 name = "qca-core"
 version = "0.1.0"
-source = "git+https://github.com/mihoci10/QCASim.git#0407ed8901996ccd731c2bcb81249eca9500ebab"
+source = "git+https://github.com/mihoci10/QCASim.git#2b3eb150dbf8cd1b49474c30dec0778fecd3f2d7"
 dependencies = [
  "serde",
+ "serde-inline-default",
  "serde_json",
  "serde_repr",
 ]
@@ -2253,6 +2254,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fb1c873e1b9b056a4dc4c0c198b24c3ffa059243875552b2bd0933b1aee4ce2"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-inline-default"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9980133dc534d02ab08df3b384295223a45090c40a4c46240e3eaa982b495910"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.55",
 ]
 
 [[package]]

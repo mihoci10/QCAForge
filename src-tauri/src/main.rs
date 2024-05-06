@@ -50,31 +50,30 @@ fn set_sim_model_options(sim_model_id: String, sim_model_options: String, state:
   let mut model_binding = state.model_list.lock().unwrap();
   let model = model_binding.iter_mut()
     .find(|model| model.get_unique_id() == sim_model_id);
-
-  let options: Result<OptionsValueList, serde_json::Error> = serde_json::from_str(&sim_model_options);
   
   match model {
     Some(model) => {
-      match options {
-          Ok(options) => {
-            model.set_options_value_list(options);
-            Ok(())
-          },
-          Err(err) => Err(format!("Parsing error: {}", err.to_string())),
+      match model.set_serialized_settings(&sim_model_options) 
+      {
+        Err(err)=>Err(format!("Parsing error: {}",err.to_string())),
+        _ => Ok(()), 
       }
-      },
+    },
     None => Err("No model with such id exists".into()),
   }
 }
 
 #[tauri::command]
-fn get_sim_model_options(sim_model_id: String, state: State<SimulationModels>) -> Result<OptionsValueList, String> {
+fn get_sim_model_options(sim_model_id: String, state: State<SimulationModels>) -> Result<String, String> {
   let model_binding = state.model_list.lock().unwrap();
   let model = model_binding.iter()
     .find(|model| model.get_unique_id() == sim_model_id);
   
   match model {
-    Some(model) => Ok(model.get_options_value_list()),
+    Some(model) => match model.get_deserialized_settings() {
+      Ok(str) => Ok(str),
+      Err(err) => Err(err),
+    },
     None => Err("No model with such id exists".into()),
   }
 }
