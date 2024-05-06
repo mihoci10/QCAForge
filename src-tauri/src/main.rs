@@ -91,7 +91,7 @@ fn run_sim_model(sim_model_id: String, cells: String, state: State<SimulationMod
     Some(model) => {
       match cells_obj{
           Ok(cells) => {
-            run_simulation(model, cells);
+            run_simulation(model, cells, None);
             Ok("".into())
           },
           Err(err) => Err(format!("Parsing error: {}", err.to_string())),

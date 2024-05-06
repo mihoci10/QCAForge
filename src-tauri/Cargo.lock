@@ -1980,7 +1980,7 @@ dependencies = [
 [[package]]
 name = "qca-core"
 version = "0.1.0"
-source = "git+https://github.com/mihoci10/QCASim.git#2b3eb150dbf8cd1b49474c30dec0778fecd3f2d7"
+source = "git+https://github.com/mihoci10/QCASim.git#50065e9c924a5245513356ed98a94cbc2dd64012"
 dependencies = [
  "serde",
  "serde-inline-default",
