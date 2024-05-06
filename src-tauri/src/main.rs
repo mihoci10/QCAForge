@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{fmt::format, sync::Mutex};
+use std::{fmt::format, fs::File, io::Write, sync::Mutex};
 
 use qca_core::sim::{bistable::BistableModel, run_simulation, settings::{OptionsList, OptionsValueList}, QCACell, SimulationModelTrait};
 use tauri::{Manager, State};
@@ -91,8 +91,10 @@ fn run_sim_model(sim_model_id: String, cells: String, state: State<SimulationMod
     Some(model) => {
       match cells_obj{
           Ok(cells) => {
-            run_simulation(model, cells, None);
-            Ok("".into())
+            
+          let file = Box::new(File::create("output.bin").unwrap()) as Box<dyn Write>;
+          run_simulation(model, cells, Some(file));
+          Ok("".into())
           },
           Err(err) => Err(format!("Parsing error: {}", err.to_string())),
       }
