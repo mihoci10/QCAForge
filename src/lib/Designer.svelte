@@ -33,7 +33,7 @@
 
     let ghostGeometry: CellGeometry;
     let ghostMesh: THREE.Mesh;
-    let snapDivider: number = 1;
+    let snapDivider: number = 20;
 
     let stats: Stats;
     let statsDrawCall: Stats.Panel;
@@ -94,7 +94,7 @@
         let cnt = 0;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
-                cells.push({typ: CellType.Fixed, clock_phase_shift: 0, z_index:0, polarization: Math.random() * 2 - 1, pos_x: i, pos_y: j})
+                cells.push({typ: CellType.Fixed, clock_phase_shift: 0, z_index:0, polarization: Math.random() * 2 - 1, pos_x: i * 20, pos_y: j * 20})
                 cnt++;
             }
         }
@@ -149,11 +149,7 @@
     export function runSimulation(){
         invoke('run_sim_model', {simModelId: selected_model, cells: serializeCells(cells)})
             .then((r: any) => {
-                console.log(r);
-                let results: number[] = JSON.parse(r);
-                for (let i = 0; i < cells.length; i++) {
-                    cells[i].polarization = results[i];        
-                }
+
             })
             .catch((err: any) => console.error(err));
     }
@@ -403,8 +399,8 @@
 
     function endCellPlace(mouse_x: number, mouse_y: number){
         let world_pos =  screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
-        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
-        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
+        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
+        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         
         cells.push({typ: CellType.Normal, polarization: 0, z_index:0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0})
         cellGeometry.update(cells, selectedCells, false);
@@ -420,12 +416,12 @@
 
     function repositionCells(mouse_x: number, mouse_y: number){
         let orig_world_pos =  screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
-        orig_world_pos.x = Math.floor((orig_world_pos.x + snapDivider / 2) / snapDivider);
-        orig_world_pos.y = Math.floor((orig_world_pos.y + snapDivider / 2) / snapDivider);
+        orig_world_pos.x = Math.floor((orig_world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
+        orig_world_pos.y = Math.floor((orig_world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
 
         let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
-        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
-        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
+        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
+        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
 
         let diff_x = world_pos.x - orig_world_pos.x;
         let diff_y = world_pos.y - orig_world_pos.y;
@@ -442,8 +438,8 @@
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
         let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
-        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider);
-        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider);
+        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
+        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         ghostGeometry.update([{polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, z_index:0, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
     }
 
