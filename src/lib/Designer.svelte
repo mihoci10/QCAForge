@@ -9,7 +9,7 @@
     import * as THREE from 'three'
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { CellGeometry } from './CellGeometry';
-    import { CellType, type Cell, serializeCells } from './Cell';
+    import { CellType, type Cell } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
     import { Pane, Splitpanes } from 'svelte-splitpanes';
@@ -17,6 +17,7 @@
     import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
     import { invoke } from '@tauri-apps/api/tauri';
     import type { Layer } from './Layer';
+    import type { SimulationModel } from './SimulationModel';
 
     const modalStore = getModalStore();
 
@@ -57,15 +58,17 @@
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
 
-    export let selected_model: string | undefined;
+    export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
     let layers: Layer[] = [{name: "Main Layer", visible: true}];
     let selectedLayer: string = "0";
 
+    export let simulation_models: Map<string, SimulationModel>;
+
     onMount(() => {
         scene = new CellScene();
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
-        camera.position.z += 1;
+        camera.position.z += 20;
 
         renderer = new THREE.WebGLRenderer({canvas: canvas});
         renderer.setClearAlpha(0);
@@ -109,10 +112,6 @@
         scene.addMesh(drawInstancedMesh, pickInstancedMesh);
 
         renderer.setAnimationLoop(render);
-
-        invoke('get_sim_models').then((res) => {
-            sim_models = res as string[];
-        });
     });
 
     onDestroy(() => {
@@ -124,34 +123,28 @@
     });
 
     function openModelOptions(){
-        invoke('get_sim_model_options', {simModelId: selected_model})
-            .then((res) => {
-            let default_values = JSON.parse(res);
-            console.log(default_values)
-            return new Promise((resolve) => {
-                const modal: ModalSettings = {
-                    type: 'component',
-                    component: 'simModelOptions',
-                    title: `${selected_model} settings`,
-                    meta: {sim_model_id: selected_model, default_values: default_values},
-                    response: (r:any) => resolve(r),
-                };
-                modalStore.trigger(modal);
-                })
-            .then((r: any) => {
-                if (r)
-                    invoke('set_sim_model_options', {simModelId: selected_model, simModelOptions: JSON.stringify(r)}).then((res) => {    
-                    });
-            });
-        });
-    }
+        if (!selected_model_id)
+            console.error('invalid simulation model id!');
 
-    export function runSimulation(){
-        invoke('run_sim_model', {simModelId: selected_model, cells: serializeCells(cells)})
-            .then((r: any) => {
+        if (!simulation_models.has(selected_model_id!))
+            console.error('invalid simulation model!');
 
+        let model = simulation_models.get(selected_model_id!)!;
+
+        return new Promise((resolve) => {
+            const modal: ModalSettings = {
+                type: 'component',
+                component: 'simModelOptions',
+                title: `${model.name} settings`,
+                meta: {model: model},
+                response: (r:any) => resolve(r),
+            };
+            modalStore.trigger(modal);
             })
-            .catch((err: any) => console.error(err));
+        .then((res: any) => {
+            if (res)
+                model.settings = res;
+        });
     }
 
     function windowResize(){
@@ -513,12 +506,12 @@
                             <label class="label">
                                 <span>Model</span>
                                 <div class="flex">
-                                    <select bind:value={selected_model} class="select">
-                                        {#each sim_models as name}
-                                            <option value={name}>{name}</option>
+                                    <select bind:value={selected_model_id} class="select">
+                                        {#each simulation_models.values() as model}
+                                            <option value={model.id}>{model.name}</option>
                                         {/each}
                                     </select>
-                                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model} on:click={openModelOptions}>
+                                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} on:click={openModelOptions}>
                                         <Icon icon="material-symbols:settings" />
                                     </button>
                                 </div>

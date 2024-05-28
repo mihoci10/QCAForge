@@ -12,7 +12,7 @@
 
 	function formSubmit(e: SubmitEvent){
 		const form_data = new FormData(e.target as HTMLFormElement);
-		let data_obj = new Object();
+		let data_obj = {};
 
 		for (var [key, value] of form_data.entries()) { 
 			data_obj[key] = parseFloat(value);
@@ -29,11 +29,8 @@
 	<div class="modal-example-form {cBase}">
 		<header class={cHeader}>{$modalStore[0].title ?? '(title missing)'}</header>
 		
-		{#await invoke('get_sim_model_options_list', {simModelId: $modalStore[0].meta.sim_model_id})}
-		<p>...waiting</p>
-		{:then response}
 		<form class="modal-form {cForm}" on:submit|preventDefault={formSubmit}>
-		{#each response as option}
+		{#each $modalStore[0].meta.model.option_list as option}
 			{#if option.type === 'Header'}
 				<p class="text-lg font-bold">{option.label}</p>
 			{:else if option.type === 'Break'}
@@ -45,7 +42,7 @@
 						
 						<div class="input-group input-group-divider grid-cols-[1fr_auto]">
 							<input class="input" type="number"
-								value={$modalStore[0].meta.default_values[option.unique_id]} 
+								value={$modalStore[0].meta.model.settings[option.unique_id]} 
 								name={option.unique_id}
 								min={option.descriptor.min}
 								max={option.descriptor.max}
@@ -61,8 +58,5 @@
 		{/each}
 		<button class="input" type="submit">Ok</button>
 		</form>
-		{:catch error}
-			<p style="color: red">{error}</p>
-		{/await}
 	</div>
 {/if}
