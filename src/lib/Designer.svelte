@@ -18,6 +18,10 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import type { Layer } from './Layer';
     import type { SimulationModel } from './SimulationModel';
+    import SimSettings from './panels/sim-settings-panel.svelte';
+    import SimSettingsPanel from './panels/sim-settings-panel.svelte';
+    import LayersPanel from './panels/layers-panel.svelte';
+    import CellPropsPanel from './panels/cell-props-panel.svelte';
 
     const modalStore = getModalStore();
 
@@ -45,18 +49,11 @@
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
 
-    let selectedClockMode: string = "0";
-    $: selectedClockMode, selectedClockModeChanged();
-
-    let selectedCellType: string = "0";
-    $: selectedCellType, selectedCellTypeChanged();
-
-    let polarizationInput: number = 0;
-    $: polarizationInput, polarizationInputChanged();
-
     export let cells: Cell[] = [];
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
+
+    let selectedCellsUpdatedDispatch : (() => void);
 
     export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
@@ -121,31 +118,6 @@
         DrawableCellMaterial.dispose();
         PickableCellMaterial.dispose();
     });
-
-    function openModelOptions(){
-        if (!selected_model_id)
-            console.error('invalid simulation model id!');
-
-        if (!simulation_models.has(selected_model_id!))
-            console.error('invalid simulation model!');
-
-        let model = simulation_models.get(selected_model_id!)!;
-
-        return new Promise((resolve) => {
-            const modal: ModalSettings = {
-                type: 'component',
-                component: 'simModelOptions',
-                title: `${model.name} settings`,
-                meta: {model: model},
-                response: (r:any) => resolve(r),
-            };
-            modalStore.trigger(modal);
-            })
-        .then((res: any) => {
-            if (res)
-                model.settings = res;
-        });
-    }
 
     function windowResize(){
         //renderer.setPixelRatio(window.devicePixelRatio);
@@ -338,32 +310,9 @@
         cellGeometry.update(cells, selectedCells, false);
         selectedCellsUpdated();
     }
-
+    
     function selectedCellsUpdated(){
-        let clockModes: Set<number> = new Set();
-        let cellTypes: Set<CellType> = new Set();
-        let polarizations : Set<Number> = new Set();
-
-        selectedCells.forEach((id) => {
-            clockModes.add(cells[id].clock_phase_shift);
-            cellTypes.add(cells[id].typ);
-            polarizations.add(cells[id].polarization);
-        });
-        
-        if (clockModes.size > 1)
-            selectedClockMode = 'multiple';
-        else if (clockModes.size == 1)
-            selectedClockMode = (clockModes.values().next().value).toString();
-        
-        if (cellTypes.size > 1)
-            selectedCellType = 'multiple';
-        else if (cellTypes.size == 1)
-            selectedCellType = (cellTypes.values().next().value).toString();
-        
-        if (cellTypes.size > 1)
-            polarizationInput = NaN;
-        else if (cellTypes.size == 1)
-            polarizationInput = parseFloat((polarizations.values().next().value).toString());
+        selectedCellsUpdatedDispatch();
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -462,33 +411,6 @@
 
         return newInputMode;
     }
-
-    function selectedClockModeChanged(){
-        if (isNaN(+selectedClockMode))
-            return;
-
-        selectedCells.forEach((id) => {
-            cells[id].clock_phase_shift = parseInt(selectedClockMode);
-        });
-    }
-
-    function selectedCellTypeChanged(){
-        if (isNaN(+selectedCellType))
-            return;
-
-        selectedCells.forEach((id) => {
-            cells[id].typ = parseInt(selectedCellType);
-        });
-    }
-
-    function polarizationInputChanged(){
-        if (isNaN(polarizationInput))
-            return;
-
-        selectedCells.forEach((id) => {
-            cells[id].polarization = polarizationInput;
-        });
-    }
     
 </script>
 
@@ -498,111 +420,9 @@
     <Pane minSize={5} size={15}>
         <div class='bg-surface-500 h-full overflow-y-auto pr-2'>
             <TreeView>
-                <TreeViewItem open>
-                    Simulation settings
-                    <svelte:fragment slot="lead"><Icon icon="material-symbols:science"/></svelte:fragment>
-                    <svelte:fragment slot="children">
-                        <form>
-                            <label class="label">
-                                <span>Model</span>
-                                <div class="flex">
-                                    <select bind:value={selected_model_id} class="select">
-                                        {#each simulation_models.values() as model}
-                                            <option value={model.id}>{model.name}</option>
-                                        {/each}
-                                    </select>
-                                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} on:click={openModelOptions}>
-                                        <Icon icon="material-symbols:settings" />
-                                    </button>
-                                </div>
-                            </label>
-                        </form>
-                    </svelte:fragment>
-                </TreeViewItem>
-                <TreeViewItem>
-                    Layers
-                    <svelte:fragment slot="lead"><Icon icon="material-symbols:layers"/></svelte:fragment>
-                    <svelte:fragment slot="children">
-                        <div>
-                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
-                                <Icon icon="mdi:plus"/>
-                            </button>
-                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
-                                <Icon icon="mdi:minus"/>
-                            </button>
-                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
-                                <Icon icon="mdi:arrow-up"/>
-                            </button>
-                            <button type="button" class="btn-icon variant-filled btn-icon-sm">
-                                <Icon icon="mdi:arrow-down"/>
-                            </button>
-                        </div>
-                        <div class="overflow-y-auto h-32 m-2 bg-surface-700">
-                            <ListBox padding="p-0">
-                                {#each layers as layer, i}
-                                    <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i.toString()}>
-                                        <svelte:fragment slot="lead">
-                                            <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
-                                                <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
-                                            </button>
-                                        </svelte:fragment>
-                                        {layer.name}
-                                        <svelte:fragment slot="trail">
-                                            <button type="button" class="btn-icon">
-                                                <Icon icon="material-symbols:settings" />
-                                            </button>
-                                        </svelte:fragment>
-                                    </ListBoxItem>
-                                {/each}
-                            </ListBox>
-                        </div>
-                    </svelte:fragment>
-                </TreeViewItem>
-                <TreeViewItem open>
-                    Cell properties
-                    <svelte:fragment slot="lead"><Icon icon="material-symbols:build-rounded"/></svelte:fragment>
-                    <svelte:fragment slot="children">
-                        <form>
-                            <label class="label">
-                                <span>Clock mode</span>
-                                <select class="select" bind:value={selectedClockMode}>
-                                    <option value="multiple" hidden>Multiple values</option>
-                                    <option value=0>Clock 0</option>
-                                    <option value=1>Clock 1</option>
-                                    <option value=2>Clock 2</option>
-                                    <option value=3>Clock 3</option>
-                                </select>
-                            </label>
-                            <label class="label">
-                                <span>Cell type</span>
-                                <select class="select" bind:value={selectedCellType}>
-                                    <option value="multiple" hidden>Multiple values</option>
-                                    <option value=0>Normal</option>
-                                    <option value=1>Input</option>
-                                    <option value=2>Output</option>
-                                    <option value=3>Fixed</option>
-                                </select>
-                            </label>
-                            <label class="label">
-                                <span>Polarization</span>
-                                <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarizationInput}/>
-                            </label> 
-                            <label class="label">
-                                <span>Position</span>
-                                <div class='flex'>
-                                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                                        <div class="input-group-shim bg-red-500">X</div>
-                                        <input type="number"/>
-                                    </div>
-                                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                                        <div class="input-group-shim bg-green-500">Y</div>
-                                        <input type="number"/>
-                                    </div>
-                                </div>
-                            </label>
-                        </form>
-                    </svelte:fragment>
-                </TreeViewItem>
+                <SimSettingsPanel bind:selected_model_id={selected_model_id} bind:simulation_models={simulation_models}/>
+                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer}/>
+                <CellPropsPanel bind:cells={cells} bind:selectedCells={selectedCells} bind:selectedCellsUpdated={selectedCellsUpdatedDispatch}/>
             </TreeView>
         </div>
     </Pane>
