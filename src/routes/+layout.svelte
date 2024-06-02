@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.postcss';
-	import {AppShell, AppRail, AppRailTile, Modal, type ModalComponent} from '@skeletonlabs/skeleton'
+	import {AppShell, AppRail, AppRailTile, Modal, type ModalComponent, Toast} from '@skeletonlabs/skeleton'
 
 	import SimModelOptions from '$lib/SimModelOptions.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
@@ -13,6 +13,7 @@
 </script>
 
 <Modal components={modalRegistry}/>
+<Toast/>
 
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">

@@ -7,7 +7,7 @@ export enum CellType{
 
 export interface Cell{
     pos_x: number;
-    pos_y: number
+    pos_y: number;
     typ: CellType;
     z_index: number;
     clock_phase_shift: number;

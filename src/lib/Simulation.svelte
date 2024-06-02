@@ -5,6 +5,9 @@
     import { startSimulation } from "./Simulation";
     import type { SimulationModel } from "./SimulationModel";
     import { invoke } from "@tauri-apps/api";
+    import { getToastStore, type ToastSettings } from "@skeletonlabs/skeleton";
+
+    const toastStore = getToastStore();
     
     let selected_model_id: string|undefined;
     let cells: Cell[];
@@ -40,9 +43,21 @@
         startSimulation(cells, simulation_models.get(selected_model_id!)!)
             .then((res) => {
                 console.log(res);
+                const t: ToastSettings = {
+                    message: 'Simulation finished successfully.',
+                    timeout: 3000,
+	                background: 'variant-filled-success',
+                };
+                toastStore.trigger(t);
             })
             .catch((err) => {
                 console.error(err);
+                const t: ToastSettings = {
+                    message: `Simulation failed: ${err}`,
+                    timeout: 10000,
+	                background: 'variant-filled-error',
+                };
+                toastStore.trigger(t);
             })
     }
 </script>

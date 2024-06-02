@@ -15,7 +15,7 @@ void main() {
 }
 `
 
-const drawableFragmentSrc = `
+const drawableFragmentSrc2 = `
 varying vec2 localPos;
 varying float polar;
 flat varying int metadata;
@@ -69,6 +69,67 @@ void main() {
 }
 `
 
+
+const drawableFragmentSrc3 = `
+varying vec2 localPos;
+varying float polar;
+flat varying int metadata;
+out vec4 outColor;
+
+float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
+{
+    vec2 value = abs(localPos - pos);
+
+    vec2 mask = smoothstep(bandStart - fade, bandStart, value);
+    mask -= smoothstep(bandStop, bandStop + fade, value);
+
+    return max(max(mask.x, mask.y), 0.0);
+}
+
+float HollowCircleMask(vec2 pos, float radiusStart, float radiusStop, float fade)
+{
+    radiusStop = max(radiusStart, radiusStop);
+    float value = length(localPos - pos);
+
+    float mask = smoothstep(radiusStart - fade, radiusStart, value);
+    mask -= smoothstep(radiusStop, radiusStop + fade, value);
+
+    return max(mask, 0.0);
+}
+
+void main() {
+    vec2 fragSize = fwidth(localPos);
+    bool selected = bool(metadata & (1 << 6));
+
+    float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
+
+    float circleSize = 0.15;
+    float dotSizeMax = 0.10;
+    float dotSizePos = abs(polar / 2.0 + 0.5) * dotSizeMax;
+    float dotSizeNeg = dotSizeMax - dotSizePos;
+
+    float offX = cos(3.1415926535897932384626433832795/4.0) * 0.6;
+    float offY = sin(3.1415926535897932384626433832795/4.0) * 0.6;
+
+    mask += HollowCircleMask(vec2(0.0, 0.6), circleSize, circleSize + (length(fragSize)), 0.01);
+    mask += HollowCircleMask(vec2(0.0, -0.6), circleSize, circleSize + (length(fragSize)), 0.01);
+
+    mask += HollowCircleMask(vec2(0.6, 0.0), circleSize, circleSize + (length(fragSize)), 0.01);
+    mask += HollowCircleMask(vec2(-0.6, 0.0), circleSize, circleSize + (length(fragSize)), 0.01);
+
+    mask += HollowCircleMask(vec2(offX, offY), circleSize, circleSize + (length(fragSize)), 0.01);
+    mask += HollowCircleMask(vec2(-offX, -offY), circleSize, circleSize + (length(fragSize)), 0.01);
+
+    mask += HollowCircleMask(vec2(-offX, offY), circleSize, circleSize + (length(fragSize)), 0.01);
+    mask += HollowCircleMask(vec2(offX, -offY), circleSize, circleSize + (length(fragSize)), 0.01);
+
+    if (selected)
+        outColor = vec4(mask, 0, 0, 1);
+    else
+        outColor = vec4(vec3(mask), 1);
+}
+`
+
 const pickableFragmentSrc = `
 varying vec2 localPos;
 varying float polar;
@@ -83,7 +144,7 @@ void main() {
 export let DrawableCellMaterial = new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
-    fragmentShader: drawableFragmentSrc,
+    fragmentShader: drawableFragmentSrc2,
     transparent: false,
 });
 

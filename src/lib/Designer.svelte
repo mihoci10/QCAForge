@@ -496,7 +496,7 @@
 
 <Splitpanes class="h-full overflow-y-auto" on:resize={() => windowResize()}>
     <Pane minSize={5} size={15}>
-        <div class='bg-surface-500 h-full overflow-y-auto'>
+        <div class='bg-surface-500 h-full overflow-y-auto pr-2'>
             <TreeView>
                 <TreeViewItem open>
                     Simulation settings
@@ -519,7 +519,7 @@
                         </form>
                     </svelte:fragment>
                 </TreeViewItem>
-                <TreeViewItem open>
+                <TreeViewItem>
                     Layers
                     <svelte:fragment slot="lead"><Icon icon="material-symbols:layers"/></svelte:fragment>
                     <svelte:fragment slot="children">
@@ -537,7 +537,7 @@
                                 <Icon icon="mdi:arrow-down"/>
                             </button>
                         </div>
-                        <div class="overflow-y-auto h-32 m-2 bg-surface-800">
+                        <div class="overflow-y-auto h-32 m-2 bg-surface-700">
                             <ListBox padding="p-0">
                                 {#each layers as layer, i}
                                     <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i.toString()}>
@@ -586,7 +586,8 @@
                             <label class="label">
                                 <span>Polarization</span>
                                 <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarizationInput}/>
-                            </label> <label class="label">
+                            </label> 
+                            <label class="label">
                                 <span>Position</span>
                                 <div class='flex'>
                                     <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">

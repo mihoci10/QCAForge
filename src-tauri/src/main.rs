@@ -62,19 +62,23 @@ fn get_sim_model_default_options(sim_model_id: String) -> Result<String, String>
 }
 
 #[tauri::command]
-fn run_sim_model(sim_model_id: String, cells: String) -> Result<String, String> {  
+fn run_sim_model(sim_model_id: String, cells: String, sim_model_settings: String) -> Result<String, String> {  
   let cells_obj: Result<Vec<QCACell>, serde_json::Error> = serde_json::from_str(&cells);
   
   match &mut create_sim_model(sim_model_id) {
     Some(model) => {
       match cells_obj{
           Ok(cells) => {
-            
-          let file = Box::new(File::create("output.bin").unwrap()) as Box<dyn Write>;
-          run_simulation(model, cells, Some(file));
-          Ok("".into())
+            match model.set_serialized_settings(&sim_model_settings){
+                Ok(()) => {
+                  let file = Box::new(File::create("output.bin").unwrap()) as Box<dyn Write>;
+                  run_simulation(model, cells, Some(file));
+                  Ok("".into())
+                },
+                Err(err) => Err(format!("Parsing settings error: {}", err.to_string())),
+            }
           },
-          Err(err) => Err(format!("Parsing error: {}", err.to_string())),
+          Err(err) => Err(format!("Parsing cells error: {}", err.to_string())),
       }
     },
     None => Err("No model with such id exists".into()),
