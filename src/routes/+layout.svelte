@@ -4,6 +4,7 @@
 
 	import SimModelOptions from '$lib/SimModelOptions.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
+    import Icon from '@iconify/svelte';
 
 	initializeStores();
 	
@@ -17,12 +18,16 @@
 
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail width="w-10"> 
+		<AppRail width="w-16"> 
 			<AppRailTile group="" name="tile-1" value={0} title="tile-1">
-				Item 1
+				<svelte:fragment slot="lead">
+					<Icon width={36} icon="material-symbols:design-services-outline" style="margin: auto;"/>
+				</svelte:fragment>
 			</AppRailTile>
 			<AppRailTile group="" name="tile-2" value={0} title="tile-2">
-				Item 2
+				<svelte:fragment slot="lead">
+					<Icon width={36} icon="mdi:chart-bell-curve-cumulative" style="margin: auto;"/>
+				</svelte:fragment>
 			</AppRailTile>
 		</AppRail>
 	</svelte:fragment>
