@@ -63,7 +63,6 @@
         layers = layers;
     }
 
-
 </script>
 
 <TreeViewItem>
@@ -88,7 +87,7 @@
                 <Icon icon="mdi:arrow-down"/>
             </button>
         </div>
-        <div class="overflow-y-auto h-32 m-2 bg-surface-700">
+        <div class="overflow-y-auto h-32 resize-y m-2 bg-surface-700">
             <ListBox padding="p-0">
                 {#each layers as layer, i}
                     <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i}>
