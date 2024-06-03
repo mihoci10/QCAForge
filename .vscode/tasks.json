@@ -10,31 +10,7 @@
         // ideally you should also configure a `problemMatcher`
         // see https://code.visualstudio.com/docs/editor/tasks#_can-a-background-task-be-used-as-a-prelaunchtask-in-launchjson
         "isBackground": true,
-        "problemMatcher":[
-          {
-              "owner": "typescript",
-              "source": "Typescript",
-              "fileLocation": "absolute",
-              "applyTo": "allDocuments",
-              "background": {
-                  "activeOnStart": true
-                  // "beginsPattern": "sd",
-                  // "endsPattern": " > "
-              },
-              "pattern": [
-                  {
-                      "regexp": "(ERROR|WARNING)\\(TypeScript\\)  (.*)",
-                      "severity": 1,
-                      "message": 2
-                  },
-                  {
-                      "regexp": "^ FILE  (.*):(\\d*):(\\d*)$",
-                      "file": 1,
-                      "line": 2,
-                      "column": 3
-                  }
-              ]
-          }],
+        "problemMatcher": "$tsc-watch",
         // change this to your `beforeDevCommand`:
         "command": "npm",
         "args": ["run", "dev"]
