@@ -58,7 +58,7 @@
     export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
     let layers: Layer[] = [{name: "Main Layer", visible: true}];
-    let selectedLayer: string = "0";
+    let selectedLayer: number = 0;
 
     export let simulation_models: Map<string, SimulationModel>;
 

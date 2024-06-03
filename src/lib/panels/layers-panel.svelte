@@ -5,7 +5,65 @@
 
     
     export let layers: Layer[];
-    export let selectedLayer: string;
+    export let selectedLayer: number;
+
+    function getIndexOfLayer(layerName: string): number{
+        for (let i = 0; i < layers.length; i++) {
+            if (layers[i].name == layerName)
+                return i;            
+        }
+        return NaN;
+    }
+
+    function layerNameExists(layerName: string): boolean{
+        return !isNaN(getIndexOfLayer(layerName));
+    }
+
+    function addLayer(){
+        let newLayerName = 'New Layer';
+        let layerCnt = 0;
+        while (layerNameExists(newLayerName)){
+            layerCnt++;
+            newLayerName = `New Layer ${layerCnt}`;
+        }
+
+        const i = selectedLayer;
+
+        layers.splice(i+1, 0, {name: newLayerName, visible: true})
+
+        layers = layers;
+    }
+
+    function removeLayer(){
+        if (layers.length == 1)
+            return;
+
+        const i = selectedLayer;
+        layers.splice(i, 1);
+
+        selectedLayer = Math.max(selectedLayer - 1, 0);
+        layers = layers;
+    }
+
+    function moveLayerDown(){
+        if (selectedLayer == layers.length - 1)
+            return;
+
+        layers[selectedLayer] = layers.splice(selectedLayer + 1, 1, layers[selectedLayer])[0];
+        selectedLayer++;
+        layers = layers;
+    }
+
+    function moveLayerUp(){
+        if (selectedLayer == 0)
+            return;
+
+        layers[selectedLayer] = layers.splice(selectedLayer - 1, 1, layers[selectedLayer])[0];
+        selectedLayer--;
+        layers = layers;
+    }
+
+
 </script>
 
 <TreeViewItem>
@@ -13,23 +71,27 @@
     <svelte:fragment slot="lead"><Icon icon="material-symbols:layers"/></svelte:fragment>
     <svelte:fragment slot="children">
         <div>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+            <button type="button" class="btn-icon variant-filled btn-icon-sm"
+                on:click={addLayer}>
                 <Icon icon="mdi:plus"/>
             </button>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+            <button type="button" class="btn-icon variant-filled btn-icon-sm"
+                on:click={removeLayer}>
                 <Icon icon="mdi:minus"/>
             </button>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+            <button type="button" class="btn-icon variant-filled btn-icon-sm"
+                on:click={moveLayerUp}>
                 <Icon icon="mdi:arrow-up"/>
             </button>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm">
+            <button type="button" class="btn-icon variant-filled btn-icon-sm"
+                on:click={moveLayerDown}>
                 <Icon icon="mdi:arrow-down"/>
             </button>
         </div>
         <div class="overflow-y-auto h-32 m-2 bg-surface-700">
             <ListBox padding="p-0">
                 {#each layers as layer, i}
-                    <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i.toString()}>
+                    <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i}>
                         <svelte:fragment slot="lead">
                             <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
                                 <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
