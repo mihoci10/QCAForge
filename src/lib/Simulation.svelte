@@ -62,7 +62,7 @@
     }
 </script>
 
-<div class="h-screen flex flex-col">
+<div class="w-full flex flex-col">
     <div class='my-1'>
         <div class="flex flex-row float-right">
             <button type="button" class="btn variant-filled mx-2" 

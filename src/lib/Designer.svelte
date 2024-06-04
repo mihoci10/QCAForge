@@ -432,9 +432,9 @@
 
 <svelte:window on:resize={() => windowResize()}/>
 
-<Splitpanes class="h-full overflow-y-auto" on:resize={() => windowResize()}>
+<Splitpanes class="h-full overflow-auto" on:resize={() => windowResize()}>
     <Pane minSize={5} size={15}>
-        <div class='bg-surface-500 h-full overflow-y-auto pr-2'>
+        <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <TreeView>
                 <SimSettingsPanel bind:selected_model_id={selected_model_id} bind:simulation_models={simulation_models}/>
                 <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer}/>
@@ -442,7 +442,7 @@
             </TreeView>
         </div>
     </Pane>
-    <Pane class="flex flex-1" minSize={10}>
+    <Pane class="flex" minSize={10}>
         <div class="relative flex-1" bind:this={container}>
             <div class="absolute top-2 left-1 z-10">
                 <AppRail width="w-8">

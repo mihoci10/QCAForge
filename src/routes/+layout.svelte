@@ -19,9 +19,9 @@
 <Modal components={modalRegistry}/>
 <Toast/>
 
-<Titlebar/>
-<AppShell>
-	<svelte:fragment slot="sidebarLeft">
+<div class="flex flex-col h-full">
+	<Titlebar/>
+	<div class="flex h-full overflow-auto">
 		<AppRail width="w-12"> 
 			<AppRailTile bind:group={selectedTab} name="tile-1" value={0} title="tile-1">
 				<svelte:fragment slot="lead">
@@ -34,7 +34,7 @@
 				</svelte:fragment>
 			</AppRailTile>
 		</AppRail>
-	</svelte:fragment>
-
-	<slot />
-</AppShell>
+	
+		<slot />
+	</div>
+</div>
