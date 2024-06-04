@@ -23,23 +23,19 @@
 </style>
 
 <script>
+    import Icon from '@iconify/svelte';
     import { appWindow } from '@tauri-apps/api/window'
 </script>
 
-<div data-tauri-drag-region class="titlebar">
-    <div class="titlebar-button" on:click={() => appWindow.minimize()}>
-      <img
-        src="https://api.iconify.design/mdi:window-minimize.svg"
-        alt="minimize"
-      />
-    </div>
-    <div class="titlebar-button" on:click={() => appWindow.maximize()}>
-      <img
-        src="https://api.iconify.design/mdi:window-maximize.svg"
-        alt="maximize"
-      />
-    </div>
-    <div class="titlebar-button" on:click={() => appWindow.close()}>
-      <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
-    </div>
-  </div>
+<div data-tauri-drag-region class='h-8 bg-surface-200'>
+    <button class="float-right h-full px-1 cursor-default hover:bg-error-500" on:click={() => appWindow.close()}>
+        <Icon color='black' height={24} icon="mdi:close" class='h-full'/>
+    </button>
+    <button class="float-right h-full px-1 cursor-default hover:bg-surface-50" 
+        on:click={() => {appWindow.toggleMaximize();}}>
+        <Icon color='black' height={24} icon="mdi:maximize" class='h-full'/>
+    </button>
+    <button class="float-right h-full px-1 cursor-default hover:bg-surface-50" on:click={() => appWindow.minimize()}>
+        <Icon color='black' height={24} icon="mdi:minimize" class='h-full'/>
+    </button>
+</div>
