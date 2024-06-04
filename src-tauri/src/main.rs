@@ -23,6 +23,7 @@ struct SimulationModelDescriptor {
 
 fn main() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_context_menu::init())
     .invoke_handler(tauri::generate_handler![
       get_sim_models, get_sim_model_options_list, run_sim_model, get_sim_model_default_options
     ])

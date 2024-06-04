@@ -20,7 +20,7 @@
 
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail width="w-16"> 
+		<AppRail width="w-12"> 
 			<AppRailTile bind:group={selectedTab} name="tile-1" value={0} title="tile-1">
 				<svelte:fragment slot="lead">
 					<Icon width={36} icon="material-symbols:design-services-outline" style="margin: auto;"/>
