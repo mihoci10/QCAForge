@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {TreeView, TreeViewItem, AppRail, AppRailTile, ListBox, ListBoxItem} from '@skeletonlabs/skeleton'
+	import {TreeView, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
     import Icon from '@iconify/svelte';
     import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
     import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
@@ -14,16 +14,12 @@
     import { OrbitControls } from './utils/OrbitControls';
     import { Pane, Splitpanes } from 'svelte-splitpanes';
 
-    import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
-    import { invoke } from '@tauri-apps/api/tauri';
     import type { Layer } from './Layer';
     import type { SimulationModel } from './SimulationModel';
-    import SimSettings from './panels/sim-settings-panel.svelte';
     import SimSettingsPanel from './panels/sim-settings-panel.svelte';
     import LayersPanel from './panels/layers-panel.svelte';
     import CellPropsPanel from './panels/cell-props-panel.svelte';
-
-    const modalStore = getModalStore();
+    import { showMenu } from "tauri-plugin-context-menu";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -223,6 +219,11 @@
         if (inputMode == 0){
             if (e.button == 0 && !mouseDragging)
                 applySelectRegion(relX, relY);
+            else if (e.button == 2 && 
+                mouseStartPos && relX == mouseStartPos!.x && relY == mouseStartPos!.y){
+                shouldMouseDrag(relX, relY);
+                showContextMenu();
+            }
         }else if (inputMode == 1){
             if (e.button == 0)
                 endCellPlace(relX, relY);
@@ -410,6 +411,21 @@
         }
 
         return newInputMode;
+    }
+
+    function showContextMenu(){
+        showMenu({
+            items: [
+                {
+                    label: 'Copy',
+                    shortcut: 'ctrl+C'
+                },
+                {
+                    label: 'Paste',
+                    shortcut: 'ctrl+V'
+                }
+            ]
+        });
     }
     
 </script>
