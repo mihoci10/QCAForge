@@ -5,6 +5,7 @@
 	import SimModelOptions from '$lib/SimModelOptions.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
     import Icon from '@iconify/svelte';
+    import Titlebar from '$lib/titlebar.svelte';
 
 	initializeStores();
 	
@@ -18,6 +19,7 @@
 <Modal components={modalRegistry}/>
 <Toast/>
 
+<Titlebar/>
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">
 		<AppRail width="w-12"> 
