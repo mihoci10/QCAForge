@@ -1,19 +1,18 @@
 <script lang="ts">
 	import '../app.postcss';
-	import {AppShell, AppRail, AppRailTile, Modal, type ModalComponent, Toast} from '@skeletonlabs/skeleton'
+	import {AppRail, Modal, type ModalComponent, Toast, AppRailAnchor} from '@skeletonlabs/skeleton'
 
 	import SimModelOptions from '$lib/SimModelOptions.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
     import Icon from '@iconify/svelte';
     import Titlebar from '$lib/titlebar.svelte';
+	import { page } from '$app/stores';
 
 	initializeStores();
 	
 	const modalRegistry: Record<string, ModalComponent> = {
 		simModelOptions: { ref: SimModelOptions },
 	};
-
-	let selectedTab: number = 0;
 </script>
 
 <Modal components={modalRegistry}/>
@@ -23,16 +22,16 @@
 	<Titlebar/>
 	<div class="flex h-full overflow-auto">
 		<AppRail width="w-12"> 
-			<AppRailTile bind:group={selectedTab} name="tile-1" value={0} title="tile-1">
+			<AppRailAnchor href='/designer' selected={$page.url.pathname.startsWith('/designer')}>
 				<svelte:fragment slot="lead">
 					<Icon width={36} icon="material-symbols:design-services-outline" style="margin: auto;"/>
 				</svelte:fragment>
-			</AppRailTile>
-			<AppRailTile bind:group={selectedTab} name="tile-2" value={1} title="tile-2">
+			</AppRailAnchor>
+			<AppRailAnchor href='/analysis' selected={$page.url.pathname.startsWith('/analysis')}>
 				<svelte:fragment slot="lead">
 					<Icon width={36} icon="mdi:chart-bell-curve-cumulative" style="margin: auto;"/>
 				</svelte:fragment>
-			</AppRailTile>
+			</AppRailAnchor>
 		</AppRail>
 	
 		<slot />

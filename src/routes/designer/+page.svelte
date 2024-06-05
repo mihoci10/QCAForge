@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Designer from "$lib/Designer.svelte";
     import { onMount } from "svelte";
-    import type { Cell } from "./Cell";
-    import { startSimulation } from "./Simulation";
-    import type { SimulationModel } from "./SimulationModel";
+    import type { Cell } from "$lib/Cell";
+    import { startSimulation } from "$lib/Simulation";
+    import type { SimulationModel } from "$lib/SimulationModel";
     import { invoke } from "@tauri-apps/api";
     import { getToastStore, type ToastSettings } from "@skeletonlabs/skeleton";
 
