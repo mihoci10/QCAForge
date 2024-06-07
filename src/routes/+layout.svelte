@@ -7,12 +7,18 @@
     import Icon from '@iconify/svelte';
     import Titlebar from '$lib/titlebar.svelte';
 	import { page } from '$app/stores';
+    import { listen } from "@tauri-apps/api/event";
+    import { EVENT_NEW_FILE } from '$lib/utils/events';
 
 	initializeStores();
 	
 	const modalRegistry: Record<string, ModalComponent> = {
 		simModelOptions: { ref: SimModelOptions },
 	};
+
+	listen(EVENT_NEW_FILE, () => {
+		console.log(EVENT_NEW_FILE);
+	});
 </script>
 
 <Modal components={modalRegistry}/>
