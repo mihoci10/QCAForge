@@ -4,6 +4,7 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
+	export let parent: any;
 
 	// Base Classes
 	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
