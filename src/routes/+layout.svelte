@@ -8,7 +8,7 @@
     import Titlebar from '$lib/titlebar.svelte';
 	import { page } from '$app/stores';
     import { listen } from "@tauri-apps/api/event";
-    import { EVENT_NEW_FILE } from '$lib/utils/events';
+    import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION, EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from '$lib/utils/events';
 
 	initializeStores();
 	
@@ -19,6 +19,19 @@
 	listen(EVENT_NEW_FILE, () => {
 		console.log(EVENT_NEW_FILE);
 	});
+	listen(EVENT_OPEN_DESIGN, () => {
+		console.log(EVENT_OPEN_DESIGN);
+	});
+	listen(EVENT_OPEN_SIMULATION, () => {
+		console.log(EVENT_OPEN_SIMULATION);
+	});
+	listen(EVENT_SAVE_FILE, () => {
+		console.log(EVENT_SAVE_FILE);
+	});
+	listen(EVENT_SAVE_FILE_AS, () => {
+		console.log(EVENT_SAVE_FILE_AS);
+	});
+
 </script>
 
 <Modal components={modalRegistry}/>

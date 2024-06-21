@@ -4,7 +4,7 @@
     import { onMount, type EventDispatcher } from 'svelte';
     import { showMenu } from "tauri-plugin-context-menu";
     import type { Position } from 'tauri-plugin-context-menu/dist/types';
-    import { EVENT_NEW_FILE, EVENT_OPEN_FILE, EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from './utils/events';
+    import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION, EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from './utils/events';
 
     let maximizeIcon: string = "mdi:maximize";
 
@@ -36,7 +36,11 @@
                 {
                     label: 'Open design...',
                     shortcut: 'ctrl+O',
-                    event: EVENT_OPEN_FILE
+                    event: EVENT_OPEN_DESIGN
+                },
+                {
+                    label: 'Open simulation...',
+                    event: EVENT_OPEN_SIMULATION
                 },
                 {
                     is_separator: true
