@@ -31,10 +31,15 @@ fn main() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
-      get_sim_models, get_sim_model_options_list, run_sim_model, get_sim_model_default_options
+      get_sim_version, get_sim_models, get_sim_model_options_list, run_sim_model, get_sim_model_default_options
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
+}
+
+#[tauri::command]
+fn get_sim_version() -> String {
+  qca_core::QCA_CORE_VERSION.to_string()
 }
 
 #[tauri::command]

@@ -2122,7 +2122,7 @@ dependencies = [
 [[package]]
 name = "qca-core"
 version = "0.1.0"
-source = "git+https://github.com/mihoci10/QCASim.git#67cef81a98b41accec79883f8dec687e8f625897"
+source = "git+https://github.com/mihoci10/QCASim.git#1bf103d7ec4de4a32b2d30cfc697b88035830095"
 dependencies = [
  "semver",
  "serde",
