@@ -6,12 +6,16 @@
     import type { SimulationModel } from "$lib/SimulationModel";
     import { invoke } from "@tauri-apps/api";
     import { getToastStore, type ToastSettings } from "@skeletonlabs/skeleton";
+    import { listen } from "@tauri-apps/api/event";
+    import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
+    import { createDesign, serializeDesign, type QCADesign } from "$lib/qca-design";
+    import { BaseDirectory, writeTextFile } from "@tauri-apps/api/fs";
+    import { save } from "@tauri-apps/api/dialog";
 
     const toastStore = getToastStore();
     
     let selected_model_id: string|undefined;
     let cells: Cell[];
-    let model_options: any;
 
     let simulation_models: Map<string, SimulationModel> = new Map<string, SimulationModel>();
 
@@ -31,6 +35,31 @@
             });
             simulation_models = simulation_models;
         });
+        
+        const unlistenSave = listen(EVENT_SAVE_FILE, () => {
+            createDesign(cells, selected_model_id, simulation_models).then((design) => {
+                writeTextFile('test.qcd', serializeDesign(design), {dir: BaseDirectory.Desktop})
+            })
+        });
+        const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, () => {
+            save({
+                defaultPath: 'New design.qcd', 
+                title: 'Save design as', 
+                filters: [{name: 'Design', extensions: ['qcd']}]
+            }).then((filename) => {
+                if (!filename)
+                    return;
+
+                createDesign(cells, selected_model_id, simulation_models).then((design) => {
+                    writeTextFile(filename, serializeDesign(design))
+                })
+            })
+        });
+
+        return () => {
+            unlistenSave.then(f => f())
+            unlistenSaveAs.then(f => f())
+        };
     });
     
     function executeSimulation(){
