@@ -11,6 +11,8 @@
     import { createDesign, serializeDesign, type QCADesign } from "$lib/qca-design";
     import { BaseDirectory, writeTextFile } from "@tauri-apps/api/fs";
     import { save } from "@tauri-apps/api/dialog";
+    import { design_filename } from "$lib/globals";
+    import { get } from "svelte/store";
 
     const toastStore = getToastStore();
     
@@ -37,8 +39,24 @@
         });
         
         const unlistenSave = listen(EVENT_SAVE_FILE, () => {
-            createDesign(cells, selected_model_id, simulation_models).then((design) => {
-                writeTextFile('test.qcd', serializeDesign(design), {dir: BaseDirectory.Desktop})
+            new Promise((resolve : (value: string) => void, reject) => {
+                let filename = get(design_filename);
+                if (!filename)
+                {
+                    save({
+                        defaultPath: 'New design.qcd', 
+                        title: 'Save design as', 
+                        filters: [{name: 'Design', extensions: ['qcd']}]
+                    }).then((filename) => filename ? resolve(filename as string) : reject());
+                }
+                else
+                    resolve(filename);
+                    
+            }).then((filename) => {
+                createDesign(cells, selected_model_id, simulation_models).then((design) => {
+                    writeTextFile(filename, serializeDesign(design), {dir: BaseDirectory.Desktop})
+                    design_filename.set(filename);
+                })
             })
         });
         const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, () => {
@@ -52,6 +70,7 @@
 
                 createDesign(cells, selected_model_id, simulation_models).then((design) => {
                     writeTextFile(filename, serializeDesign(design))
+                    design_filename.set(filename);
                 })
             })
         });

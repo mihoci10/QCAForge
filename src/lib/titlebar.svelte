@@ -1,13 +1,22 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
     import { appWindow } from '@tauri-apps/api/window'
-    import { onMount, type EventDispatcher } from 'svelte';
+    import { onMount } from 'svelte';
     import { showMenu } from "tauri-plugin-context-menu";
     import type { Position } from 'tauri-plugin-context-menu/dist/types';
     import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION, EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from './utils/events';
     import { page } from '$app/stores';
+    import { design_filename } from './globals';
+    import { basename } from '@tauri-apps/api/path';
 
     let maximizeIcon: string = "mdi:maximize";
+    let title: string = 'QCAForge';
+
+    design_filename.subscribe((value) => {
+        const DESIGN_MODE = $page.url.pathname.startsWith('/designer');
+        if(value && DESIGN_MODE)
+            basename(value).then((name) => title = name);
+    })
 
     onMount(() =>{
         appWindow.onResized((e) => {
@@ -83,7 +92,7 @@
         </button>
     </div>
     <div class="h-full flex items-center justify-center select-none text-black">
-        QCAForge
+        {title}
     </div>
     <div class="h-full">
         <button class="h-full p-2 cursor-default hover:bg-surface-50" on:click={() => appWindow.minimize()}>
