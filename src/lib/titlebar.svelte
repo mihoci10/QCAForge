@@ -5,6 +5,7 @@
     import { showMenu } from "tauri-plugin-context-menu";
     import type { Position } from 'tauri-plugin-context-menu/dist/types';
     import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION, EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from './utils/events';
+    import { page } from '$app/stores';
 
     let maximizeIcon: string = "mdi:maximize";
 
@@ -22,6 +23,9 @@
     }
 
     function showFileMenu(e: MouseEvent){
+        const DESIGN_MODE = $page.url.pathname.startsWith('/designer');
+        const ANALYSIS_MODE = $page.url.pathname.startsWith('/analysis');
+
         showMenu({
             pos: getCtxMenuPos(e.target as HTMLElement),
             items: [
@@ -46,12 +50,14 @@
                     is_separator: true
                 },
                 {
-                    label: 'Save',
+                    disabled: !(DESIGN_MODE || ANALYSIS_MODE),
+                    label: `Save`,
                     shortcut: 'ctrl+S',
                     event: EVENT_SAVE_FILE
                 },
                 {
-                    label: 'Save as...',
+                    disabled: !(DESIGN_MODE || ANALYSIS_MODE),
+                    label: `Save as...`,
                     shortcut: 'ctrl+shift+S',
                     event: EVENT_SAVE_FILE_AS
                 }
