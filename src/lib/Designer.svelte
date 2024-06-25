@@ -45,7 +45,7 @@
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
 
-    export let cells: Cell[] = [];
+    export let cells: Cell[];
     let selectedCells: Set<number> = new Set<number>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
 
@@ -87,13 +87,13 @@
         cellGeometry = new CellGeometry();
         ghostGeometry = new CellGeometry();
 
-        let cnt = 0;
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                cells.push({typ: CellType.Fixed, clock_phase_shift: 0, z_index:0, polarization: Math.random() * 2 - 1, pos_x: i * 20, pos_y: j * 20})
-                cnt++;
-            }
-        }
+        // let cnt = 0;
+        // for (let i = 0; i < 3; i++) {
+        //     for (let j = 0; j < 3; j++) {
+        //         cells.push({typ: CellType.Fixed, clock_phase_shift: 0, z_index:0, polarization: Math.random() * 2 - 1, pos_x: i * 20, pos_y: j * 20})
+        //         cnt++;
+        //     }
+        // }
 
         cellGeometry.update(cells, selectedCells, false);
 

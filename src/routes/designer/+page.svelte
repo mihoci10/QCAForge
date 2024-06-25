@@ -11,15 +11,26 @@
     import { createDesign, serializeDesign, type QCADesign } from "$lib/qca-design";
     import { BaseDirectory, writeTextFile } from "@tauri-apps/api/fs";
     import { save } from "@tauri-apps/api/dialog";
-    import { design_filename } from "$lib/globals";
+    import { design, design_filename } from "$lib/globals";
     import { get } from "svelte/store";
 
     const toastStore = getToastStore();
-    
+    export let data;
+
     let selected_model_id: string|undefined;
-    let cells: Cell[];
+    let cells: Cell[] = [];
 
     let simulation_models: Map<string, SimulationModel> = new Map<string, SimulationModel>();
+
+    design.subscribe((cur_design) => {
+        cells = cur_design.cells;
+        selected_model_id = cur_design.selected_simulation_model_id;
+        cur_design.simulation_model_settings.forEach((val, key, map) => {
+            const model = simulation_models.get(key);
+            if(model)
+                model.settings = val;
+        })
+    });
 
     onMount(() => {
         invoke('get_sim_models').then((res) => {

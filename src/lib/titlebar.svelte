@@ -10,12 +10,13 @@
     import { basename } from '@tauri-apps/api/path';
 
     let maximizeIcon: string = "mdi:maximize";
-    let title: string = 'QCAForge';
+    let title_suffix: string = '';
+    const TITLE_PREFIX = 'QCAForge'
 
     design_filename.subscribe((value) => {
         const DESIGN_MODE = $page.url.pathname.startsWith('/designer');
         if(value && DESIGN_MODE)
-            basename(value).then((name) => title = name);
+            basename(value).then((name) => title_suffix = `- ${name}`);
     })
 
     onMount(() =>{
@@ -92,7 +93,7 @@
         </button>
     </div>
     <div class="h-full flex items-center justify-center select-none text-black">
-        {title}
+        {TITLE_PREFIX + ' ' + title_suffix}
     </div>
     <div class="h-full">
         <button class="h-full p-2 cursor-default hover:bg-surface-50" on:click={() => appWindow.minimize()}>
