@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { Cell } from './Cell';
+import { getPolarization, type Cell } from './Cell';
 
 export class CellGeometry{
     private geometry: THREE.InstancedBufferGeometry;
@@ -41,7 +41,7 @@ export class CellGeometry{
         let indeces = new Array(cells.length * 6);
         let positionBuf = new Float32Array(cells.length * 4 * 3);
         let localPositionBuf = new Float32Array(cells.length * 4 * 2);
-        let polarizationBuf = new Float32Array(cells.length * 4);
+        let polarizationBuf = new Float32Array(cells.length * 4 * 2);
         let metaBuff = new Int32Array(cells.length * 4);
 
         const posOffs = [-1, 1];
@@ -59,8 +59,8 @@ export class CellGeometry{
             let cnt = 0;
             for (let x = 0; x < posOffs.length; x++){
                 for (let y = 0; y < posOffs.length; y++){
-                    positionBuf[i*(4 * 3) + cnt + 0] = cell.pos_x + posOffs[x]/2 * 20;
-                    positionBuf[i*(4 * 3) + cnt + 1] = cell.pos_y + posOffs[y]/2 * 20;
+                    positionBuf[i*(4 * 3) + cnt + 0] = cell.position[0] + posOffs[x]/2 * 20;
+                    positionBuf[i*(4 * 3) + cnt + 1] = cell.position[1] + posOffs[y]/2 * 20;
                     positionBuf[i*(4 * 3) + cnt + 2] = 0;
                     cnt += 3;
                 }
@@ -75,10 +75,15 @@ export class CellGeometry{
                 }
             }
             
-            polarizationBuf[i*4 + 0] = cell.polarization;
-            polarizationBuf[i*4 + 1] = cell.polarization;
-            polarizationBuf[i*4 + 2] = cell.polarization;
-            polarizationBuf[i*4 + 3] = cell.polarization;
+            const polarization = getPolarization(cell);
+            for (let p = 0; p < 2; p++) {
+                if (p < polarization.length){
+                    polarizationBuf[i*4 + p + 0] = polarization[p];
+                    polarizationBuf[i*4 + p + 1] = polarization[p];
+                    polarizationBuf[i*4 + p + 2] = polarization[p];
+                    polarizationBuf[i*4 + p + 3] = polarization[p];
+                }
+            }
 
             let metadata = this._getCellMetadata(i, selectedCells.has(i), ghostMode);
 

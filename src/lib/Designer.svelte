@@ -162,7 +162,11 @@
     }
 
     function createGhostMesh(){
-        ghostGeometry.update([{polarization: 0, pos_x: 0, pos_y: 0, clock_phase_shift: 0, z_index:0, typ: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{
+            position: [0, 0, 0], clock_phase_shift: 0, typ: CellType.Normal,
+            rotation: 0,
+            dot_probability_distribution: [0, 0, 0, 0]
+        }], new Set(), true);
         ghostMesh = new THREE.Mesh(ghostGeometry.getGeometry(), DrawableCellMaterial);
         scene.addMesh(ghostMesh, undefined);
     }
@@ -268,7 +272,7 @@
     function startMouseDrag(){
         cachedCellsPos = {};
         selectedCells.forEach((id) => {
-            cachedCellsPos[id] = [cells[id].pos_x, cells[id].pos_y];
+            cachedCellsPos[id] = [cells[id].position[0], cells[id].position[1]];
         });
     }
 
@@ -345,7 +349,11 @@
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         
-        cells.push({typ: CellType.Normal, polarization: 0, z_index:0, pos_x: world_pos.x, pos_y: world_pos.y, clock_phase_shift: 0})
+        cells.push({
+            position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
+            rotation: 0,
+            dot_probability_distribution: [0, 0, 0, 0]
+        })
         cellGeometry.update(cells, selectedCells, false);
     }
 
@@ -372,8 +380,8 @@
         for (let key in cachedCellsPos) {
             let id = parseInt(key);
             let pos = cachedCellsPos[id];
-            cells[id].pos_x = pos[0] + diff_x;
-            cells[id].pos_y = pos[1] + diff_y;
+            cells[id].position[0] = pos[0] + diff_x;
+            cells[id].position[1] = pos[1] + diff_y;
         }
 
         cellGeometry.update(cells, selectedCells, false);
@@ -383,7 +391,11 @@
         let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
-        ghostGeometry.update([{polarization: 0, pos_x: world_pos.x, pos_y: world_pos.y, z_index:0, clock_phase_shift: 0, typ: CellType.Normal}], new Set(), true);
+        ghostGeometry.update([{
+            position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
+            rotation: 0,
+            dot_probability_distribution: [0, 0, 0, 0]
+        }], new Set(), true);
     }
 
     function inputModeChanged(newInputModeIdx: number){

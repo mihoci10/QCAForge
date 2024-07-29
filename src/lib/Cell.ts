@@ -6,12 +6,11 @@ export enum CellType{
 }
 
 export interface Cell{
-    pos_x: number;
-    pos_y: number;
-    typ: CellType;
-    z_index: number;
-    clock_phase_shift: number;
-    polarization: number;
+    position: [number, number, number],
+    rotation: number,
+    typ: CellType,
+    clock_phase_shift: number, 
+    dot_probability_distribution: number[],
 }
 
 export function serializeCell(cell: Cell): string{
@@ -27,4 +26,22 @@ export function deserializeCell(str: string): Cell{
 }
 export function deserializeCells(str: string): Cell[]{
     return JSON.parse(str) as Cell[];
+}
+
+export function getPolarization(cell: Cell): number[]{
+    const arr = cell.dot_probability_distribution;
+    const sum = arr.reduce((acc, v) => acc + v, 0);
+
+    if (arr.length == 4) {
+        return [((arr[0] + arr[2]) - (arr[1] - arr[3])) / sum];
+    }
+
+    if (arr.length == 8) {
+        return [
+            ((arr[0] + arr[2]) - (arr[1] - arr[3])) / sum,
+            ((arr[4] + arr[6]) - (arr[5] - arr[7])) / sum,
+        ]
+    }
+
+    throw new Error("Cell dot probability invalid array");
 }

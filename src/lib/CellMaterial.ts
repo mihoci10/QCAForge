@@ -2,10 +2,10 @@ import * as THREE from 'three'
 
 const commonVertexSrc = `
 attribute vec2 localPosition;
-attribute float polarization;
+attribute vec2 polarization;
 attribute int inMetadata;
 varying vec2 localPos;
-varying float polar;
+varying vec2 polar;
 flat varying int metadata;
 void main() {
     localPos = localPosition;
@@ -17,7 +17,7 @@ void main() {
 const drawableFragmentSrc = `
 uniform int polarizationCount;
 varying vec2 localPos;
-varying float polar;
+varying vec2 polar;
 flat varying int metadata;
 out vec4 outColor;
 
@@ -58,7 +58,7 @@ void main() {
         float offX = cos(rotStep * float(i) + rotOffset) * 0.6;
         float offY = sin(rotStep * float(i) + rotOffset) * 0.6;
         
-        float dotSize = abs(polar / 2.0 + 0.5) * dotSizeMax;
+        float dotSize = abs(polar[i / 2] / 2.0 + 0.5) * dotSizeMax;
         if (i%2 == 1)
             dotSize = dotSizeMax - dotSize;
         
@@ -78,7 +78,7 @@ void main() {
 
 const pickableFragmentSrc = `
 varying vec2 localPos;
-varying float polar;
+varying vec2 polar;
 flat varying int metadata;
 out int out_id;
 
@@ -88,7 +88,7 @@ void main() {
 `
 
 export let DrawableCellMaterial = new THREE.ShaderMaterial({
-    uniforms: {polarizationCount: {value: 1}},
+    uniforms: {polarizationCount: {value: 2}},
     glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
     fragmentShader: drawableFragmentSrc,
