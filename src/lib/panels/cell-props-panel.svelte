@@ -43,15 +43,19 @@
     export function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
-        let polarizations : Set<Number[]> = new Set();
+        let polarizations : Set<Number>[] = [];
         let cellArchitecture: Set<Number> = new Set();
 
         selectedCells.forEach((id) => {
             clockModes.add(cells[id].clock_phase_shift);
             cellTypes.add(cells[id].typ);
             const polarization = getPolarization(cells[id]);
-            polarizations.add(polarization);
             cellArchitecture.add(polarization.length);
+
+            while (polarization.length > polarizations.length)
+                polarizations.push(new Set<Number>)
+            for (let i = 0; i < polarization.length; i++)
+                polarizations[i].add(polarization[i]);
         });
         
         if (clockModes.size > 1)
@@ -66,10 +70,13 @@
         
         if (cellArchitecture.size > 1)
             polarizationInput = [NaN];
-        else if (polarizations.size > 1)
-            polarizationInput = [NaN];
-        else if (polarizations.size == 1)
-            polarizationInput = polarizations.values().next().value
+        else {
+            let equalCheck = polarizations.reduce((acc, v) => acc && (v.size == 1), true)
+            if (equalCheck)
+                polarizationInput = polarizations.map((v) => v.values().next().value);
+            else
+                polarizationInput = new Array(polarizations.length).fill(NaN);
+        }
     }
     
 </script>
@@ -101,7 +108,9 @@
             </label>
             <label class="label">
                 <span>Polarization</span>
-                <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarizationInput[0]}/>
+                {#each polarizationInput as polarization}
+                    <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarization}/>
+                {/each}
             </label> 
             <label class="label">
                 <span>Position</span>

@@ -58,8 +58,8 @@ void main() {
         float offX = cos(rotStep * float(i) + rotOffset) * 0.6;
         float offY = sin(rotStep * float(i) + rotOffset) * 0.6;
         
-        float dotSize = abs(polar[i / 2] / 2.0 + 0.5) * dotSizeMax;
-        if (i%2 == 1)
+        float dotSize = abs(polar[i % 2] / 2.0 + 0.5) * dotSizeMax;
+        if (i/2 == 1)
             dotSize = dotSizeMax - dotSize;
         
         mask += HollowCircleMask(vec2(offX, offY), circleSize, circleSize + (length(fragSize)), 0.01);
@@ -88,7 +88,7 @@ void main() {
 `
 
 export let DrawableCellMaterial = new THREE.ShaderMaterial({
-    uniforms: {polarizationCount: {value: 1}},
+    uniforms: {polarizationCount: {value: 2}},
     glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
     fragmentShader: drawableFragmentSrc,

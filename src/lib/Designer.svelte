@@ -352,7 +352,7 @@
         cells.push({
             position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
-            dot_probability_distribution: [0, 0, 0, 0]
+            dot_probability_distribution: [0, 0, 0, 0, 0, 0, 0, 0]
         })
         cellGeometry.update(cells, selectedCells, false);
     }
