@@ -1,14 +1,13 @@
 <script lang="ts">
-    import type { Cell, CellType } from "$lib/Cell";
+    import { generateDotDistribution, getPolarization, type Cell, type CellType } from "$lib/Cell";
     import Icon from "@iconify/svelte";
     import { TreeViewItem } from "@skeletonlabs/skeleton";
 
-    
     let selectedClockMode: string = "0";
     $: selectedClockMode, selectedClockModeChanged();
     let selectedCellType: string = "0";
     $: selectedCellType, selectedCellTypeChanged();
-    let polarizationInput: number = 0;
+    let polarizationInput: number[] = [0];
     $: polarizationInput, polarizationInputChanged();
 
     export let cells: Cell[];
@@ -33,23 +32,26 @@
     }
 
     function polarizationInputChanged(){
-        if (isNaN(polarizationInput))
+        if (polarizationInput.reduce((acc, v) => acc || isNaN(v), false))
             return;
 
         selectedCells.forEach((id) => {
-            cells[id].polarization = polarizationInput;
+            cells[id].dot_probability_distribution = generateDotDistribution(polarizationInput);
         });
     }
 
     export function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
-        let polarizations : Set<Number> = new Set();
+        let polarizations : Set<Number[]> = new Set();
+        let cellArchitecture: Set<Number> = new Set();
 
         selectedCells.forEach((id) => {
             clockModes.add(cells[id].clock_phase_shift);
             cellTypes.add(cells[id].typ);
-            polarizations.add(cells[id].polarization);
+            const polarization = getPolarization(cells[id]);
+            polarizations.add(polarization);
+            cellArchitecture.add(polarization.length);
         });
         
         if (clockModes.size > 1)
@@ -62,10 +64,12 @@
         else if (cellTypes.size == 1)
             selectedCellType = (cellTypes.values().next().value).toString();
         
-        if (polarizations.size > 1)
-            polarizationInput = NaN;
+        if (cellArchitecture.size > 1)
+            polarizationInput = [NaN];
+        else if (polarizations.size > 1)
+            polarizationInput = [NaN];
         else if (polarizations.size == 1)
-            polarizationInput = parseFloat((polarizations.values().next().value).toString());
+            polarizationInput = polarizations.values().next().value
     }
     
 </script>
@@ -97,7 +101,7 @@
             </label>
             <label class="label">
                 <span>Polarization</span>
-                <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarizationInput}/>
+                <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarizationInput[0]}/>
             </label> 
             <label class="label">
                 <span>Position</span>

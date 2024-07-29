@@ -33,15 +33,34 @@ export function getPolarization(cell: Cell): number[]{
     const sum = arr.reduce((acc, v) => acc + v, 0);
 
     if (arr.length == 4) {
-        return [((arr[0] + arr[2]) - (arr[1] - arr[3])) / sum];
+        return [((arr[0] + arr[2]) - (arr[1] + arr[3])) / sum];
     }
 
     if (arr.length == 8) {
         return [
-            ((arr[0] + arr[2]) - (arr[1] - arr[3])) / sum,
-            ((arr[4] + arr[6]) - (arr[5] - arr[7])) / sum,
+            ((arr[0] + arr[2]) - (arr[1] + arr[3])) / sum,
+            ((arr[4] + arr[6]) - (arr[5] + arr[7])) / sum,
         ]
     }
 
     throw new Error("Cell dot probability invalid array");
+}
+
+export function generateDotDistribution(polarization: number[]): number[]{
+
+    if (polarization.length == 1) {
+        const p = (polarization[0] / 2.0 + 0.5);
+        const p_neg = 1.0 - p;
+        return [p, p_neg, p, p_neg]
+    }
+
+    if (polarization.length == 2) {
+        const p1 = (polarization[0] / 2.0 + 0.5);
+        const p_neg1 = 1.0 - p1;
+        const p2 = (polarization[1] / 2.0 + 0.5);
+        const p_neg2 = 1.0 - p1;
+        return [p1, p_neg1, p1, p_neg1, p2, p_neg2, p2, p_neg2]
+    }
+
+    throw new Error("Polarization invalid array");
 }
