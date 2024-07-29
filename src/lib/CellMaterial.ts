@@ -88,7 +88,7 @@ void main() {
 `
 
 export let DrawableCellMaterial = new THREE.ShaderMaterial({
-    uniforms: {polarizationCount: {value: 2}},
+    uniforms: {polarizationCount: {value: 1}},
     glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
     fragmentShader: drawableFragmentSrc,

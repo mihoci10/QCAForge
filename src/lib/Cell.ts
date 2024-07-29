@@ -32,6 +32,9 @@ export function getPolarization(cell: Cell): number[]{
     const arr = cell.dot_probability_distribution;
     const sum = arr.reduce((acc, v) => acc + v, 0);
 
+    if (sum == 0)
+        return new Array(arr.length / 4).fill(0);
+
     if (arr.length == 4) {
         return [((arr[0] + arr[2]) - (arr[1] + arr[3])) / sum];
     }

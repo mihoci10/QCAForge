@@ -38,13 +38,14 @@ export class CellGeometry{
     }
 
     update(cells: Cell[], selectedCells: Set<number>, ghostMode: boolean){
+        const MAX_POLARIZATION = 2;
+        const posOffs = [-1, 1];
+
         let indeces = new Array(cells.length * 6);
         let positionBuf = new Float32Array(cells.length * 4 * 3);
         let localPositionBuf = new Float32Array(cells.length * 4 * 2);
-        let polarizationBuf = new Float32Array(cells.length * 4 * 2);
+        let polarizationBuf = new Float32Array(cells.length * 4 * MAX_POLARIZATION);
         let metaBuff = new Int32Array(cells.length * 4);
-
-        const posOffs = [-1, 1];
 
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
@@ -75,13 +76,14 @@ export class CellGeometry{
                 }
             }
             
+
             const polarization = getPolarization(cell);
-            for (let p = 0; p < 2; p++) {
+            for (let p = 0; p < MAX_POLARIZATION; p++) {
                 if (p < polarization.length){
-                    polarizationBuf[i*4 + p + 0] = polarization[p];
-                    polarizationBuf[i*4 + p + 1] = polarization[p];
-                    polarizationBuf[i*4 + p + 2] = polarization[p];
-                    polarizationBuf[i*4 + p + 3] = polarization[p];
+                    polarizationBuf[i*(4*MAX_POLARIZATION) + 0 * MAX_POLARIZATION + p] = polarization[p];
+                    polarizationBuf[i*(4*MAX_POLARIZATION) + 1 * MAX_POLARIZATION + p] = polarization[p];
+                    polarizationBuf[i*(4*MAX_POLARIZATION) + 2 * MAX_POLARIZATION + p] = polarization[p];
+                    polarizationBuf[i*(4*MAX_POLARIZATION) + 3 * MAX_POLARIZATION + p] = polarization[p];
                 }
             }
 
@@ -97,7 +99,7 @@ export class CellGeometry{
         this.positionAttribute.setUsage(THREE.StaticDrawUsage);
         this.localPositionAttribute = new THREE.BufferAttribute(localPositionBuf, 2);
         this.localPositionAttribute.setUsage(THREE.StaticDrawUsage);
-        this.polarizationAttribute = new THREE.BufferAttribute(polarizationBuf, 1);
+        this.polarizationAttribute = new THREE.BufferAttribute(polarizationBuf, 2);
         this.polarizationAttribute.setUsage(THREE.StaticDrawUsage);
         this.metaAttribute = new THREE.BufferAttribute(metaBuff, 1);
         this.metaAttribute.setUsage(THREE.StaticDrawUsage);
