@@ -7,7 +7,7 @@
     $: selectedClockMode, selectedClockModeChanged();
     let selectedCellType: string = "0";
     $: selectedCellType, selectedCellTypeChanged();
-    let polarizationInput: number[] = [0];
+    let polarizationInput: number[] = [];
     $: polarizationInput, polarizationInputChanged();
 
     export let cells: Cell[];
@@ -107,10 +107,19 @@
                 </select>
             </label>
             <label class="label">
+                {#if polarizationInput && polarizationInput.length > 0}
                 <span>Polarization</span>
-                {#each polarizationInput as polarization}
-                    <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarization}/>
+                {#each polarizationInput as polarization, i}
+                    {#if polarizationInput.length > 1}
+                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                            <div class="input-group-shim bg-tertiary">{'ABCDE'.at(i)}</div>
+                            <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarization}/>
+                        </div>
+                    {:else}
+                        <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarization}/>
+                    {/if}
                 {/each}
+                {/if}
             </label> 
             <label class="label">
                 <span>Position</span>
