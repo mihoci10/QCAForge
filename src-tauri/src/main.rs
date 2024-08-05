@@ -1,9 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{fs::File, io::Write};
+use std::{f64::consts::PI, fs::File, io::Write};
 
-use qca_core::sim::{bistable::BistableModel, run_simulation, settings::OptionsList, QCACell, SimulationModelTrait};
+use qca_core::sim::{bistable::BistableModel, full_basis::FullBasisModel, run_simulation, settings::OptionsList, QCACell, QCACellArchitecture, SimulationModelTrait};
 use serde::Serialize;
 use tauri::Manager;
 use window_shadows::set_shadow;
@@ -11,6 +11,7 @@ use window_shadows::set_shadow;
 fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>>{
   match sim_model_id.as_str() {
    "bistable_model" => Some(Box::new(BistableModel::new())),
+   "full_basis_model" => Some(Box::new(FullBasisModel::new())),
     _ => None,
   }
 }
@@ -44,7 +45,7 @@ fn get_sim_version() -> String {
 
 #[tauri::command]
 fn get_sim_models() -> Vec<SimulationModelDescriptor> {
-  let model_list: Vec<Box<dyn SimulationModelTrait>> = vec![Box::new(BistableModel::new())];
+  let model_list: Vec<Box<dyn SimulationModelTrait>> = vec![Box::new(BistableModel::new()), Box::new(FullBasisModel::new())];
   model_list.iter().map(|model| {
     SimulationModelDescriptor{
       model_id: model.get_unique_id(),
@@ -73,7 +74,7 @@ fn get_sim_model_default_options(sim_model_id: String) -> Result<String, String>
   }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn run_sim_model(sim_model_id: String, cells: String, sim_model_settings: String) -> Result<String, String> {  
   let cells_obj: Result<Vec<QCACell>, serde_json::Error> = serde_json::from_str(&cells);
   
@@ -83,8 +84,10 @@ fn run_sim_model(sim_model_id: String, cells: String, sim_model_settings: String
           Ok(cells) => {
             match model.set_serialized_settings(&sim_model_settings){
                 Ok(()) => {
+                  let r: f64 = (20.0 * 2.0 / 3.0)/(2.0 * (PI / 8.0).sin()) as f64;
+                  let architecture = QCACellArchitecture::new(60.0, 10.0, 8, r);
                   let file = Box::new(File::create("output.bin").unwrap()) as Box<dyn Write>;
-                  run_simulation(model, cells, Some(file));
+                  run_simulation(model, cells, architecture, Some(file));
                   Ok("".into())
                 },
                 Err(err) => Err(format!("Parsing settings error: {}", err.to_string())),
