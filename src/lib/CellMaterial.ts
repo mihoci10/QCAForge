@@ -45,6 +45,7 @@ float HollowCircleMask(vec2 pos, float radiusStart, float radiusStop, float fade
 void main() {
     vec2 fragSize = fwidth(localPos);
     bool selected = bool(metadata & (1 << 6));
+    bool ghosted = bool(metadata & (1 << 5));
 
     float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
@@ -73,6 +74,9 @@ void main() {
         outColor = vec4(mask, 0, 0, 1);
     else
         outColor = vec4(vec3(mask), 1);
+
+    if (ghosted)
+        outColor = vec4(outColor.rgb * 0.5, 1);
 }
 `
 
