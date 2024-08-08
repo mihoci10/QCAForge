@@ -64,7 +64,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.qca.dev",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -94,9 +94,7 @@
         "height": 600,
         "resizable": true,
         "title": "QCA Forge",
-        "width": 800,
-        "decorations": false,
-        "transparent": true
+        "width": 800
       }
     ]
   }

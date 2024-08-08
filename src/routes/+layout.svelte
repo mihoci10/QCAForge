@@ -14,8 +14,15 @@
     import { design, design_filename } from '$lib/globals';
     import { createDesign, deserializeDesign } from '$lib/qca-design';
     import { readTextFile } from '@tauri-apps/api/fs';
+    import { onMount } from 'svelte';
 
 	initializeStores();
+
+	onMount(() => {
+		createDesign([], undefined, new Map()).then((des) => {
+			design.set(des);
+		});
+	});
 	
 	const modalRegistry: Record<string, ModalComponent> = {
 		simModelOptions: { ref: SimModelOptions },
