@@ -5,7 +5,6 @@
 	import SimModelOptions from '$lib/SimModelOptions.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
     import Icon from '@iconify/svelte';
-    import Titlebar from '$lib/titlebar.svelte';
 	import { page } from '$app/stores';
     import { listen } from "@tauri-apps/api/event";
     import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION} from '$lib/utils/events';
@@ -60,7 +59,6 @@
 <Toast/>
 
 <div class="flex flex-col h-full">
-	<Titlebar/>
 	<div class="flex h-full overflow-auto">
 		<AppRail width="w-12"> 
 			<AppRailAnchor href='/designer' selected={$page.url.pathname.startsWith('/designer')}>
