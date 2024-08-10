@@ -14,6 +14,8 @@
     import { createDesign, deserializeDesign } from '$lib/qca-design';
     import { readTextFile } from '@tauri-apps/api/fs';
     import { onMount } from 'svelte';
+    import { basename } from '@tauri-apps/api/path';
+    import { appWindow } from '@tauri-apps/api/window';
 
 	initializeStores();
 
@@ -26,6 +28,14 @@
 	const modalRegistry: Record<string, ModalComponent> = {
 		simModelOptions: { ref: SimModelOptions },
 	};
+
+	design_filename.subscribe((value) => {
+        const DESIGN_MODE = $page.url.pathname.startsWith('/designer');
+        if(value && DESIGN_MODE)
+			basename(value).then((name) => appWindow.setTitle(`QCAForge - ${name}`));
+		else
+			appWindow.setTitle(`QCAForge`)
+    })
 
 	listen(EVENT_NEW_FILE, () => {
 		createDesign([], undefined, new Map()).then((d) => {

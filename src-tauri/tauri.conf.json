@@ -35,7 +35,8 @@
         "minimize": true,
         "unmaximize": true,
         "unminimize": true,
-        "startDragging": true
+        "startDragging": true,
+        "setTitle": true
       },
       "dialog": {
         "all": true, 
