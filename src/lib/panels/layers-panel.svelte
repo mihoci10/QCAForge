@@ -1,11 +1,30 @@
 <script lang="ts">
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
-    import { ListBox, ListBoxItem, TreeViewItem } from "@skeletonlabs/skeleton";
+    import { getModalStore, ListBox, ListBoxItem, type ModalSettings, TreeViewItem } from "@skeletonlabs/skeleton";
 
     
     export let layers: Layer[];
     export let selectedLayer: number;
+
+    const modalStore = getModalStore();
+    
+    function openLayerOptions(layerIdx: number){
+
+        return new Promise((resolve) => {
+            const modal: ModalSettings = {
+                type: 'component',
+                component: 'layerOptions',
+                title: `${layers[layerIdx].name} options`,
+                meta: {},
+                response: (r:any) => resolve(r),
+            };
+            modalStore.trigger(modal);
+            })
+        .then((res: any) => {
+            console.log(res);
+        });
+    }
 
     function getIndexOfLayer(layerName: string): number{
         for (let i = 0; i < layers.length; i++) {
@@ -98,8 +117,8 @@
                         </svelte:fragment>
                         {layer.name}
                         <svelte:fragment slot="trail">
-                            <button type="button" class="btn-icon">
-                                <Icon icon="material-symbols:settings" />
+                            <button type="button" class="btn-icon" on:click={(e) => openLayerOptions(i)}> 
+                                <Icon icon="material-symbols:settings"/>
                             </button>
                         </svelte:fragment>
                     </ListBoxItem>

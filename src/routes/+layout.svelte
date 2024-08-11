@@ -2,7 +2,6 @@
 	import '../app.postcss';
 	import {AppRail, Modal, type ModalComponent, Toast, AppRailAnchor} from '@skeletonlabs/skeleton'
 
-	import SimModelOptions from '$lib/SimModelOptions.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
     import Icon from '@iconify/svelte';
 	import { page } from '$app/stores';
@@ -16,6 +15,9 @@
     import { onMount } from 'svelte';
     import { basename } from '@tauri-apps/api/path';
     import { appWindow } from '@tauri-apps/api/window';
+    import CellArchitectureOptions from '$lib/modals/cell-architecture-options.svelte';
+    import LayerOptions from '$lib/modals/layer-options.svelte';
+    import SimModelOptions from '$lib/modals/sim-model-options.svelte';
 
 	initializeStores();
 
@@ -27,6 +29,8 @@
 	
 	const modalRegistry: Record<string, ModalComponent> = {
 		simModelOptions: { ref: SimModelOptions },
+		cellArchitectureOptions: {ref: CellArchitectureOptions},
+		layerOptions: {ref: LayerOptions}
 	};
 
 	design_filename.subscribe((value) => {
