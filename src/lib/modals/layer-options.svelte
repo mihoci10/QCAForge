@@ -1,9 +1,17 @@
 <script lang="ts">
+    import { type CellArchitecture, createCellArchitecture } from '$lib/CellArchitecture';
     import Icon from '@iconify/svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
 	export let parent: any;
+
+	const DEFAULT_CELL_ARCHS : [string, CellArchitecture][] = [
+		['Two state', createCellArchitecture(20, 5, 4, 6.36)],
+		['Tri state 60', createCellArchitecture(60, 10, 8, 60*Math.sqrt(2)/2)],
+		['Tri state 72', createCellArchitecture(72, 10, 8, (72*2/3)/(2*Math.sin(Math.PI/8)))],
+		['Tri state 110', createCellArchitecture(110, 10, 8, 110/(2*Math.sin(Math.PI/8)))]
+	];
 
     function openArchitectureOptions(){
 
@@ -46,9 +54,9 @@
 				
 				<div class="input-group input-group-divider grid-cols-[1fr_auto]">
 					<select id='cellArchitecture'>
-						<option>Arch 1</option>
-						<option>Arch 2</option>
-						<option>Arch 3</option>
+						{#each DEFAULT_CELL_ARCHS as arcOption, i}
+						<option value={i}>{arcOption[0]}</option>
+						{/each}
 					</select>
 					<button type="button" class="btn-icon w-full" on:click={(e) => openArchitectureOptions()}>
                         <Icon width={16} icon="material-symbols:settings"/>
