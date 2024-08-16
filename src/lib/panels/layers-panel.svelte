@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { getDefaultCellArchitecture } from "$lib/CellArchitecture";
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
     import { getModalStore, ListBox, ListBoxItem, type ModalSettings, TreeViewItem } from "@skeletonlabs/skeleton";
@@ -48,7 +49,7 @@
 
         const i = selectedLayer;
 
-        layers.splice(i+1, 0, {name: newLayerName, visible: true})
+        layers.splice(i+1, 0, {name: newLayerName, visible: true, cellArchitecture: getDefaultCellArchitecture()})
 
         layers = layers;
     }

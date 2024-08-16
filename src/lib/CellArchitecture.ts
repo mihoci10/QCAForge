@@ -38,3 +38,7 @@ export function serializeCellArchitecture(cellArchitecture: CellArchitecture): s
 export function deserializeCell(str: string): CellArchitecture{
     return JSON.parse(str) as CellArchitecture;
 }
+
+export function getDefaultCellArchitecture(): CellArchitecture{
+    return createCellArchitecture(20, 5, 4, 6.36)
+}

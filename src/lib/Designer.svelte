@@ -9,7 +9,7 @@
     import * as THREE from 'three'
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { CellGeometry } from './CellGeometry';
-    import { CellType, type Cell } from './Cell';
+    import { CellIndex, CellType, type Cell } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
     import { Pane, Splitpanes } from 'svelte-splitpanes';
@@ -20,6 +20,7 @@
     import LayersPanel from './panels/layers-panel.svelte';
     import CellPropsPanel from './panels/cell-props-panel.svelte';
     import { showMenu } from "tauri-plugin-context-menu";
+    import { getDefaultCellArchitecture } from './CellArchitecture';
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -46,20 +47,19 @@
     let mouseDragging: boolean = false;
 
     export let cells: Cell[];
-    let selectedCells: Set<number> = new Set<number>();
+    let selectedCells: Set<CellIndex> = new Set<CellIndex>();
     let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
 
     let selectedCellsUpdatedDispatch : (() => void);
 
     export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
-    let layers: Layer[] = [{name: "Main Layer", visible: true}];
+    let layers: Layer[] = [{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture()}];
     let selectedLayer: number = 0;
 
     export let simulation_models: Map<string, SimulationModel>;
 
     onMount(() => {
-        scene = new CellScene();
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
         camera.position.z += 20;
 
@@ -67,6 +67,8 @@
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
         //renderer.setPixelRatio(window.devicePixelRatio);
+
+        scene = new CellScene(renderer, camera);
 
         windowResize();
 
@@ -102,7 +104,8 @@
         pickInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), PickableCellMaterial);
         pickInstancedMesh.matrixAutoUpdate = false;
 
-        scene.addMesh(drawInstancedMesh, pickInstancedMesh);
+        scene.addLayer(0);
+        scene.getLayer(0).addMesh(drawInstancedMesh, pickInstancedMesh)
 
         renderer.setAnimationLoop(render);
     });
@@ -125,41 +128,12 @@
 
     function render(){
         controls.update();
-        renderer.setRenderTarget(null);
         stats.begin();
-        renderer.render(scene.getDrawCtx(), camera);
+        scene.render();
         stats.end();
 
         statsDrawCall.update(renderer.info.render.calls, 10);
     }   
-
-    function renderPickBuffer(x1: number, y1: number, x2: number, y2: number){
-        const width = Math.max(Math.abs(x2 - x1), 1);
-        const height = Math.max(Math.abs(y2 - y1), 1);
-        const pickingTexture = new THREE.WebGLRenderTarget( 
-            renderer.domElement.width, 
-            renderer.domElement.height, 
-            {
-                type: THREE.IntType,
-                format: THREE.RGBAIntegerFormat,
-                internalFormat: 'RGBA32I',
-            } 
-        );
-
-        renderer.setRenderTarget(pickingTexture);
-        renderer.setClearColor(new THREE.Color(-1, -1, -1));
-        renderer.render(scene.getPickCtx(), camera);
-        
-        const pickingBuffer = new Int32Array(width * height * 4);
-        renderer.readRenderTargetPixels(
-            pickingTexture, 
-            Math.min(x1, x2), renderer.domElement.height - Math.max(y1, y2), 
-            width, height, 
-            pickingBuffer
-        );
-
-        return pickingBuffer;
-    }
 
     function createGhostMesh(){
         ghostGeometry.update([{
@@ -284,12 +258,11 @@
     }
 
     function getCellOnPos(mouse_x: number, mouse_y: number){
-        let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
-
-        for (let i = 0; i < result.length/4; i++) {
-            const id = result[i*4];
-            if (id >= 0)
-                return id
+        let cellsUnderMouse = scene.pick(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+        for (let i = 0; i < cellsUnderMouse.length; i++) {
+            const element = cellsUnderMouse[i];
+            if (element.size > 0)
+                return element.entries().next().value;
         }
 
         return -1;
@@ -299,7 +272,7 @@
         if (!multiselect)
             selectedCells.clear();
 
-        let result = renderPickBuffer(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+        let cellsUnderMouse = scene.pick(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
 
         for (let i = 0; i < result.length/4; i++) {
             const id = result[i*4];
@@ -395,6 +368,7 @@
             position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
+
         }], new Set(), true);
     }
 

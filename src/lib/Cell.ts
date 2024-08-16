@@ -1,3 +1,20 @@
+export class CellIndex{
+    private layer: number;
+    private cell: number;
+
+    constructor(layer: number, cell: number){
+        this.layer = layer;
+        this.cell = cell;
+    }
+
+    getLayer(): number {return this.layer;}
+    getCell(): number {return this.cell;}
+
+    toString(): string{
+        return `${this.layer}-${this.cell}`;
+    }
+}
+
 export enum CellType{
     Normal = 0,
     Input = 1,
