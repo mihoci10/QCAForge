@@ -49,7 +49,7 @@
 
         const i = selectedLayer;
 
-        layers.splice(i+1, 0, {name: newLayerName, visible: true, cellArchitecture: getDefaultCellArchitecture()})
+        layers.splice(i+1, 0, {name: newLayerName, visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []})
 
         layers = layers;
     }

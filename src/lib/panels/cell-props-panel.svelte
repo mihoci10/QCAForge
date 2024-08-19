@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { generateDotDistribution, getPolarization, type Cell, type CellType } from "$lib/Cell";
+    import { CellIndex, generateDotDistribution, getPolarization, type Cell, type CellType } from "$lib/Cell";
+    import { type Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
     import { TreeViewItem } from "@skeletonlabs/skeleton";
+    import { Set } from 'typescript-collections'
 
     let selectedClockMode: string = "0";
     $: selectedClockMode, selectedClockModeChanged();
@@ -10,15 +12,15 @@
     let polarizationInput: number[] = [];
     $: polarizationInput, polarizationInputChanged();
 
-    export let cells: Cell[];
-    export let selectedCells: Set<number>;
+    export let layers: Layer[];
+    export let selectedCells: Set<CellIndex>;
 
     function selectedClockModeChanged(){
         if (isNaN(+selectedClockMode))
             return;
 
         selectedCells.forEach((id) => {
-            cells[id].clock_phase_shift = parseInt(selectedClockMode);
+            layers[id.getLayer()].cells[id.getCell()].clock_phase_shift = parseInt(selectedClockMode);
         });
     }
 
@@ -27,7 +29,7 @@
             return;
 
         selectedCells.forEach((id) => {
-            cells[id].typ = parseInt(selectedCellType);
+            layers[id.getLayer()].cells[id.getCell()].typ = parseInt(selectedCellType);
         });
     }
 
@@ -36,44 +38,45 @@
             return;
 
         selectedCells.forEach((id) => {
-            cells[id].dot_probability_distribution = generateDotDistribution(polarizationInput);
+            layers[id.getLayer()].cells[id.getCell()].dot_probability_distribution = generateDotDistribution(polarizationInput);
         });
     }
 
     export function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
-        let polarizations : Set<Number>[] = [];
-        let cellArchitecture: Set<Number> = new Set();
+        let polarizations : Set<number>[] = [];
+        let cellArchitecture: Set<number> = new Set();
 
         selectedCells.forEach((id) => {
-            clockModes.add(cells[id].clock_phase_shift);
-            cellTypes.add(cells[id].typ);
-            const polarization = getPolarization(cells[id]);
+            const cell = layers[id.getLayer()].cells[id.getCell()];
+            clockModes.add(cell.clock_phase_shift);
+            cellTypes.add(cell.typ);
+            const polarization = getPolarization(cell);
             cellArchitecture.add(polarization.length);
 
             while (polarization.length > polarizations.length)
-                polarizations.push(new Set<Number>)
+                polarizations.push(new Set<number>)
             for (let i = 0; i < polarization.length; i++)
                 polarizations[i].add(polarization[i]);
         });
         
-        if (clockModes.size > 1)
+        if (clockModes.size() > 1)
             selectedClockMode = 'multiple';
-        else if (clockModes.size == 1)
-            selectedClockMode = (clockModes.values().next().value).toString();
+        else if (clockModes.size() == 1)
+            selectedClockMode = (clockModes.toArray()[0]).toString();
         
-        if (cellTypes.size > 1)
+        if (cellTypes.size() > 1)
             selectedCellType = 'multiple';
-        else if (cellTypes.size == 1)
-            selectedCellType = (cellTypes.values().next().value).toString();
+        else if (cellTypes.size() == 1)
+            selectedCellType = (cellTypes.toArray()[0]).toString();
         
-        if (cellArchitecture.size > 1)
+        if (cellArchitecture.size() > 1)
             polarizationInput = [NaN];
         else {
-            let equalCheck = polarizations.reduce((acc, v) => acc && (v.size == 1), true)
+            let equalCheck = polarizations.reduce((acc, v) => acc && (v.size() == 1), true)
             if (equalCheck)
-                polarizationInput = polarizations.map((v) => v.values().next().value);
+                polarizationInput = polarizations.map((v) => v.toArray()[0]);
             else
                 polarizationInput = new Array(polarizations.length).fill(NaN);
         }

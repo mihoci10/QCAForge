@@ -37,6 +37,7 @@
     "stats.js": "^0.17.0",
     "svelte-splitpanes": "^0.8.0",
     "tauri-plugin-context-menu": "^0.7.0",
-    "three": "^0.160.0"
+    "three": "^0.160.0",
+    "typescript-collections": "^1.3.3"
   }
 }

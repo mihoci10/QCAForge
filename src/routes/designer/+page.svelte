@@ -13,17 +13,18 @@
     import { save } from "@tauri-apps/api/dialog";
     import { design, design_filename } from "$lib/globals";
     import { get } from "svelte/store";
+    import { type Layer } from "$lib/Layer.js";
 
     const toastStore = getToastStore();
     export let data;
 
     let selected_model_id: string|undefined;
-    let cells: Cell[] = [];
+    let layers: Layer[] = [];
 
     let simulation_models: Map<string, SimulationModel> = new Map<string, SimulationModel>();
 
     design.subscribe((cur_design) => {
-        cells = cur_design.cells;
+        layers = cur_design.layers;
         selected_model_id = cur_design.selected_simulation_model_id;
         cur_design.simulation_model_settings.forEach((val, key, map) => {
             const model = simulation_models.get(key);
@@ -64,7 +65,7 @@
                     resolve(filename);
                     
             }).then((filename) => {
-                createDesign(cells, selected_model_id, simulation_models).then((design) => {
+                createDesign(layers, selected_model_id, simulation_models).then((design) => {
                     writeTextFile(filename, serializeDesign(design), {dir: BaseDirectory.Desktop})
                     design_filename.set(filename);
                 })
@@ -79,7 +80,7 @@
                 if (!filename)
                     return;
 
-                createDesign(cells, selected_model_id, simulation_models).then((design) => {
+                createDesign(layers, selected_model_id, simulation_models).then((design) => {
                     writeTextFile(filename, serializeDesign(design))
                     design_filename.set(filename);
                 })
@@ -99,7 +100,7 @@
         if (!simulation_models.has(selected_model_id!))
             console.error('invalid simulation model!');
 
-        startSimulation(cells, simulation_models.get(selected_model_id!)!)
+        startSimulation(layers, simulation_models.get(selected_model_id!)!)
             .then((res) => {
                 console.log(res);
                 const t: ToastSettings = {
@@ -131,5 +132,5 @@
             </button>
         </div>
     </div>
-    <Designer bind:selected_model_id={selected_model_id} bind:cells={cells} bind:simulation_models={simulation_models}/>
+    <Designer bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models}/>
 </div>

@@ -9,7 +9,7 @@
     import * as THREE from 'three'
     import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { CellGeometry } from './CellGeometry';
-    import { CellIndex, CellType, type Cell } from './Cell';
+    import { CellIndex, CellType, parseCellIndex, type Cell } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
     import { Pane, Splitpanes } from 'svelte-splitpanes';
@@ -22,19 +22,18 @@
     import { showMenu } from "tauri-plugin-context-menu";
     import { getDefaultCellArchitecture } from './CellArchitecture';
 
+    import { Set } from 'typescript-collections'
+
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
     let container: HTMLElement; 
     let canvas: HTMLCanvasElement;
 
-    let scene: CellScene;
-    let cellGeometry: CellGeometry;
-    let drawInstancedMesh: THREE.Mesh;
-    let pickInstancedMesh: THREE.Mesh;
+    let globalScene: THREE.Scene;
+    let cellScene: CellScene;
 
     let ghostGeometry: CellGeometry;
-    let ghostMesh: THREE.Mesh;
     let snapDivider: number = 20;
 
     let stats: Stats;
@@ -46,15 +45,14 @@
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
 
-    export let cells: Cell[];
     let selectedCells: Set<CellIndex> = new Set<CellIndex>();
-    let cachedCellsPos: {[id: number]: [pos_x: number, pos_y: number]} = {};
+    let cachedCellsPos: {[id: string]: [pos_x: number, pos_y: number]} = {};
 
     let selectedCellsUpdatedDispatch : (() => void);
 
     export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
-    let layers: Layer[] = [{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture()}];
+    export let layers: Layer[] = [{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []}];
     let selectedLayer: number = 0;
 
     export let simulation_models: Map<string, SimulationModel>;
@@ -68,7 +66,8 @@
         renderer.setClearColor(0);
         //renderer.setPixelRatio(window.devicePixelRatio);
 
-        scene = new CellScene(renderer, camera);
+        globalScene = new THREE.Scene();
+        cellScene = new CellScene(renderer, camera);
 
         windowResize();
 
@@ -86,8 +85,7 @@
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = false;
 
-        cellGeometry = new CellGeometry();
-        ghostGeometry = new CellGeometry();
+        ghostGeometry = new CellGeometry(true);
 
         // let cnt = 0;
         // for (let i = 0; i < 3; i++) {
@@ -97,22 +95,14 @@
         //     }
         // }
 
-        cellGeometry.update(cells, selectedCells, false);
-
-        drawInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), DrawableCellMaterial);
-        drawInstancedMesh.matrixAutoUpdate = false;
-        pickInstancedMesh = new THREE.Mesh(cellGeometry.getGeometry(), PickableCellMaterial);
-        pickInstancedMesh.matrixAutoUpdate = false;
-
-        scene.addLayer(0);
-        scene.getLayer(0).addMesh(drawInstancedMesh, pickInstancedMesh)
+        cellScene.addLayer(0);
+        //scene.getLayer(0).addCellGeometry(cellGeometry);
 
         renderer.setAnimationLoop(render);
     });
 
     onDestroy(() => {
         renderer.dispose();
-        cellGeometry.dispose();
         ghostGeometry.dispose();
         DrawableCellMaterial.dispose();
         PickableCellMaterial.dispose();
@@ -128,8 +118,10 @@
 
     function render(){
         controls.update();
+        renderer.setRenderTarget(null);
         stats.begin();
-        scene.render();
+        renderer.render(globalScene, camera);
+        cellScene.render();
         stats.end();
 
         statsDrawCall.update(renderer.info.render.calls, 10);
@@ -140,28 +132,26 @@
             position: [0, 0, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
-        }], new Set(), true);
-        ghostMesh = new THREE.Mesh(ghostGeometry.getGeometry(), DrawableCellMaterial);
-        scene.addMesh(ghostMesh, undefined);
+        }], new Set());
+        globalScene.add(ghostGeometry.getDrawMesh());
     }
 
     function removeGhostMesh(){
-        ghostGeometry.update([], new Set(), true);
-        if (ghostMesh != undefined)
-            scene.removeMesh(ghostMesh, undefined);
+        ghostGeometry.update([], new Set());
+        globalScene.remove(ghostGeometry.getDrawMesh());
     }
 
     function shouldMouseDrag(mouse_x: number, mouse_y: number): boolean{
         let id = getCellOnPos(mouse_x, mouse_y);
 
-        if (id == -1)
+        if (!id)
             return false;
 
-        if (selectedCells.size > 0 && selectedCells.has(id))
+        if (!selectedCells.isEmpty() && selectedCells.contains(id))
             return true;
         
         applySelectRegion(mouse_x, mouse_y);
-        return selectedCells.size > 0;
+        return !selectedCells.isEmpty();
     }
 
     function mouseDown(e: MouseEvent){
@@ -246,7 +236,8 @@
     function startMouseDrag(){
         cachedCellsPos = {};
         selectedCells.forEach((id) => {
-            cachedCellsPos[id] = [cells[id].position[0], cells[id].position[1]];
+            const cell = layers[id.getLayer()].cells[id.getCell()];
+            cachedCellsPos[id.toString()] = [cell.position[0], cell.position[1]];
         });
     }
 
@@ -257,35 +248,28 @@
     function startSelectRegion(mouse_x: number, mouse_y: number){
     }
 
-    function getCellOnPos(mouse_x: number, mouse_y: number){
-        let cellsUnderMouse = scene.pick(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
-        for (let i = 0; i < cellsUnderMouse.length; i++) {
-            const element = cellsUnderMouse[i];
-            if (element.size > 0)
-                return element.entries().next().value;
-        }
+    function getCellOnPos(mouse_x: number, mouse_y: number): CellIndex|undefined{
+        let cellsUnderMouse = cellScene.pick(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+        
+        if (cellsUnderMouse.isEmpty())
+            return undefined;
 
-        return -1;
+        return cellsUnderMouse.toArray()[0];
     }
 
     function applySelectRegion(mouse_x: number, mouse_y: number){
         if (!multiselect)
             selectedCells.clear();
 
-        let cellsUnderMouse = scene.pick(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+        let cellsUnderMouse = cellScene.pick(mouseStartPos?.x ?? 0, mouseStartPos?.y ?? 0, mouse_x, mouse_y);
+        cellsUnderMouse.forEach((id) => {
+            if (multiselect && selectedCells.contains(id))
+                selectedCells.remove(id)
+            else
+                selectedCells.add(id)
+        });
 
-        for (let i = 0; i < result.length/4; i++) {
-            const id = result[i*4];
-            if (id >= 0)
-            {
-                if (multiselect && selectedCells.has(id))
-                    selectedCells.delete(id);
-                else
-                    selectedCells.add(id);
-            }
-        }
-
-        cellGeometry.update(cells, selectedCells, false);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
         selectedCellsUpdated();
     }
     
@@ -322,19 +306,21 @@
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         
-        cells.push({
+        layers[selectedLayer].cells.push({
             position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0, 0, 0, 0, 0]
         })
-        cellGeometry.update(cells, selectedCells, false);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
     }
 
-    function deleteCells(cell_ids: Set<number>){
-        cells = cells.filter((_, i) => !cell_ids.has(i));
+    function deleteCells(cell_ids: Set<CellIndex>){
+        cell_ids.forEach((id) => {
+            layers[id.getLayer()].cells.splice(id.getCell(), 1);
+        });
 
         selectedCells.clear()
-        cellGeometry.update(cells, selectedCells, false);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
         selectedCellsUpdated();
     }
 
@@ -351,13 +337,16 @@
         let diff_y = world_pos.y - orig_world_pos.y;
 
         for (let key in cachedCellsPos) {
-            let id = parseInt(key);
-            let pos = cachedCellsPos[id];
-            cells[id].position[0] = pos[0] + diff_x;
-            cells[id].position[1] = pos[1] + diff_y;
+            let id = parseCellIndex(key);
+            if (!id)
+                continue;
+
+            let pos = cachedCellsPos[key];
+            layers[id.getLayer()].cells[id.getCell()].position[0] = pos[0] + diff_x;
+            layers[id.getLayer()].cells[id.getCell()].position[1] = pos[1] + diff_y;
         }
 
-        cellGeometry.update(cells, selectedCells, false);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
     }
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
@@ -369,7 +358,7 @@
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
 
-        }], new Set(), true);
+        }], new Set());
     }
 
     function inputModeChanged(newInputModeIdx: number){
@@ -424,7 +413,7 @@
             <TreeView>
                 <SimSettingsPanel bind:selected_model_id={selected_model_id} bind:simulation_models={simulation_models}/>
                 <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer}/>
-                <CellPropsPanel bind:cells={cells} bind:selectedCells={selectedCells} bind:selectedCellsUpdated={selectedCellsUpdatedDispatch}/>
+                <CellPropsPanel bind:layers={layers} bind:selectedCells={selectedCells} bind:selectedCellsUpdated={selectedCellsUpdatedDispatch}/>
             </TreeView>
         </div>
     </Pane>

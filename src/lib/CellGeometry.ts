@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { getPolarization, type Cell } from './Cell';
+import { CellIndex, getPolarization, type Cell } from './Cell';
+import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
+import { Set } from 'typescript-collections'
 
 export class CellGeometry{
     private geometry: THREE.InstancedBufferGeometry;
@@ -9,7 +11,12 @@ export class CellGeometry{
     private polarizationAttribute: THREE.BufferAttribute;
     private metaAttribute: THREE.BufferAttribute;
 
-    constructor (){
+    private drawMesh: THREE.Mesh;
+    private pickMesh: THREE.Mesh;
+
+    private ghostMode: boolean;
+
+    constructor (ghostMode: boolean){
         this.geometry = new THREE.InstancedBufferGeometry();
         this.geometry.instanceCount = 0;
 
@@ -17,17 +24,28 @@ export class CellGeometry{
         this.localPositionAttribute = new THREE.BufferAttribute(new Float32Array(0), 2);
         this.polarizationAttribute = new THREE.BufferAttribute(new Float32Array(0), 1);
         this.metaAttribute = new THREE.BufferAttribute(new Int32Array(0), 1);
+        this.ghostMode = ghostMode;
+
+        this.drawMesh = new THREE.Mesh(this.geometry, DrawableCellMaterial);
+        this.drawMesh.matrixAutoUpdate = false;
+
+        this.pickMesh = new THREE.Mesh(this.geometry, PickableCellMaterial);
+        this.pickMesh.matrixAutoUpdate = false;
     }
 
-    getGeometry(): THREE.InstancedBufferGeometry{
-        return this.geometry;
+    getDrawMesh(): THREE.Mesh{
+        return this.drawMesh;
+    }
+
+    getPickMesh(): THREE.Mesh{
+        return this.pickMesh;
     }
 
     dispose(): void{
         this.geometry.dispose();
     }
 
-    _getCellMetadata(id: number, selected: boolean, ghosted: boolean): number{
+    private getCellMetadata(id: number, selected: boolean, ghosted: boolean): number{
         let result = 0;
         result = id << 16;
         if (selected)
@@ -37,7 +55,7 @@ export class CellGeometry{
         return result;
     }
 
-    update(cells: Cell[], selectedCells: Set<number>, ghostMode: boolean){
+    update(cells: Cell[], selectedCells: Set<number>){
         const MAX_POLARIZATION = 2;
         const posOffs = [-1, 1];
 
@@ -87,7 +105,7 @@ export class CellGeometry{
                 }
             }
 
-            let metadata = this._getCellMetadata(i, selectedCells.has(i), ghostMode);
+            let metadata = this.getCellMetadata(i, selectedCells.contains(i), this.ghostMode);
 
             metaBuff[i*4 + 0] = metadata;
             metaBuff[i*4 + 1] = metadata;

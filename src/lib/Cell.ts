@@ -15,6 +15,18 @@ export class CellIndex{
     }
 }
 
+export function parseCellIndex(str: string): CellIndex|undefined{
+    const strArr = str.split('-');
+
+    if (strArr.length != 2)
+        return undefined;
+
+    const layer = parseInt(strArr[0]);
+    const cell = parseInt(strArr[1]);
+
+    return new CellIndex(layer, cell);
+}
+
 export enum CellType{
     Normal = 0,
     Input = 1,

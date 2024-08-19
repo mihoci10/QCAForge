@@ -1,27 +1,34 @@
 import * as THREE from 'three'
-import { type CellIndex } from './Cell';
+import { type Cell, CellIndex } from './Cell';
+import { CellGeometry } from './CellGeometry';
+import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
+import { Set } from 'typescript-collections'
 
 class CellSceneLayer{
     public visible: boolean;
+    private parent: CellScene;
     private drawScene: THREE.Scene;
     private pickScene: THREE.Scene;
+    private cellGeometry: CellGeometry;
 
-    constructor(visible: boolean) {
+    constructor(parent: CellScene, visible: boolean) {
+        this.parent = parent;
         this.visible = visible;
         this.drawScene = new THREE.Scene();
         this.pickScene = new THREE.Scene();
+
+        this.cellGeometry = new CellGeometry(false);
+        this.drawScene.add(this.cellGeometry.getDrawMesh());
+        this.pickScene.add(this.cellGeometry.getPickMesh());
     }
 
-    addMesh(drawMesh: THREE.Mesh, pickMesh: THREE.Mesh|undefined): void{
-        this.drawScene.add(drawMesh);
-        if (pickMesh != undefined)
-            this.pickScene.add(pickMesh);
-    }
-
-    removeMesh(drawMesh: THREE.Mesh, pickMesh: THREE.Mesh|undefined): void{
-        this.drawScene.remove(drawMesh);
-        if (pickMesh != undefined)
-            this.pickScene.remove(pickMesh);
+    updateGeometry(cells: Cell[], selectedCells: Set<CellIndex>): void{
+        const selectedIds: Set<number> = new Set();
+        selectedCells.forEach((id) => {
+            if (id.getLayer() == this.parent.getIndexOfLayer(this))
+                selectedIds.add(id.getCell())
+        });
+        this.cellGeometry.update(cells, selectedIds)
     }
 
     getDrawScene(): THREE.Scene{
@@ -49,15 +56,18 @@ export class CellScene{
     }
 
     addLayer(layerInd: number){
-        this.layers.splice(layerInd, 0, new CellSceneLayer(true));
+        this.layers.splice(layerInd, 0, new CellSceneLayer(this, true));
     }
 
     removeLayer(layerInd: number){
         this.layers.splice(layerInd, 1);
     }
 
+    getIndexOfLayer(sceneLayer: CellSceneLayer){
+        return this.layers.indexOf(sceneLayer);
+    }
+
     render(){
-        this.renderer.setRenderTarget(null);
         for (let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
             if(layer.visible)
@@ -74,11 +84,15 @@ export class CellScene{
                 for (let i = 0; i < pickBuffer.length/4; i++) {
                     const id = pickBuffer[i*4];
                     if (id >= 0)
-                        selectedCells.add({layer: i, cell: id});
+                        selectedCells.add(new CellIndex(i, id));
                 }
             }
         }
         return selectedCells;
+    }
+
+    updateGeometry(){
+        
     }
 
     private renderPickBuffer(scene: THREE.Scene, x1: number, y1: number, x2: number, y2: number): Int32Array{
