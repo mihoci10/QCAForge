@@ -19,7 +19,7 @@
     export let data;
 
     let selected_model_id: string|undefined;
-    let layers: Layer[] = [];
+    let layers: Layer[];
 
     let simulation_models: Map<string, SimulationModel> = new Map<string, SimulationModel>();
 

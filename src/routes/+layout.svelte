@@ -18,11 +18,12 @@
     import CellArchitectureOptions from '$lib/modals/cell-architecture-options.svelte';
     import LayerOptions from '$lib/modals/layer-options.svelte';
     import SimModelOptions from '$lib/modals/sim-model-options.svelte';
+    import { getDefaultCellArchitecture } from '$lib/CellArchitecture';
 
 	initializeStores();
 
 	onMount(() => {
-		createDesign([], undefined, new Map()).then((des) => {
+		createDesign([{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []}], undefined, new Map()).then((des) => {
 			design.set(des);
 		});
 	});
@@ -42,7 +43,7 @@
     })
 
 	listen(EVENT_NEW_FILE, () => {
-		createDesign([], undefined, new Map()).then((d) => {
+		createDesign([{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []}], undefined, new Map()).then((d) => {
 			design.set(d);
 		})
 		design_filename.set(undefined);

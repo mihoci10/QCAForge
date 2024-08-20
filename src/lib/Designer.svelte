@@ -52,7 +52,7 @@
 
     export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
-    export let layers: Layer[] = [{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []}];
+    export let layers: Layer[];
     let selectedLayer: number = 0;
 
     export let simulation_models: Map<string, SimulationModel>;
@@ -64,6 +64,7 @@
         renderer = new THREE.WebGLRenderer({canvas: canvas});
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
+        renderer.autoClear = false;
         //renderer.setPixelRatio(window.devicePixelRatio);
 
         globalScene = new THREE.Scene();
@@ -119,6 +120,7 @@
     function render(){
         controls.update();
         renderer.setRenderTarget(null);
+        renderer.clear();
         stats.begin();
         renderer.render(globalScene, camera);
         cellScene.render();
@@ -315,9 +317,11 @@
     }
 
     function deleteCells(cell_ids: Set<CellIndex>){
-        cell_ids.forEach((id) => {
-            layers[id.getLayer()].cells.splice(id.getCell(), 1);
-        });
+        for (let i = 0; i < layers.length; i++) {
+            layers[i].cells = layers[i].cells.filter((_, ind) => {
+                return !cell_ids.contains(new CellIndex(i, ind));
+            })
+        }
 
         selectedCells.clear()
         cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);

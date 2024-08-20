@@ -81,8 +81,8 @@ export class CellScene{
             const layer = this.layers[i];
             if(layer.visible){
                 const pickBuffer = this.renderPickBuffer(layer.getPickScene(), x1, y1, x2, y2);
-                for (let i = 0; i < pickBuffer.length/4; i++) {
-                    const id = pickBuffer[i*4];
+                for (let j = 0; j < pickBuffer.length/4; j++) {
+                    const id = pickBuffer[j*4];
                     if (id >= 0)
                         selectedCells.add(new CellIndex(i, id));
                 }
@@ -110,6 +110,7 @@ export class CellScene{
 
         this.renderer.setRenderTarget(pickingTexture);
         this.renderer.setClearColor(new THREE.Color(-1, -1, -1));
+        this.renderer.clear();
         this.renderer.render(scene, this.camera);
         
         const pickingBuffer = new Int32Array(width * height * 4);
