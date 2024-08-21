@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { CellIndex, getPolarization, type Cell } from './Cell';
 import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
 import { Set } from 'typescript-collections'
+import { type CellArchitecture } from './CellArchitecture';
 
 export class CellGeometry{
     private geometry: THREE.InstancedBufferGeometry;
@@ -55,7 +56,7 @@ export class CellGeometry{
         return result;
     }
 
-    update(cells: Cell[], selectedCells: Set<number>){
+    update(cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture){
         const MAX_POLARIZATION = 2;
         const posOffs = [-1, 1];
 
@@ -78,8 +79,8 @@ export class CellGeometry{
             let cnt = 0;
             for (let x = 0; x < posOffs.length; x++){
                 for (let y = 0; y < posOffs.length; y++){
-                    positionBuf[i*(4 * 3) + cnt + 0] = cell.position[0] + posOffs[x]/2 * 20;
-                    positionBuf[i*(4 * 3) + cnt + 1] = cell.position[1] + posOffs[y]/2 * 20;
+                    positionBuf[i*(4 * 3) + cnt + 0] = cell.position[0] + posOffs[x]/2 * architecture.side_length;
+                    positionBuf[i*(4 * 3) + cnt + 1] = cell.position[1] + posOffs[y]/2 * architecture.side_length;
                     positionBuf[i*(4 * 3) + cnt + 2] = 0;
                     cnt += 3;
                 }
@@ -128,5 +129,7 @@ export class CellGeometry{
         this.geometry.setAttribute('localPosition', this.localPositionAttribute);
         this.geometry.setAttribute('polarization', this.polarizationAttribute);
         this.geometry.setAttribute('inMetadata', this.metaAttribute);
+
+        this.drawMesh.material.uniforms.polarizationCount.value = architecture.dot_count / 4;
     }
 }

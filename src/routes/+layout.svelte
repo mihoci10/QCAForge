@@ -23,7 +23,7 @@
 	initializeStores();
 
 	onMount(() => {
-		createDesign([{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []}], undefined, new Map()).then((des) => {
+		createDesign([{name: "Main Layer", visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0}], undefined, new Map()).then((des) => {
 			design.set(des);
 		});
 	});
@@ -43,7 +43,7 @@
     })
 
 	listen(EVENT_NEW_FILE, () => {
-		createDesign([{name: "Main Layer", visible: true, cellArchitecture: getDefaultCellArchitecture(), cells: []}], undefined, new Map()).then((d) => {
+		createDesign([{name: "Main Layer", visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0}], undefined, new Map()).then((d) => {
 			design.set(d);
 		})
 		design_filename.set(undefined);

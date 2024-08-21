@@ -4,6 +4,7 @@ import { type CellArchitecture } from "./CellArchitecture";
 export interface Layer{
     name: string;
     visible: boolean;
-    cellArchitecture: CellArchitecture;
+    cell_architecture: CellArchitecture;
     cells: Cell[];
+    z_position: number;
 }

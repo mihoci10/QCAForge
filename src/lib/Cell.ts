@@ -35,7 +35,7 @@ export enum CellType{
 }
 
 export interface Cell{
-    position: [number, number, number],
+    position: [number, number],
     rotation: number,
     typ: CellType,
     clock_phase_shift: number, 

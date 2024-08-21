@@ -131,15 +131,15 @@
 
     function createGhostMesh(){
         ghostGeometry.update([{
-            position: [0, 0, 0], clock_phase_shift: 0, typ: CellType.Normal,
+            position: [0, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
-        }], new Set());
+        }], new Set(), layers[selectedLayer].cell_architecture);
         globalScene.add(ghostGeometry.getDrawMesh());
     }
 
     function removeGhostMesh(){
-        ghostGeometry.update([], new Set());
+        ghostGeometry.update([], new Set(), layers[selectedLayer].cell_architecture);
         globalScene.remove(ghostGeometry.getDrawMesh());
     }
 
@@ -271,7 +271,7 @@
                 selectedCells.add(id)
         });
 
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
         selectedCellsUpdated();
     }
     
@@ -309,11 +309,11 @@
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         
         layers[selectedLayer].cells.push({
-            position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
+            position: [world_pos.x, world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
-            dot_probability_distribution: [0, 0, 0, 0, 0, 0, 0, 0]
+            dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
         })
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
     }
 
     function deleteCells(cell_ids: Set<CellIndex>){
@@ -324,7 +324,7 @@
         }
 
         selectedCells.clear()
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
         selectedCellsUpdated();
     }
 
@@ -350,7 +350,7 @@
             layers[id.getLayer()].cells[id.getCell()].position[1] = pos[1] + diff_y;
         }
 
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer].cells, selectedCells);
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
     }
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
@@ -358,11 +358,11 @@
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         ghostGeometry.update([{
-            position: [world_pos.x, world_pos.y, 0], clock_phase_shift: 0, typ: CellType.Normal,
+            position: [world_pos.x, world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
 
-        }], new Set());
+        }], new Set(), layers[selectedLayer].cell_architecture);
     }
 
     function inputModeChanged(newInputModeIdx: number){

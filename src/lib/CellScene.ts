@@ -1,8 +1,8 @@
 import * as THREE from 'three'
-import { type Cell, CellIndex } from './Cell';
+import { CellIndex } from './Cell';
 import { CellGeometry } from './CellGeometry';
-import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
 import { Set } from 'typescript-collections'
+import { type Layer } from './Layer';
 
 class CellSceneLayer{
     public visible: boolean;
@@ -22,13 +22,13 @@ class CellSceneLayer{
         this.pickScene.add(this.cellGeometry.getPickMesh());
     }
 
-    updateGeometry(cells: Cell[], selectedCells: Set<CellIndex>): void{
+    updateGeometry(layer: Layer, selectedCells: Set<CellIndex>): void{
         const selectedIds: Set<number> = new Set();
         selectedCells.forEach((id) => {
             if (id.getLayer() == this.parent.getIndexOfLayer(this))
                 selectedIds.add(id.getCell())
         });
-        this.cellGeometry.update(cells, selectedIds)
+        this.cellGeometry.update(layer.cells, selectedIds, layer.cell_architecture)
     }
 
     getDrawScene(): THREE.Scene{

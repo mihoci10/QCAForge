@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api";
-import type { Cell } from "./Cell"
 import type { SimulationModel } from "./SimulationModel";
 import { type Layer } from "./Layer";
 
