@@ -5,10 +5,7 @@ use std::{f64::consts::PI, fs::File, io::Write};
 
 use qca_core::sim::{full_basis::FullBasisModel, run_simulation, settings::OptionsList, QCACell, QCACellArchitecture, QCALayer, SimulationModelTrait};
 use serde::Serialize;
-use tauri::Manager;
-use window_menu::create_menu_bar;
-use window_shadows::set_shadow;
-mod window_menu;
+use tauri::{Emitter, Manager};
 
 fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>>{
   match sim_model_id.as_str() {
@@ -28,11 +25,9 @@ struct SimulationModelDescriptor {
 
 fn main() {
   tauri::Builder::default()
-    .plugin(tauri_plugin_context_menu::init())
-    .menu(create_menu_bar())
-    .on_menu_event(|event| {let _ = event.window().emit(event.menu_item_id(), {});})
+    .on_menu_event(|app, event| {let _ = app.emit(event.id().0.as_str(), {});})
     .setup(|app| {
-      set_shadow(&app.get_window("main").unwrap(), true).unwrap();
+      let window = app.handle().get_webview_window("main").unwrap().set_shadow(true);
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![

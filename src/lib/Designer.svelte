@@ -12,17 +12,18 @@
     import { CellIndex, CellType, parseCellIndex, type Cell } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
-    import { Pane, Splitpanes } from 'svelte-splitpanes';
+    import { Pane, Splitpanes, } from 'svelte-splitpanes'
 
     import type { Layer } from './Layer';
     import type { SimulationModel } from './SimulationModel';
     import SimSettingsPanel from './panels/sim-settings-panel.svelte';
     import LayersPanel from './panels/layers-panel.svelte';
     import CellPropsPanel from './panels/cell-props-panel.svelte';
-    import { showMenu } from "tauri-plugin-context-menu";
     import { getDefaultCellArchitecture } from './CellArchitecture';
 
     import { Set } from 'typescript-collections'
+    import { Menu } from "@tauri-apps/api/menu";
+    import { menu } from '@tauri-apps/api';
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -52,7 +53,9 @@
 
     export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
+
     export let layers: Layer[];
+
     let selectedLayer: number = 0;
 
     export let simulation_models: Map<string, SimulationModel>;
@@ -392,19 +395,20 @@
         return newInputMode;
     }
 
-    function showContextMenu(){
-        showMenu({
+    async function showContextMenu(){
+        const menu = await Menu.new({
             items: [
                 {
-                    label: 'Copy',
-                    shortcut: 'ctrl+C'
+                    text: 'Copy',
+                    accelerator: 'ctrl+C'
                 },
                 {
-                    label: 'Paste',
-                    shortcut: 'ctrl+V'
+                    text: 'Paste',
+                    accelerator: 'ctrl+V'
                 }
             ]
         });
+        menu.popup();
     }
     
 </script>

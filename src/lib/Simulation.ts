@@ -1,5 +1,5 @@
 import { serializeCells, type Cell } from './Cell';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import type { SimulationModel } from './SimulationModel';
 import { type Layer } from './Layer';
 

@@ -8,17 +8,18 @@
     import { listen } from "@tauri-apps/api/event";
     import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION} from '$lib/utils/events';
     import { goto } from '$app/navigation';
-    import { open } from '@tauri-apps/api/dialog';
+    import { open } from '@tauri-apps/plugin-dialog';
     import { design, design_filename } from '$lib/globals';
     import { createDesign, deserializeDesign } from '$lib/qca-design';
-    import { readTextFile } from '@tauri-apps/api/fs';
+    import { readTextFile } from '@tauri-apps/plugin-fs';
     import { onMount } from 'svelte';
     import { basename } from '@tauri-apps/api/path';
-    import { appWindow } from '@tauri-apps/api/window';
+    import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
     import CellArchitectureOptions from '$lib/modals/cell-architecture-options.svelte';
     import LayerOptions from '$lib/modals/layer-options.svelte';
     import SimModelOptions from '$lib/modals/sim-model-options.svelte';
     import { getDefaultCellArchitecture } from '$lib/CellArchitecture';
+const appWindow = getCurrentWebviewWindow()
 
 	initializeStores();
 

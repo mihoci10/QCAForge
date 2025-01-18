@@ -1,9 +1,8 @@
-use tauri::{CustomMenuItem, Menu, Submenu};
+use tauri::menu::{Menu, MenuItem, Submenu};
 
-pub fn create_menu_bar() -> Menu {
+pub fn create_menu_bar(app: &Manager) -> Menu {
     let file_new_file = 
-        CustomMenuItem::new(("newFile").to_string(), "New file".to_string())
-        .accelerator("CmdOrCtrl+n");
+        MenuItem::with_id(manager, "newFile", "New file", true, "CmdOrCtrl+n")
 
     let file_open_design = 
         CustomMenuItem::new(("openDesign").to_string(), "Open design".to_string())
