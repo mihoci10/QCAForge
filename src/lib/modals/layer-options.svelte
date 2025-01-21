@@ -1,10 +1,16 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
     import { type CellArchitecture, createCellArchitecture } from '$lib/CellArchitecture';
     import Icon from '@iconify/svelte';
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
-	export let parent: any;
+	interface Props {
+		parent: any;
+	}
+
+	let { parent }: Props = $props();
 
 	const DEFAULT_CELL_ARCHS : [string, CellArchitecture][] = [
 		['Two state', createCellArchitecture(20, 5, 4, 6.36)],
@@ -48,7 +54,7 @@
 {#if $modalStore[0]}
 	<div class="card p-4 w-modal shadow-xl space-y-4">
 		<header class="text-2xl font-bold">{$modalStore[0].title}</header>
-		<form class="modal-form" on:submit|preventDefault={formSubmit}>
+		<form class="modal-form" onsubmit={preventDefault(formSubmit)}>
 			<label class="label">
 				<span>Cell architecture</span>
 				
@@ -58,7 +64,7 @@
 						<option value={i}>{arcOption[0]}</option>
 						{/each}
 					</select>
-					<button type="button" class="btn-icon w-full" on:click={(e) => openArchitectureOptions()}>
+					<button type="button" class="btn-icon w-full" onclick={(e) => openArchitectureOptions()}>
                         <Icon width={16} icon="material-symbols:settings"/>
                     </button>
 				</div>

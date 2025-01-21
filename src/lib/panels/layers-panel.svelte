@@ -1,11 +1,15 @@
+<!-- @migration-task Error while migrating Svelte code: Cannot use `export let` in runes mode — use `$props()` instead -->
 <script lang="ts">
     import { getDefaultCellArchitecture } from "$lib/CellArchitecture";
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
     import { getModalStore, ListBox, ListBoxItem, type ModalSettings, TreeViewItem } from "@skeletonlabs/skeleton";
+    import { createEventDispatcher } from "svelte";
     
     export let layers: Layer[];
     export let selectedLayer: number;
+
+    let {onAddLayer, onRemoveLayer, onChangeLayer} = $props();
 
     const modalStore = getModalStore();
     
@@ -51,6 +55,7 @@
         const i = selectedLayer;
 
         layers.splice(i+1, 0, {name: newLayerName, visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0})
+        dispatchLayerChange('addLayer', i+1);
 
         layers = layers;
     }

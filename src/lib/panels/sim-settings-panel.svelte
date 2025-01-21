@@ -30,28 +30,36 @@
         });
     }
 
-    export let selected_model_id: string | undefined;
-    export let simulation_models: Map<string, SimulationModel>;
+    interface Props {
+        selected_model_id: string | undefined;
+        simulation_models: Map<string, SimulationModel>;
+    }
+
+    let { selected_model_id = $bindable(), simulation_models }: Props = $props();
 </script>
 
 <TreeViewItem>
     Simulation settings
-    <svelte:fragment slot="lead"><Icon icon="material-symbols:science"/></svelte:fragment>
-    <svelte:fragment slot="children">
-        <form>
-            <label class="label">
-                <span>Model</span>
-                <div class="flex">
-                    <select bind:value={selected_model_id} class="select">
-                        {#each simulation_models.values() as model}
-                            <option value={model.id}>{model.name}</option>
-                        {/each}
-                    </select>
-                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} on:click={openModelOptions}>
-                        <Icon icon="material-symbols:settings" />
-                    </button>
-                </div>
-            </label>
-        </form>
-    </svelte:fragment>
+    {#snippet lead()}
+        <Icon icon="material-symbols:science"/>
+    {/snippet}
+    {#snippet children()}
+    
+            <form>
+                <label class="label">
+                    <span>Model</span>
+                    <div class="flex">
+                        <select bind:value={selected_model_id} class="select">
+                            {#each simulation_models.values() as model}
+                                <option value={model.id}>{model.name}</option>
+                            {/each}
+                        </select>
+                        <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} onclick={openModelOptions}>
+                            <Icon icon="material-symbols:settings" />
+                        </button>
+                    </div>
+                </label>
+            </form>
+        
+    {/snippet}
 </TreeViewItem>

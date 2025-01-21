@@ -16,12 +16,16 @@
     import { type Layer } from "$lib/Layer.js";
 
     const toastStore = getToastStore();
-    export let data;
+    interface Props {
+        data: any;
+    }
 
-    let selected_model_id: string|undefined;
-    let layers: Layer[];
+    let { data }: Props = $props();
 
-    let simulation_models: Map<string, SimulationModel> = new Map<string, SimulationModel>();
+    let selected_model_id: string|undefined = $state();
+    let layers: Layer[] = $state();
+
+    let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
 
     design.subscribe((cur_design) => {
         layers = cur_design.layers;
@@ -102,7 +106,6 @@
 
         startSimulation(layers, simulation_models.get(selected_model_id!)!)
             .then((res) => {
-                console.log(res);
                 const t: ToastSettings = {
                     message: 'Simulation finished successfully.',
                     timeout: 3000,
@@ -127,7 +130,7 @@
         <div class="flex flex-row float-right">
             <button type="button" class="btn variant-filled mx-2" 
                 disabled={!selected_model_id} 
-                on:click={(e) => executeSimulation()}>
+                onclick={(e) => executeSimulation()}>
                 Run
             </button>
         </div>

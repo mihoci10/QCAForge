@@ -28,8 +28,8 @@
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
-    let container: HTMLElement; 
-    let canvas: HTMLCanvasElement;
+    let container: HTMLElement = $state(); 
+    let canvas: HTMLCanvasElement = $state();
 
     let globalScene: THREE.Scene;
     let cellScene: CellScene;
@@ -40,25 +40,28 @@
     let stats: Stats;
     let statsDrawCall: Stats.Panel;
 
-    let inputModeIdx: number = 0;
-    $: inputMode = inputModeChanged(inputModeIdx);
+    let inputModeIdx: number = $state(0);
     let mouseStartPos: THREE.Vector2|undefined;
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
 
-    let selectedCells: Set<CellIndex> = new Set<CellIndex>();
+    let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
     let cachedCellsPos: {[id: string]: [pos_x: number, pos_y: number]} = {};
 
-    let selectedCellsUpdatedDispatch : (() => void);
+    let selectedCellsUpdatedDispatch : (() => void) = $state();
 
-    export let selected_model_id: string | undefined;
     let sim_models: string[] = [];
 
-    export let layers: Layer[];
 
-    let selectedLayer: number = 0;
+    let selectedLayer: number = $state(0);
 
-    export let simulation_models: Map<string, SimulationModel>;
+    interface Props {
+        selected_model_id: string | undefined;
+        layers: Layer[];
+        simulation_models: Map<string, SimulationModel>;
+    }
+
+    let { selected_model_id = $bindable(), layers = $bindable(), simulation_models = $bindable() }: Props = $props();
 
     onMount(() => {
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
@@ -411,16 +414,17 @@
         menu.popup();
     }
     
+    let inputMode = $derived(inputModeChanged(inputModeIdx));
 </script>
 
-<svelte:window on:resize={() => windowResize()}/>
+<svelte:window onresize={() => windowResize()}/>
 
 <Splitpanes class="h-full overflow-auto" on:resize={() => windowResize()}>
     <Pane minSize={5} size={15}>
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <TreeView>
                 <SimSettingsPanel bind:selected_model_id={selected_model_id} bind:simulation_models={simulation_models}/>
-                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer}/>
+                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} on:addLayer={addLayer} on:removeLayer={removeLayer}/>
                 <CellPropsPanel bind:layers={layers} bind:selectedCells={selectedCells} bind:selectedCellsUpdated={selectedCellsUpdatedDispatch}/>
             </TreeView>
         </div>
@@ -437,7 +441,7 @@
                     </AppRailTile>
                 </AppRail>
             </div>
-            <canvas bind:this={canvas} class="absolute z-0"/>
+            <canvas bind:this={canvas} class="absolute z-0"></canvas>
         </div>
     </Pane>
 </Splitpanes>

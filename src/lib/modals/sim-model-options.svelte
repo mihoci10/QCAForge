@@ -1,10 +1,16 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
     import { invoke } from '@tauri-apps/api/core';
 	// Stores
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
-	export let parent: any;
+	interface Props {
+		parent: any;
+	}
+
+	let { parent }: Props = $props();
 
 	// Base Classes
 	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
@@ -30,7 +36,7 @@
 	<div class="modal-example-form {cBase}">
 		<header class={cHeader}>{$modalStore[0].title ?? '(title missing)'}</header>
 		
-		<form class="modal-form {cForm}" on:submit|preventDefault={formSubmit}>
+		<form class="modal-form {cForm}" onsubmit={preventDefault(formSubmit)}>
 		{#each $modalStore[0].meta.model.option_list as option}
 			{#if option.type === 'Header'}
 				<p class="text-lg font-bold">{option.label}</p>

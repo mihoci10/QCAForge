@@ -19,6 +19,11 @@
     import LayerOptions from '$lib/modals/layer-options.svelte';
     import SimModelOptions from '$lib/modals/sim-model-options.svelte';
     import { getDefaultCellArchitecture } from '$lib/CellArchitecture';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 const appWindow = getCurrentWebviewWindow()
 
 	initializeStores();
@@ -78,17 +83,21 @@ const appWindow = getCurrentWebviewWindow()
 	<div class="flex h-full overflow-auto">
 		<AppRail width="w-12"> 
 			<AppRailAnchor href='/designer' selected={$page.url.pathname.startsWith('/designer')}>
-				<svelte:fragment slot="lead">
-					<Icon width={36} icon="material-symbols:design-services-outline" style="margin: auto;"/>
-				</svelte:fragment>
+				{#snippet lead()}
+							
+						<Icon width={36} icon="material-symbols:design-services-outline" style="margin: auto;"/>
+					
+							{/snippet}
 			</AppRailAnchor>
 			<AppRailAnchor href='/analysis' selected={$page.url.pathname.startsWith('/analysis')}>
-				<svelte:fragment slot="lead">
-					<Icon width={36} icon="mdi:chart-bell-curve-cumulative" style="margin: auto;"/>
-				</svelte:fragment>
+				{#snippet lead()}
+							
+						<Icon width={36} icon="mdi:chart-bell-curve-cumulative" style="margin: auto;"/>
+					
+							{/snippet}
 			</AppRailAnchor>
 		</AppRail>
 	
-		<slot />
+		{@render children?.()}
 	</div>
 </div>
