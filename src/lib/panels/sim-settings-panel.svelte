@@ -1,9 +1,8 @@
 <script lang="ts">
     import type { SimulationModel } from "$lib/SimulationModel";
     import Icon from "@iconify/svelte";
-    import { TreeViewItem, getModalStore, type ModalSettings } from "@skeletonlabs/skeleton";
-    
-    const modalStore = getModalStore();
+    import * as Accordion from "$lib/components/ui/accordion";
+    import * as Select from "$lib/components/ui/select";
 
     function openModelOptions(){
         if (!selected_model_id)
@@ -36,30 +35,37 @@
     }
 
     let { selected_model_id = $bindable(), simulation_models }: Props = $props();
+    const selected_model_display = $derived(
+        selected_model_id ? (simulation_models.get(selected_model_id)?.name) : 'Select model'
+    );
 </script>
 
-<TreeViewItem>
-    Simulation settings
-    {#snippet lead()}
+<Accordion.Item value="simulation-settings">
+    <Accordion.Trigger>
+        Simulation settings
         <Icon icon="material-symbols:science"/>
-    {/snippet}
-    {#snippet children()}
-    
-            <form>
-                <label class="label">
-                    <span>Model</span>
-                    <div class="flex">
-                        <select bind:value={selected_model_id} class="select">
+    </Accordion.Trigger>
+    <Accordion.Content>
+        <form>
+            <label class="label">
+                <span>Model</span>
+                <div class="flex">
+                    <Select.Root type="single" bind:value={selected_model_id}>
+                        <Select.Trigger>
+                            {selected_model_display}
+                        </Select.Trigger>
+                        <Select.Content>
                             {#each simulation_models.values() as model}
-                                <option value={model.id}>{model.name}</option>
+                                <Select.Item value={model.id} label={model.name}/>
                             {/each}
-                        </select>
-                        <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} onclick={openModelOptions}>
-                            <Icon icon="material-symbols:settings" />
-                        </button>
-                    </div>
-                </label>
-            </form>
-        
-    {/snippet}
-</TreeViewItem>
+                        </Select.Content>
+                    </Select.Root>
+                    
+                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} onclick={openModelOptions}>
+                        <Icon icon="material-symbols:settings" />
+                    </button>
+                </div>
+            </label>
+        </form>
+    </Accordion.Content>
+</Accordion.Item>

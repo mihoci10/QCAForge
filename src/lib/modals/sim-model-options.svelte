@@ -3,9 +3,7 @@
 
     import { invoke } from '@tauri-apps/api/core';
 	// Stores
-	import { getModalStore } from '@skeletonlabs/skeleton';
-
-	const modalStore = getModalStore();
+	
 	interface Props {
 		parent: any;
 	}
@@ -36,7 +34,7 @@
 	<div class="modal-example-form {cBase}">
 		<header class={cHeader}>{$modalStore[0].title ?? '(title missing)'}</header>
 		
-		<form class="modal-form {cForm}" onsubmit={preventDefault(formSubmit)}>
+		<form class="modal-form {cForm}" onsubmit={formSubmit}>
 		{#each $modalStore[0].meta.model.option_list as option}
 			{#if option.type === 'Header'}
 				<p class="text-lg font-bold">{option.label}</p>

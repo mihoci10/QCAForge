@@ -3,15 +3,13 @@
     import { getDefaultCellArchitecture } from "$lib/CellArchitecture";
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
-    import { getModalStore, ListBox, ListBoxItem, type ModalSettings, TreeViewItem } from "@skeletonlabs/skeleton";
-    import { createEventDispatcher } from "svelte";
+    import * as Accordion from "$lib/components/ui/accordion";
+    import * as Select from "$lib/components/ui/select";
     
     export let layers: Layer[];
     export let selectedLayer: number;
 
     let {onAddLayer, onRemoveLayer, onChangeLayer} = $props();
-
-    const modalStore = getModalStore();
     
     function openLayerOptions(layerIdx: number){
 
@@ -91,10 +89,12 @@
 
 </script>
 
-<TreeViewItem>
-    Layers
-    <svelte:fragment slot="lead"><Icon icon="material-symbols:layers"/></svelte:fragment>
-    <svelte:fragment slot="children">
+<Accordion.Item value="layers">
+    <Accordion.Trigger>
+        Layers
+        <Icon icon="material-symbols:layers"/>
+    </Accordion.Trigger>
+    <Accordion.Content>
         <div>
             <button type="button" class="btn-icon variant-filled btn-icon-sm"
                 on:click={addLayer}>
@@ -132,5 +132,5 @@
                 {/each}
             </ListBox>
         </div>
-    </svelte:fragment>
-</TreeViewItem>
+    </Accordion.Content>
+</Accordion.Item>

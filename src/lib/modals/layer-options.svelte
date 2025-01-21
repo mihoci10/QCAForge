@@ -3,9 +3,7 @@
 
     import { type CellArchitecture, createCellArchitecture } from '$lib/CellArchitecture';
     import Icon from '@iconify/svelte';
-	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 
-	const modalStore = getModalStore();
 	interface Props {
 		parent: any;
 	}

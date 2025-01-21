@@ -1,24 +1,26 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { CellIndex, generateDotDistribution, getPolarization, type Cell, type CellType } from "$lib/Cell";
     import { type Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
-    import { TreeViewItem } from "@skeletonlabs/skeleton";
+    import * as Accordion from "$lib/components/ui/accordion";
+    import { Input } from "$lib/components/ui/input";
     import { Set } from 'typescript-collections'
+    import * as Select from "$lib/components/ui/select";
 
-    let selectedClockMode: string = $state("0");
-    let selectedCellType: string = $state("0");
+    let selectedClockMode: string|undefined = $state();
+    let selectedCellType: string|undefined = $state();
     let polarizationInput: number[] = $state([]);
 
     interface Props {
-        layers: Layer[];
+        layers: Layer[]|undefined;
         selectedCells: Set<CellIndex>;
     }
 
-    let { layers = $bindable(), selectedCells }: Props = $props();
+    let { layers, selectedCells, }: Props = $props();
 
-    function selectedClockModeChanged(){
+    function selectedClockModeChanged(newClockMode: string){
+        selectedClockMode = newClockMode;
+
         if (isNaN(+selectedClockMode))
             return;
 
@@ -27,7 +29,9 @@
         });
     }
 
-    function selectedCellTypeChanged(){
+    function selectedCellTypeChanged(newCellType: string){
+        selectedCellType = newCellType;
+
         if (isNaN(+selectedCellType))
             return;
 
@@ -45,7 +49,7 @@
         });
     }
 
-    export function selectedCellsUpdated(){
+    function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
         let polarizations : Set<number>[] = [];
@@ -84,75 +88,93 @@
                 polarizationInput = new Array(polarizations.length).fill(NaN);
         }
     }
-    
-    run(() => {
-        selectedClockMode, selectedClockModeChanged();
-    });
-    run(() => {
-        selectedCellType, selectedCellTypeChanged();
-    });
-    run(() => {
-        polarizationInput, polarizationInputChanged();
-    });
+
+    const selected_clock_display = $derived((() => {
+        switch(selectedClockMode){
+            case '0': return 'Clock 1';
+            case '1': return 'Clock 2';
+            case '2': return 'Clock 3';
+            case '3': return 'Clock 4';
+            case 'multiple': return 'Multiple';
+            default: return 'Select clock';
+        }
+    })());
+    const selected_type_display = $derived((() => {
+        switch(selectedCellType){
+            case '0': return 'Normal';
+            case '1': return 'Input';
+            case '2': return 'Output';
+            case '3': return 'Fixed';
+            case 'multiple': return 'Multiple';
+            default: return 'Select type';
+        }
+    })());
+
 </script>
 
-<TreeViewItem>
-    Cell properties
-    {#snippet lead()}
+<Accordion.Item value="cell-props">
+    <Accordion.Trigger>
+        Cell properties
         <Icon icon="material-symbols:build-rounded"/>
-    {/snippet}
-    {#snippet children()}
-    
-            <form>
-                <label class="label">
-                    <span>Clock mode</span>
-                    <select class="select" bind:value={selectedClockMode}>
-                        <option value="multiple" hidden>Multiple values</option>
-                        <option value=0>Clock 0</option>
-                        <option value=1>Clock 1</option>
-                        <option value=2>Clock 2</option>
-                        <option value=3>Clock 3</option>
-                    </select>
-                </label>
-                <label class="label">
-                    <span>Cell type</span>
-                    <select class="select" bind:value={selectedCellType}>
-                        <option value="multiple" hidden>Multiple values</option>
-                        <option value=0>Normal</option>
-                        <option value=1>Input</option>
-                        <option value=2>Output</option>
-                        <option value=3>Fixed</option>
-                    </select>
-                </label>
-                <label class="label">
-                    {#if polarizationInput && polarizationInput.length > 0}
-                    <span>Polarization</span>
-                    {#each polarizationInput as polarization, i}
-                        {#if polarizationInput.length > 1}
-                            <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                                <div class="input-group-shim bg-tertiary">{'ABCDE'.at(i)}</div>
-                                <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarization}/>
-                            </div>
-                        {:else}
-                            <input class='input' type="number" min="-1" max="1" step="0.1" bind:value={polarization}/>
-                        {/if}
-                    {/each}
+    </Accordion.Trigger>
+    <Accordion.Content>
+        <form class="flex-1">
+            <label class="label">
+                <span>Clock mode</span>
+                <Select.Root bind:value={selectedClockMode} type="single">
+                    <Select.Trigger>
+                        {selected_clock_display}
+                    </Select.Trigger>
+                    <Select.Content>
+                        <Select.Item value="0" label='Clock 1'/>
+                        <Select.Item value="1" label='Clock 2'/>
+                        <Select.Item value="2" label='Clock 3'/>
+                        <Select.Item value="3" label='Clock 4'/>
+                    </Select.Content>
+                </Select.Root>
+            </label>
+            <label class="label">
+                <span>Cell type</span>
+                <Select.Root bind:value={selectedCellType} type="single">
+                    <Select.Trigger>
+                        {selected_type_display}
+                    </Select.Trigger>
+                    <Select.Content>
+                        <Select.Item value="0" label='Normal'/>
+                        <Select.Item value="1" label='Input'/>
+                        <Select.Item value="2" label='Output'/>
+                        <Select.Item value="3" label='Fixed'/>
+                    </Select.Content>
+                </Select.Root>
+            </label>
+            <label class="label">
+                {#if polarizationInput && polarizationInput.length > 0}
+                <span>Polarization</span>
+                {#each polarizationInput as polarization, i}
+                    {#if polarizationInput.length > 1}
+                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                            <div class="input-group-shim bg-tertiary">{'ABCDE'.at(i)}</div>
+                            <input class='input' type="number" min="-1" max="1" step="0.1" value={polarization}/>
+                        </div>
+                    {:else}
+                        <input class='input' type="number" min="-1" max="1" step="0.1" value={polarization}/>
                     {/if}
-                </label> 
-                <label class="label">
-                    <span>Position</span>
-                    <div class='flex'>
-                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                            <div class="input-group-shim bg-red-500">X</div>
-                            <input type="number"/>
-                        </div>
-                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                            <div class="input-group-shim bg-green-500">Y</div>
-                            <input type="number"/>
-                        </div>
+                {/each}
+                {/if}
+            </label> 
+            <label class="label">
+                <span>Position</span>
+                <div class='flex'>
+                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                        <div class="input-group-shim bg-red-500">X</div>
+                        <input type="number"/>
                     </div>
-                </label>
-            </form>
-        
-    {/snippet}
-</TreeViewItem>
+                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+                        <div class="input-group-shim bg-green-500">Y</div>
+                        <input type="number"/>
+                    </div>
+                </div>
+            </label>
+        </form>
+    </Accordion.Content>
+</Accordion.Item>

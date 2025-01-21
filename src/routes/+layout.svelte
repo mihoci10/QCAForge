@@ -1,10 +1,9 @@
 <script lang="ts">
-	import '../app.postcss';
-	import {AppRail, Modal, type ModalComponent, Toast, AppRailAnchor} from '@skeletonlabs/skeleton'
+	import '../app.css';
+	import { Toaster } from "$lib/components/ui/sonner";
+	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 
-	import { initializeStores } from '@skeletonlabs/skeleton';
-    import Icon from '@iconify/svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
     import { listen } from "@tauri-apps/api/event";
     import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION} from '$lib/utils/events';
     import { goto } from '$app/navigation';
@@ -15,33 +14,19 @@
     import { onMount } from 'svelte';
     import { basename } from '@tauri-apps/api/path';
     import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-    import CellArchitectureOptions from '$lib/modals/cell-architecture-options.svelte';
-    import LayerOptions from '$lib/modals/layer-options.svelte';
-    import SimModelOptions from '$lib/modals/sim-model-options.svelte';
     import { getDefaultCellArchitecture } from '$lib/CellArchitecture';
-	interface Props {
-		children?: import('svelte').Snippet;
-	}
 
-	let { children }: Props = $props();
-const appWindow = getCurrentWebviewWindow()
-
-	initializeStores();
+	let { children } = $props();
+	const appWindow = getCurrentWebviewWindow()
 
 	onMount(() => {
 		createDesign([{name: "Main Layer", visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0}], undefined, new Map()).then((des) => {
 			design.set(des);
 		});
 	});
-	
-	const modalRegistry: Record<string, ModalComponent> = {
-		simModelOptions: { ref: SimModelOptions },
-		cellArchitectureOptions: {ref: CellArchitectureOptions},
-		layerOptions: {ref: LayerOptions}
-	};
 
 	design_filename.subscribe((value) => {
-        const DESIGN_MODE = $page.url.pathname.startsWith('/designer');
+        const DESIGN_MODE = page.url.pathname.startsWith('/designer');
         if(value && DESIGN_MODE)
 			basename(value).then((name) => appWindow.setTitle(`QCAForge - ${name}`));
 		else
@@ -76,28 +61,10 @@ const appWindow = getCurrentWebviewWindow()
 
 </script>
 
-<Modal components={modalRegistry}/>
-<Toast/>
+<Toaster/>
 
 <div class="flex flex-col h-full">
-	<div class="flex h-full overflow-auto">
-		<AppRail width="w-12"> 
-			<AppRailAnchor href='/designer' selected={$page.url.pathname.startsWith('/designer')}>
-				{#snippet lead()}
-							
-						<Icon width={36} icon="material-symbols:design-services-outline" style="margin: auto;"/>
-					
-							{/snippet}
-			</AppRailAnchor>
-			<AppRailAnchor href='/analysis' selected={$page.url.pathname.startsWith('/analysis')}>
-				{#snippet lead()}
-							
-						<Icon width={36} icon="mdi:chart-bell-curve-cumulative" style="margin: auto;"/>
-					
-							{/snippet}
-			</AppRailAnchor>
-		</AppRail>
-	
-		{@render children?.()}
+	<div class="flex h-full overflow-auto">	
+		{@render children()}
 	</div>
 </div>

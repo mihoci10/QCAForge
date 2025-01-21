@@ -1,11 +1,10 @@
 <script lang="ts">
 	import Designer from "$lib/Designer.svelte";
     import { onMount } from "svelte";
-    import type { Cell } from "$lib/Cell";
     import { startSimulation } from "$lib/Simulation";
     import type { SimulationModel } from "$lib/SimulationModel";
     import { invoke } from "@tauri-apps/api/core";
-    import { getToastStore, type ToastSettings } from "@skeletonlabs/skeleton";
+    import { toast } from "svelte-sonner";
     import { listen } from "@tauri-apps/api/event";
     import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
     import { createDesign, serializeDesign, type QCADesign } from "$lib/qca-design";
@@ -15,15 +14,8 @@
     import { get } from "svelte/store";
     import { type Layer } from "$lib/Layer.js";
 
-    const toastStore = getToastStore();
-    interface Props {
-        data: any;
-    }
-
-    let { data }: Props = $props();
-
     let selected_model_id: string|undefined = $state();
-    let layers: Layer[] = $state();
+    let layers: Layer[] = $state([]);
 
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
 
@@ -106,21 +98,11 @@
 
         startSimulation(layers, simulation_models.get(selected_model_id!)!)
             .then((res) => {
-                const t: ToastSettings = {
-                    message: 'Simulation finished successfully.',
-                    timeout: 3000,
-	                background: 'variant-filled-success',
-                };
-                toastStore.trigger(t);
+                toast.success('Simulation finished successfully.');
             })
             .catch((err) => {
                 console.error(err);
-                const t: ToastSettings = {
-                    message: `Simulation failed: ${err}`,
-                    timeout: 10000,
-	                background: 'variant-filled-error',
-                };
-                toastStore.trigger(t);
+                toast.error('Simulation finished successfully.');
             })
     }
 </script>

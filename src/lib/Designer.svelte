@@ -1,8 +1,5 @@
 <script lang="ts">
-	import {TreeView, AppRail, AppRailTile} from '@skeletonlabs/skeleton'
-    import Icon from '@iconify/svelte';
-    import arrowSelectorTool from '@iconify/icons-material-symbols/arrow-selector-tool';
-    import addBoxOutline from '@iconify/icons-material-symbols/add-box-outline';
+    import * as Accordion from "$lib/components/ui/accordion";
     import { onDestroy, onMount } from 'svelte';
     import Stats from 'stats.js'
 
@@ -12,24 +9,21 @@
     import { CellIndex, CellType, parseCellIndex, type Cell } from './Cell';
     import { CellScene } from './CellScene';
     import { OrbitControls } from './utils/OrbitControls';
-    import { Pane, Splitpanes, } from 'svelte-splitpanes'
+    import * as Resizable from "$lib/components/ui/resizable";
 
     import type { Layer } from './Layer';
     import type { SimulationModel } from './SimulationModel';
     import SimSettingsPanel from './panels/sim-settings-panel.svelte';
-    import LayersPanel from './panels/layers-panel.svelte';
     import CellPropsPanel from './panels/cell-props-panel.svelte';
-    import { getDefaultCellArchitecture } from './CellArchitecture';
 
     import { Set } from 'typescript-collections'
     import { Menu } from "@tauri-apps/api/menu";
-    import { menu } from '@tauri-apps/api';
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
-    let container: HTMLElement = $state(); 
-    let canvas: HTMLCanvasElement = $state();
+    let container: HTMLElement|undefined = $state(); 
+    let canvas: HTMLCanvasElement|undefined = $state();
 
     let globalScene: THREE.Scene;
     let cellScene: CellScene;
@@ -48,7 +42,7 @@
     let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
     let cachedCellsPos: {[id: string]: [pos_x: number, pos_y: number]} = {};
 
-    let selectedCellsUpdatedDispatch : (() => void) = $state();
+    let selectedCellsUpdatedDispatch : (() => void) | undefined = $state();
 
     let sim_models: string[] = [];
 
@@ -56,8 +50,8 @@
     let selectedLayer: number = $state(0);
 
     interface Props {
-        selected_model_id: string | undefined;
-        layers: Layer[];
+        selected_model_id: string|undefined,
+        layers: Layer[]|undefined;
         simulation_models: Map<string, SimulationModel>;
     }
 
@@ -117,9 +111,9 @@
 
     function windowResize(){
         //renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize( container.clientWidth, container.clientHeight, false);
+        renderer.setSize( container!.clientWidth, container!.clientHeight, false);
         renderer.domElement.className += " flex";
-        camera.aspect = container.clientWidth / container.clientHeight; 
+        camera.aspect = container!.clientWidth / container!.clientHeight; 
         camera.updateProjectionMatrix();
     }
 
@@ -282,12 +276,12 @@
     }
     
     function selectedCellsUpdated(){
-        selectedCellsUpdatedDispatch();
+        //selectedCellsUpdatedDispatch();
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
-        const mousePos = new THREE.Vector3(( mouse_x / container.clientWidth ) * 2 - 1,
-        - ( mouse_y / container.clientHeight ) * 2 + 1,
+        const mousePos = new THREE.Vector3(( mouse_x / container!.clientWidth ) * 2 - 1,
+        - ( mouse_y / container!.clientHeight ) * 2 + 1,
         0);
 
         var tempVec = mousePos.unproject(camera);
@@ -414,34 +408,34 @@
         menu.popup();
     }
     
-    let inputMode = $derived(inputModeChanged(inputModeIdx));
+    let inputMode = () => {inputModeChanged(inputModeIdx)};
 </script>
 
 <svelte:window onresize={() => windowResize()}/>
-
-<Splitpanes class="h-full overflow-auto" on:resize={() => windowResize()}>
-    <Pane minSize={5} size={15}>
+<Resizable.PaneGroup direction="horizontal">
+    <Resizable.Pane defaultSize={30} minSize={10}>
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
-            <TreeView>
-                <SimSettingsPanel bind:selected_model_id={selected_model_id} bind:simulation_models={simulation_models}/>
-                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} on:addLayer={addLayer} on:removeLayer={removeLayer}/>
-                <CellPropsPanel bind:layers={layers} bind:selectedCells={selectedCells} bind:selectedCellsUpdated={selectedCellsUpdatedDispatch}/>
-            </TreeView>
+            <Accordion.Root type="multiple">
+                <SimSettingsPanel bind:selected_model_id={selected_model_id} simulation_models={simulation_models}/>
+                <!-- <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} on:addLayer={addLayer} on:removeLayer={removeLayer}/> -->
+                <CellPropsPanel layers={layers} selectedCells={selectedCells}/>
+            </Accordion.Root>
         </div>
-    </Pane>
-    <Pane class="flex" minSize={10}>
+    </Resizable.Pane>
+    <Resizable.Handle />
+    <Resizable.Pane minSize={10}>
         <div class="relative flex-1" bind:this={container}>
             <div class="absolute top-2 left-1 z-10">
-                <AppRail width="w-8">
+                <!-- <AppRail width="w-8">
                     <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
                         <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
                     </AppRailTile>
                     <AppRailTile bind:group={inputModeIdx} name="tile-2" value={1} title="tile-2">
                         <Icon width={24} icon={addBoxOutline} style="margin: auto;"/>
                     </AppRailTile>
-                </AppRail>
+                </AppRail> -->
             </div>
-            <canvas bind:this={canvas} class="absolute z-0"></canvas>
+            <canvas bind:this={canvas} class="grow z-0"></canvas>
         </div>
-    </Pane>
-</Splitpanes>
+    </Resizable.Pane>
+</Resizable.PaneGroup>

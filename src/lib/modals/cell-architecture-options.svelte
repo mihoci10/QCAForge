@@ -1,9 +1,5 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
 
-	import { getModalStore } from '@skeletonlabs/skeleton';
-
-	const modalStore = getModalStore();
 	interface Props {
 		parent: any;
 	}
@@ -29,7 +25,7 @@
     <div class="card p-4 w-modal shadow-xl space-y-4">
         <header class="text-2xl font-bold">{$modalStore[0].title}</header>
 		
-		<form class="modal-form" onsubmit={preventDefault(formSubmit)}>
+		<form class="modal-form" onsubmit={formSubmit}>
 		
 		<button class="input" type="submit">Ok</button>
 		</form>
