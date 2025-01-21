@@ -35,7 +35,7 @@
 		let data_obj = {};
 
 		for (var [key, value] of form_data.entries()) { 
-			data_obj[key] = parseFloat(value);
+			data_obj[key] = DEFAULT_CELL_ARCHS[parseInt(value)][1];
 		}
 
 		if ($modalStore[0].response) {
@@ -53,7 +53,7 @@
 				<span>Cell architecture</span>
 				
 				<div class="input-group input-group-divider grid-cols-[1fr_auto]">
-					<select id='cell_architecture'>
+					<select id='cell_architecture' name='cell_architecture'>
 						{#each DEFAULT_CELL_ARCHS as arcOption, i}
 						<option value={i}>{arcOption[0]}</option>
 						{/each}

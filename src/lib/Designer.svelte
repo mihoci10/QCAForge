@@ -363,7 +363,7 @@
         ghostGeometry.update([{
             position: [world_pos.x, world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
-            dot_probability_distribution: [0, 0, 0, 0]
+            dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
 
         }], new Set(), layers[selectedLayer].cell_architecture);
     }

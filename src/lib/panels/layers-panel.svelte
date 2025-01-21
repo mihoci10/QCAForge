@@ -3,7 +3,6 @@
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
     import { getModalStore, ListBox, ListBoxItem, type ModalSettings, TreeViewItem } from "@skeletonlabs/skeleton";
-
     
     export let layers: Layer[];
     export let selectedLayer: number;
@@ -23,7 +22,9 @@
             modalStore.trigger(modal);
             })
         .then((res: any) => {
-            console.log(res);
+            if(res){
+                layers[layerIdx].cell_architecture = res.cell_architecture;
+            }
         });
     }
 
