@@ -15,6 +15,7 @@
     import type { SimulationModel } from './SimulationModel';
     import SimSettingsPanel from './panels/sim-settings-panel.svelte';
     import CellPropsPanel from './panels/cell-props-panel.svelte';
+    import LayersPanel from "./panels/layers-panel.svelte";
 
     import { Set } from 'typescript-collections'
     import { Menu } from "@tauri-apps/api/menu";
@@ -46,12 +47,11 @@
 
     let sim_models: string[] = [];
 
-
     let selectedLayer: number = $state(0);
 
     interface Props {
         selected_model_id: string|undefined,
-        layers: Layer[]|undefined;
+        layers: Layer[];
         simulation_models: Map<string, SimulationModel>;
     }
 
@@ -61,16 +61,17 @@
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
         camera.position.z += 20;
 
-        renderer = new THREE.WebGLRenderer({canvas: canvas});
+        renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true,
+        });
         renderer.setClearAlpha(0);
         renderer.setClearColor(0);
         renderer.autoClear = false;
-        //renderer.setPixelRatio(window.devicePixelRatio);
 
         globalScene = new THREE.Scene();
         cellScene = new CellScene(renderer, camera);
-
-        windowResize();
 
         stats = new Stats();
         renderer.domElement.appendChild(stats.dom)
@@ -100,6 +101,9 @@
         //scene.getLayer(0).addCellGeometry(cellGeometry);
 
         renderer.setAnimationLoop(render);
+
+        windowResize(); 
+        $inspect(layers);
     });
 
     onDestroy(() => {
@@ -110,9 +114,8 @@
     });
 
     function windowResize(){
-        //renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize( container!.clientWidth, container!.clientHeight, false);
-        renderer.domElement.className += " flex";
         camera.aspect = container!.clientWidth / container!.clientHeight; 
         camera.updateProjectionMatrix();
     }
@@ -366,7 +369,7 @@
     }
 
     function inputModeChanged(newInputModeIdx: number){
-        let oldInputMode = inputMode;
+        let oldInputMode = 0;
         let newInputMode = newInputModeIdx;
 
         switch (oldInputMode){
@@ -408,7 +411,7 @@
         menu.popup();
     }
     
-    let inputMode = () => {inputModeChanged(inputModeIdx)};
+    let inputMode = $derived(inputModeChanged(inputModeIdx));
 </script>
 
 <svelte:window onresize={() => windowResize()}/>
@@ -416,15 +419,15 @@
     <Resizable.Pane defaultSize={30} minSize={10}>
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <Accordion.Root type="multiple">
-                <SimSettingsPanel bind:selected_model_id={selected_model_id} simulation_models={simulation_models}/>
-                <!-- <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} on:addLayer={addLayer} on:removeLayer={removeLayer}/> -->
+                <SimSettingsPanel selected_model_id={selected_model_id} simulation_models={simulation_models}/>
+                <LayersPanel layers={layers} selectedLayer={selectedLayer}/>
                 <CellPropsPanel layers={layers} selectedCells={selectedCells}/>
             </Accordion.Root>
         </div>
     </Resizable.Pane>
     <Resizable.Handle />
     <Resizable.Pane minSize={10}>
-        <div class="relative flex-1" bind:this={container}>
+        <div class="relative h-full" bind:this={container}>
             <div class="absolute top-2 left-1 z-10">
                 <!-- <AppRail width="w-8">
                     <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
@@ -435,7 +438,7 @@
                     </AppRailTile>
                 </AppRail> -->
             </div>
-            <canvas bind:this={canvas} class="grow z-0"></canvas>
+            <canvas bind:this={canvas} class="z-0 absolute"></canvas>
         </div>
     </Resizable.Pane>
 </Resizable.PaneGroup>

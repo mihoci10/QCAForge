@@ -13,6 +13,8 @@
     import { design, design_filename } from "$lib/globals";
     import { get } from "svelte/store";
     import { type Layer } from "$lib/Layer.js";
+    import { getDefaultCellArchitecture } from "$lib/CellArchitecture";
+    import { CellType, generateDotDistribution } from "$lib/Cell";
 
     let selected_model_id: string|undefined = $state();
     let layers: Layer[] = $state([]);

@@ -4,12 +4,15 @@
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
     import * as Accordion from "$lib/components/ui/accordion";
-    import * as Select from "$lib/components/ui/select";
-    
-    export let layers: Layer[];
-    export let selectedLayer: number;
+    import {ScrollArea} from "$lib/components/ui/scroll-area";
+    import * as ToggleGroup from "$lib/components/ui/toggle-group";
 
-    let {onAddLayer, onRemoveLayer, onChangeLayer} = $props();
+    interface Props {
+        layers: Layer[];
+        selectedLayer: number;
+    }
+
+    let { layers = $bindable(), selectedLayer = $bindable() }: Props = $props();
     
     function openLayerOptions(layerIdx: number){
 
@@ -114,10 +117,11 @@
             </button>
         </div>
         <div class="overflow-y-auto h-32 resize-y m-2 bg-surface-700">
-            <ListBox padding="p-0">
-                {#each layers as layer, i}
-                    <ListBoxItem bind:group={selectedLayer} name={layer.name} value={i}>
-                        <svelte:fragment slot="lead">
+            <ScrollArea>
+                <ToggleGroup.Root type="single" orientation="vertical" class="flex-col" bind:value={selectedLayer}>
+                    {#each layers as layer, i}
+                    <ToggleGroup.Item value={i.toString()}>
+                        <!-- <svelte:fragment slot="lead">
                             <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
                                 <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
                             </button>
@@ -127,10 +131,12 @@
                             <button type="button" class="btn-icon" on:click={(e) => openLayerOptions(i)}> 
                                 <Icon icon="material-symbols:settings"/>
                             </button>
-                        </svelte:fragment>
-                    </ListBoxItem>
+                        </svelte:fragment> -->
+                        {layer.name}
+                    </ToggleGroup.Item>
                 {/each}
-            </ListBox>
+                </ToggleGroup.Root>
+            </ScrollArea>
         </div>
     </Accordion.Content>
 </Accordion.Item>
