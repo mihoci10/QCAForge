@@ -98,7 +98,7 @@
         <Icon icon="material-symbols:layers"/>
     </Accordion.Trigger>
     <Accordion.Content>
-        <div>
+        <!-- <div>
             <button type="button" class="btn-icon variant-filled btn-icon-sm"
                 on:click={addLayer}>
                 <Icon icon="mdi:plus"/>
@@ -121,7 +121,7 @@
                 <ToggleGroup.Root type="single" orientation="vertical" class="flex-col" bind:value={selectedLayer}>
                     {#each layers as layer, i}
                     <ToggleGroup.Item value={i.toString()}>
-                        <!-- <svelte:fragment slot="lead">
+                        <svelte:fragment slot="lead">
                             <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
                                 <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
                             </button>
@@ -131,12 +131,31 @@
                             <button type="button" class="btn-icon" on:click={(e) => openLayerOptions(i)}> 
                                 <Icon icon="material-symbols:settings"/>
                             </button>
-                        </svelte:fragment> -->
+                        </svelte:fragment>
                         {layer.name}
                     </ToggleGroup.Item>
                 {/each}
                 </ToggleGroup.Root>
             </ScrollArea>
-        </div>
+        </div> -->
+
+        <ScrollArea class="h-20 rounded-md border">
+            {#each layers as layer, index}
+            <div
+                class="flex items-center justify-between px-2 py-1 border-b w-full data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+                onclick={() => selectedLayer = index}
+                data-state={selectedLayer === index ? "on" : "off"}
+            >
+                <button type="button" class="btn-icon" onclick={(e) => layer.visible = !layer.visible}>
+                    <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
+                </button>
+                <span class="select-none cursor-default">{layer.name}</span>
+                <button type="button" class="btn-icon" onclick={(e) => openLayerOptions(i)}> 
+                    <Icon icon="material-symbols:settings"/>
+                </button>
+                
+            </div>
+            {/each}
+        </ScrollArea>
     </Accordion.Content>
-</Accordion.Item>
+</Accordion.Item> 

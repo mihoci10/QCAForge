@@ -21,15 +21,15 @@
 	const appWindow = getCurrentWebviewWindow()
 
 	onMount(() => {
-		createDesign([{
+		createDesign(new Array(5).fill({
 			name: "Main Layer", 
 			visible: true, 
 			cell_architecture: getDefaultCellArchitecture(), 
 			cells: [
 				{position: [0, 0], typ: 0, clock_phase_shift: 0, dot_probability_distribution: generateDotDistribution([0.5]), rotation: 0},
 			], 
-			z_position: 0}
-		], undefined, new Map()).then((des) => {
+			z_position: 0})
+			, undefined, new Map()).then((des) => {
 			design.set(des);
 		});
 	});
