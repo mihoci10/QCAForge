@@ -1,36 +1,20 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
     import { invoke } from '@tauri-apps/api/core';
-	// Stores
-	
+    import type { SimulationModel } from '$lib/SimulationModel';
+    import BaseModal from './base-modal.svelte';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
+
 	interface Props {
-		parent: any;
-	}
+		isOpen: boolean;
+		response: (data: any) => void;
+        model: SimulationModel;
+    }
 
-	let { parent }: Props = $props();
-
-	// Base Classes
-	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
-	const cHeader = 'text-2xl font-bold';
-	const cForm = 'border border-surface-500 p-4 space-y-4 rounded-container-token';
-
-	function formSubmit(e: SubmitEvent){
-		const form_data = new FormData(e.target as HTMLFormElement);
-		let data_obj = {};
-
-		for (var [key, value] of form_data.entries()) { 
-			data_obj[key] = parseFloat(value);
-		}
-
-		if ($modalStore[0].response) {
-			$modalStore[0].response(data_obj);
-			modalStore.close();
-		}
-	}
+    let { isOpen = $bindable(), model = $bindable() }: Props = $props();
 </script>
 
-{#if $modalStore[0]}
+<!-- {#if $modalStore[0]}
 	<div class="modal-example-form {cBase}">
 		<header class={cHeader}>{$modalStore[0].title ?? '(title missing)'}</header>
 		
@@ -64,4 +48,41 @@
 		<button class="input" type="submit">Ok</button>
 		</form>
 	</div>
-{/if}
+{/if} -->
+
+<BaseModal bind:open={isOpen}>
+	{#snippet title()}
+		{model.name} settings
+	{/snippet}
+	{#snippet description()}
+		Configure parameters for the selected model.
+	{/snippet}
+	<form class="flex flex-col gap-2">
+		{#each model.option_list as option}
+			{#if option.type === 'Header'}
+				<p class="text-lg font-bold">{option.label}</p>
+			{:else if option.type === 'Break'}
+				<hr>
+			{:else if option.type === 'Input'}
+				{#if option.descriptor.type === 'NumberInput'}
+				<div class="flex flex-col gap-1.5">
+					<Label for={option.unique_id}>{option.name}</Label>
+					<div class="flex items-center gap-2">
+						<Input 
+							type="number" 
+							value={model.settings[option.unique_id]} 
+							name={option.unique_id}
+							min={option.descriptor.min}
+							max={option.descriptor.max}
+							step={option.descriptor.whole_num ? "1" : "any"}
+						/>
+						{#if option.descriptor.unit}
+							<span>{option.descriptor.unit}</span>
+						{/if}
+					</div>
+				</div>
+				{/if}
+			{/if}
+		{/each}
+	</form>
+</BaseModal>

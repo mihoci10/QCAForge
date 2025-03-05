@@ -3,6 +3,7 @@
     import Icon from "@iconify/svelte";
     import * as Accordion from "$lib/components/ui/accordion";
     import * as Select from "$lib/components/ui/select";
+    import SimModelOptions from "$lib/modals/sim-model-options.svelte";
 
     function openModelOptions(){
         if (!selected_model_id)
@@ -12,6 +13,8 @@
             console.error('invalid simulation model!');
 
         let model = simulation_models.get(selected_model_id!)!;
+        openModal = true;
+        return;
 
         return new Promise((resolve) => {
             const modal: ModalSettings = {
@@ -37,6 +40,12 @@
     let { selected_model_id = $bindable(), simulation_models }: Props = $props();
     const selected_model_display = $derived(
         selected_model_id ? (simulation_models.get(selected_model_id)?.name) : 'Select model'
+    );
+
+    let openModal: boolean = $state(false);
+    
+    let selectedModel: SimulationModel | undefined = $derived(
+        selected_model_id ? simulation_models.get(selected_model_id) : undefined
     );
 </script>
 
@@ -64,6 +73,7 @@
                     <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} onclick={openModelOptions}>
                         <Icon icon="material-symbols:settings" />
                     </button>
+                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!} response={(data) => {console.log(data)}}/>
                 </div>
             </label>
         </form>
