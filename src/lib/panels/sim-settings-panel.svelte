@@ -4,6 +4,8 @@
     import * as Accordion from "$lib/components/ui/accordion";
     import * as Select from "$lib/components/ui/select";
     import SimModelOptions from "$lib/modals/sim-model-options.svelte";
+    import Button from "$lib/components/ui/button/button.svelte";
+    import { Label } from "$lib/components/ui/label";
 
     function openModelOptions(){
         if (!selected_model_id)
@@ -55,10 +57,10 @@
         <Icon icon="material-symbols:science"/>
     </Accordion.Trigger>
     <Accordion.Content>
-        <form>
-            <label class="label">
-                <span>Model</span>
-                <div class="flex">
+        <div class="flex flex-col gap-2 px-1">
+            <div class="flex flex-col gap-1.5">
+                <Label>Model</Label>
+                <div class="flex gap-2">
                     <Select.Root type="single" bind:value={selected_model_id}>
                         <Select.Trigger>
                             {selected_model_display}
@@ -69,13 +71,13 @@
                             {/each}
                         </Select.Content>
                     </Select.Root>
-                    
-                    <button type="button" class="btn-icon variant-filled ml-2" disabled={!selected_model_id} onclick={openModelOptions}>
+            
+                    <Button variant='outline' size='icon' disabled={!selected_model_id} onclick={openModelOptions}>
                         <Icon icon="material-symbols:settings" />
-                    </button>
-                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!} response={(data) => {console.log(data)}}/>
+                    </Button>
+                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!} applyCallback={(data) => {console.log(data)}}/>
                 </div>
-            </label>
-        </form>
+            </div>
+        </div>
     </Accordion.Content>
 </Accordion.Item>

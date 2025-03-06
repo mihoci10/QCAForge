@@ -7,57 +7,25 @@
 
 	interface Props {
 		isOpen: boolean;
-		response: (data: any) => void;
         model: SimulationModel;
+		applyCallback?: (data: any) => void;
     }
 
-    let { isOpen = $bindable(), model = $bindable() }: Props = $props();
+    let { 
+		isOpen = $bindable(),
+		model,
+		applyCallback,
+	}: Props = $props();
 </script>
 
-<!-- {#if $modalStore[0]}
-	<div class="modal-example-form {cBase}">
-		<header class={cHeader}>{$modalStore[0].title ?? '(title missing)'}</header>
-		
-		<form class="modal-form {cForm}" onsubmit={formSubmit}>
-		{#each $modalStore[0].meta.model.option_list as option}
-			{#if option.type === 'Header'}
-				<p class="text-lg font-bold">{option.label}</p>
-			{:else if option.type === 'Break'}
-				<hr>
-			{:else if option.type === 'Input'}
-				{#if option.descriptor.type === 'NumberInput'}
-				<label class="label">
-					<span>{option.name}</span>
-					
-					<div class="input-group input-group-divider grid-cols-[1fr_auto]">
-						<input class="input" type="number"
-							value={$modalStore[0].meta.model.settings[option.unique_id]} 
-							name={option.unique_id}
-							min={option.descriptor.min}
-							max={option.descriptor.max}
-							step={option.descriptor.whole_num ? "1" : "any"}
-						/>
-						{#if option.descriptor.unit}
-							<div class="input-group-shim">{option.descriptor.unit}</div>
-						{/if}
-					</div>
-				</label>
-				{/if}
-			{/if}
-		{/each}
-		<button class="input" type="submit">Ok</button>
-		</form>
-	</div>
-{/if} -->
-
-<BaseModal bind:open={isOpen}>
+<BaseModal bind:open={isOpen} type='confirm' {applyCallback}>
 	{#snippet title()}
 		{model.name} settings
 	{/snippet}
 	{#snippet description()}
 		Configure parameters for the selected model.
 	{/snippet}
-	<form class="flex flex-col gap-2">
+	<div class="flex flex-col gap-2">
 		{#each model.option_list as option}
 			{#if option.type === 'Header'}
 				<p class="text-lg font-bold">{option.label}</p>
@@ -84,5 +52,5 @@
 				{/if}
 			{/if}
 		{/each}
-	</form>
+	</div>
 </BaseModal>
