@@ -38,6 +38,7 @@
     let statsDrawCall: Stats.Panel;
 
     let inputModeIdx: number = $state(0);
+
     let mouseStartPos: THREE.Vector2|undefined;
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
@@ -90,16 +91,7 @@
 
         ghostGeometry = new CellGeometry(true);
 
-        // let cnt = 0;
-        // for (let i = 0; i < 3; i++) {
-        //     for (let j = 0; j < 3; j++) {
-        //         cells.push({typ: CellType.Fixed, clock_phase_shift: 0, z_index:0, polarization: Math.random() * 2 - 1, pos_x: i * 20, pos_y: j * 20})
-        //         cnt++;
-        //     }
-        // }
-
         cellScene.addLayer(0);
-        //scene.getLayer(0).addCellGeometry(cellGeometry);
 
         renderer.setAnimationLoop(render);
 
@@ -159,47 +151,50 @@
         return !selectedCells.isEmpty();
     }
 
-    function mouseDown(e: MouseEvent){
+    function getMouseEventPos(e: MouseEvent): THREE.Vector2{
         var bounds = renderer.domElement.getBoundingClientRect();
-        const relX = e.x - bounds.left;
-        const relY = e.y - bounds.top;
+        return new THREE.Vector2(
+            (e.x - bounds.left), 
+            (e.y - bounds.top)
+        );
+    }
 
-        mouseStartPos = new THREE.Vector2(relX, relY);
+    function mouseDown(e: MouseEvent){
+        const mousePos = getMouseEventPos(e);
+        mouseStartPos = mousePos;
 
         if (inputMode == 0){
             if (e.button == 0)
             {
                 if(!multiselect){
-                    mouseDragging = shouldMouseDrag(relX, relY);
+                    mouseDragging = shouldMouseDrag(mousePos.x, mousePos.y);
                     if (mouseDragging)
                         startMouseDrag()
                 }
 
                 if(!mouseDragging)
-                    startSelectRegion(relX, relY);
+                    startSelectRegion(mousePos.x, mousePos.y);
             }
         }else if (inputMode == 1){
             if (e.button == 0)
-                startCellPlace(relX, relY);
+                startCellPlace(mousePos.x, mousePos.y);
         }
     }
 
     function mouseUp(e: MouseEvent){
-        var bounds = renderer.domElement.getBoundingClientRect();
-        const relX = e.x - bounds.left;
-        const relY = e.y - bounds.top;
+        const mousePos = getMouseEventPos(e);
         
         if (inputMode == 0){
             if (e.button == 0 && !mouseDragging)
-                applySelectRegion(relX, relY);
+                applySelectRegion(mousePos.x, mousePos.y);
             else if (e.button == 2 && 
-                mouseStartPos && relX == mouseStartPos!.x && relY == mouseStartPos!.y){
-                shouldMouseDrag(relX, relY);
+                mouseStartPos && mousePos.x == mouseStartPos!.x && mousePos.y == mouseStartPos!.y){
+                shouldMouseDrag(mousePos.x, mousePos.y);
                 showContextMenu();
             }
         }else if (inputMode == 1){
             if (e.button == 0)
-                endCellPlace(relX, relY);
+                endCellPlace(mousePos.x, mousePos.y);
         }
         
         mouseStartPos = undefined;
@@ -207,20 +202,18 @@
     }
 
     function mouseMove(e: MouseEvent){
-        var bounds = renderer.domElement.getBoundingClientRect();
-        const relX = e.x - bounds.left;
-        const relY = e.y - bounds.top;
+        const mousePos = getMouseEventPos(e);
 
         if (inputMode == 0){
             if (mouseStartPos != undefined && mouseDragging){
-                repositionCells(relX, relY);
+                repositionCells(mousePos.x, mousePos.y);
             }
         }
         else if (inputMode == 1){
             if (mouseStartPos != undefined)
                 repositionGhostMesh(mouseStartPos!.x, mouseStartPos!.y);
             else
-                repositionGhostMesh(relX, relY);
+                repositionGhostMesh(mousePos.x, mousePos.y);
         }
     }
 
@@ -283,9 +276,12 @@
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
-        const mousePos = new THREE.Vector3(( mouse_x / container!.clientWidth ) * 2 - 1,
-        - ( mouse_y / container!.clientHeight ) * 2 + 1,
-        0);
+        const pixelRatio = renderer.getPixelRatio();
+        const mousePos = new THREE.Vector3(
+            ( (mouse_x) / renderer.domElement.width ) * 2 - 1,
+            - ( (mouse_y) / renderer.domElement.height ) * 2 + 1,
+            0
+        );
 
         var tempVec = mousePos.unproject(camera);
 
@@ -299,7 +295,7 @@
 
         var intersectionPoint = new THREE.Vector3();
         vector.intersectPlane(plane, intersectionPoint);
-        return intersectionPoint
+        return intersectionPoint;
     }
 
     function startCellPlace(mouse_x: number, mouse_y: number){
@@ -357,7 +353,7 @@
     }
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
-        let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
+        let world_pos = screenSpaceToWorld(mouse_x, mouse_y);
         world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
         world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
         ghostGeometry.update([{
@@ -369,7 +365,6 @@
     }
 
     function inputModeChanged(newInputModeIdx: number){
-        let oldInputMode = 0;
         let newInputMode = newInputModeIdx;
 
         switch (oldInputMode){
@@ -392,6 +387,7 @@
             }
         }
 
+        oldInputMode = newInputMode;
         return newInputMode;
     }
 
@@ -412,6 +408,8 @@
     }
     
     let inputMode = $derived(inputModeChanged(inputModeIdx));
+    // svelte-ignore state_referenced_locally
+    let oldInputMode = inputModeIdx;
 </script>
 
 <svelte:window onresize={() => windowResize()}/>
