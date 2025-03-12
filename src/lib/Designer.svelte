@@ -88,6 +88,7 @@
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = false;
+        controls.zoomSpeed = 0.1;
 
         ghostGeometry = new CellGeometry(true);
 
@@ -106,8 +107,7 @@
     });
 
     function windowResize(){
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize( container!.clientWidth, container!.clientHeight, false);
+        renderer.setSize( container!.clientWidth * devicePixelRatio, container!.clientHeight * devicePixelRatio, false);
         camera.aspect = container!.clientWidth / container!.clientHeight; 
         camera.updateProjectionMatrix();
     }
@@ -156,7 +156,7 @@
         return new THREE.Vector2(
             (e.x - bounds.left), 
             (e.y - bounds.top)
-        );
+        ).multiplyScalar(devicePixelRatio);
     }
 
     function mouseDown(e: MouseEvent){
@@ -279,7 +279,6 @@
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
-        const pixelRatio = renderer.getPixelRatio();
         const mousePos = new THREE.Vector3(
             ( (mouse_x) / renderer.domElement.width ) * 2 - 1,
             - ( (mouse_y) / renderer.domElement.height ) * 2 + 1,
@@ -435,7 +434,7 @@
     </Resizable.Pane>
     <Resizable.Handle />
     <Resizable.Pane minSize={10}>
-        <div class="relative h-full w-full" bind:this={container}>
+        <div class="relative h-full w-full flex items-stretch" bind:this={container}>
             <div class="absolute top-2 left-1 z-10 bg-background p-1 rounded-md">
                 <div class='flex flex-col gap-1'>
                     <Button variant='ghost' size='icon' class='data-[state=on]:bg-accent'
@@ -450,7 +449,7 @@
                     </Button>
                 </div>
             </div>
-            <canvas bind:this={canvas} class="z-0 absolute"></canvas>
+            <canvas bind:this={canvas} class=""></canvas>
         </div>
     </Resizable.Pane>
 </Resizable.PaneGroup>

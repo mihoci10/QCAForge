@@ -172,14 +172,21 @@
             </div> 
             <div class="flex flex-col gap-1.5">
                 <Label>Position</Label>
-                <div class='flex'>
-                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                        <div class="input-group-shim bg-red-500">X</div>
-                        <input type="number"/>
+                <div class='flex gap-2'>
+                    <div class="flex">
+                        <div class='bg-red-500 flex items-center px-2'>X</div>
+                        <Input 
+                            type="number" 
+                            step="1"
+
+                        />
                     </div>
-                    <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                        <div class="input-group-shim bg-green-500">Y</div>
-                        <input type="number"/>
+                    <div class="flex">
+                        <div class='bg-green-500 flex items-center px-2'>Y</div>
+                        <Input 
+                            type="number" 
+                            step="1"
+                        />
                     </div>
                 </div>
             </div>
