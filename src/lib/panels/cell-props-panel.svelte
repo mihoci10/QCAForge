@@ -17,7 +17,7 @@
         selectedCells: Set<CellIndex>;
     }
 
-    let { layers, selectedCells }: Props = $props();
+    let { layers = $bindable(), selectedCells }: Props = $props();
 
     function selectedClockModeChanged(newClockMode: string){
         selectedClockMode = newClockMode;
@@ -25,8 +25,10 @@
         if (isNaN(+selectedClockMode))
             return;
 
+        const clock_phase_shift = parseInt(selectedClockMode);
+
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].clock_phase_shift = parseInt(selectedClockMode);
+            layers[id.getLayer()].cells[id.getCell()].clock_phase_shift = clock_phase_shift;
         });
     }
 
@@ -36,8 +38,10 @@
         if (isNaN(+selectedCellType))
             return;
 
+        const cellType = parseInt(selectedCellType);
+
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].typ = parseInt(selectedCellType);
+            layers[id.getLayer()].cells[id.getCell()].typ = cellType as CellType;
         });
     }
 
@@ -51,7 +55,6 @@
     }
 
     export function selectedCellsUpdated(){
-        console.log(selectedCells);
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
         let polarizations : Set<number>[] = [];
@@ -125,7 +128,7 @@
         <div class="flex flex-col gap-2 px-1">
             <div class="flex flex-col gap-1.5">
                 <Label>Clock mode</Label>
-                <Select.Root bind:value={selectedClockMode} type="single">
+                <Select.Root bind:value={selectedClockMode} onValueChange={selectedClockModeChanged} type="single">
                     <Select.Trigger>
                         {selected_clock_display}
                     </Select.Trigger>
@@ -139,7 +142,7 @@
             </div>
             <div class="flex flex-col gap-1.5">
                 <Label>Cell type</Label>
-                <Select.Root bind:value={selectedCellType} type="single">
+                <Select.Root bind:value={selectedCellType} onValueChange={selectedCellTypeChanged} type="single">
                     <Select.Trigger>
                         {selected_type_display}
                     </Select.Trigger>
@@ -159,9 +162,10 @@
                         <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
                             <div class="input-group-shim bg-tertiary">{'ABCDE'.at(i)}</div>
                             <input class='input' type="number" min="-1" max="1" step="0.1" value={polarization}/>
+                            <Input type='number' min="-1" max="1" step="0.1" bind:value={polarizationInput[i]} onchange={polarizationInputChanged}/>
                         </div>
                     {:else}
-                        <input class='input' type="number" min="-1" max="1" step="0.1" value={polarization}/>
+                        <Input type='number' min="-1" max="1" step="0.1" bind:value={polarizationInput[i]} onchange={polarizationInputChanged}/>
                     {/if}
                 {/each}
                 {/if}

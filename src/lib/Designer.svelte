@@ -417,9 +417,9 @@
     <Resizable.Pane defaultSize={30} minSize={10}>
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <Accordion.Root type="multiple">
-                <SimSettingsPanel selected_model_id={selected_model_id} simulation_models={simulation_models}/>
-                <LayersPanel layers={layers} selectedLayer={selectedLayer}/>
-                <CellPropsPanel layers={layers} selectedCells={selectedCells} bind:this={cellPropsPanel}/>
+                <SimSettingsPanel {selected_model_id} {simulation_models}/>
+                <LayersPanel {layers} {selectedLayer}/>
+                <CellPropsPanel bind:layers={layers} {selectedCells} bind:this={cellPropsPanel}/>
             </Accordion.Root>
         </div>
     </Resizable.Pane>
