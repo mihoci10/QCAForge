@@ -94,6 +94,8 @@
         cellScene.addLayer(0);
 
         renderer.setAnimationLoop(render);
+        
+        drawCurrentLayer();
     });
 
     onDestroy(() => {
@@ -264,13 +266,16 @@
             else
                 selectedCells.add(id)
         });
-
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
+        drawCurrentLayer();
         selectedCellsUpdated();
     }
     
     function selectedCellsUpdated(){
         cellPropsPanel.selectedCellsUpdated();
+    }
+
+    function drawCurrentLayer(){
+        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -310,7 +315,7 @@
             rotation: 0,
             dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
         })
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
+        drawCurrentLayer();
     }
 
     function deleteCells(cell_ids: Set<CellIndex>){
@@ -321,7 +326,7 @@
         }
 
         selectedCells.clear()
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
+        drawCurrentLayer();
         selectedCellsUpdated();
     }
 
@@ -347,7 +352,7 @@
             layers[id.getLayer()].cells[id.getCell()].position[1] = pos[1] + diff_y;
         }
 
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
+        drawCurrentLayer();
     }
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
