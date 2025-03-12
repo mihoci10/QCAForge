@@ -94,8 +94,6 @@
         cellScene.addLayer(0);
 
         renderer.setAnimationLoop(render);
-
-        windowResize(); 
     });
 
     onDestroy(() => {
@@ -410,9 +408,16 @@
     let inputMode = $derived(inputModeChanged(inputModeIdx));
     // svelte-ignore state_referenced_locally
     let oldInputMode = inputModeIdx;
+
+        
+    $effect(() => {
+        const resizeObserver = new ResizeObserver(() => {
+            windowResize();
+        });
+        resizeObserver.observe(container!);
+    });
 </script>
 
-<svelte:window onresize={() => windowResize()}/>
 <Resizable.PaneGroup direction="horizontal">
     <Resizable.Pane defaultSize={30} minSize={10}>
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
@@ -425,7 +430,7 @@
     </Resizable.Pane>
     <Resizable.Handle />
     <Resizable.Pane minSize={10}>
-        <div class="relative h-full" bind:this={container}>
+        <div class="relative h-full w-full" bind:this={container}>
             <div class="absolute top-2 left-1 z-10 bg-background p-1 rounded-md">
                 <div class='flex flex-col gap-1'>
                     <Button variant='ghost' size='icon' class='data-[state=on]:bg-accent'
