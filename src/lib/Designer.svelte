@@ -19,6 +19,8 @@
 
     import { Set } from 'typescript-collections'
     import { Menu } from "@tauri-apps/api/menu";
+    import Button from "./components/ui/button/button.svelte";
+    import Icon from "@iconify/svelte";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -426,15 +428,19 @@
     <Resizable.Handle />
     <Resizable.Pane minSize={10}>
         <div class="relative h-full" bind:this={container}>
-            <div class="absolute top-2 left-1 z-10">
-                <!-- <AppRail width="w-8">
-                    <AppRailTile bind:group={inputModeIdx} name="tile-1" value={0} title="tile-1">
-                        <Icon width={24} icon={arrowSelectorTool} style="margin: auto;"/>
-                    </AppRailTile>
-                    <AppRailTile bind:group={inputModeIdx} name="tile-2" value={1} title="tile-2">
-                        <Icon width={24} icon={addBoxOutline} style="margin: auto;"/>
-                    </AppRailTile>
-                </AppRail> -->
+            <div class="absolute top-2 left-1 z-10 bg-background p-1 rounded-md">
+                <div class='flex flex-col gap-1'>
+                    <Button variant='ghost' size='icon' class='data-[state=on]:bg-accent'
+                    data-state={inputModeIdx === 0 ? "on" : "off"}
+                    onclick={() => inputModeIdx = 0}>
+                        <Icon width={24} icon='material-symbols:arrow-selector-tool' style="margin: auto;"/>
+                    </Button>
+                    <Button variant='ghost' size='icon' class='data-[state=on]:bg-accent'
+                    data-state={inputModeIdx === 1 ? "on" : "off"}
+                    onclick={() => inputModeIdx = 1}>
+                        <Icon width={24} icon='material-symbols:add-box-outline-rounded' style="margin: auto;"/>
+                    </Button>
+                </div>
             </div>
             <canvas bind:this={canvas} class="z-0 absolute"></canvas>
         </div>
