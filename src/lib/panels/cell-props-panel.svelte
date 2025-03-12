@@ -13,11 +13,11 @@
     let polarizationInput: number[] = $state([]);
 
     interface Props {
-        layers: Layer[]|undefined;
+        layers: Layer[];
         selectedCells: Set<CellIndex>;
     }
 
-    let { layers, selectedCells, }: Props = $props();
+    let { layers, selectedCells }: Props = $props();
 
     function selectedClockModeChanged(newClockMode: string){
         selectedClockMode = newClockMode;
@@ -50,7 +50,8 @@
         });
     }
 
-    function selectedCellsUpdated(){
+    export function selectedCellsUpdated(){
+        console.log(selectedCells);
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
         let polarizations : Set<number>[] = [];

@@ -43,11 +43,10 @@
     let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
     let cachedCellsPos: {[id: string]: [pos_x: number, pos_y: number]} = {};
 
-    let selectedCellsUpdatedDispatch : (() => void) | undefined = $state();
-
     let sim_models: string[] = [];
 
     let selectedLayer: number = $state(0);
+    let cellPropsPanel: CellPropsPanel;
 
     interface Props {
         selected_model_id: string|undefined,
@@ -103,7 +102,6 @@
         renderer.setAnimationLoop(render);
 
         windowResize(); 
-        $inspect(layers);
     });
 
     onDestroy(() => {
@@ -279,7 +277,7 @@
     }
     
     function selectedCellsUpdated(){
-        //selectedCellsUpdatedDispatch();
+        cellPropsPanel.selectedCellsUpdated();
     }
 
     function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
@@ -421,7 +419,7 @@
             <Accordion.Root type="multiple">
                 <SimSettingsPanel selected_model_id={selected_model_id} simulation_models={simulation_models}/>
                 <LayersPanel layers={layers} selectedLayer={selectedLayer}/>
-                <CellPropsPanel layers={layers} selectedCells={selectedCells}/>
+                <CellPropsPanel layers={layers} selectedCells={selectedCells} bind:this={cellPropsPanel}/>
             </Accordion.Root>
         </div>
     </Resizable.Pane>
