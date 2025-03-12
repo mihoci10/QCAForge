@@ -6,6 +6,7 @@
     import * as Accordion from "$lib/components/ui/accordion";
     import {ScrollArea} from "$lib/components/ui/scroll-area";
     import * as ToggleGroup from "$lib/components/ui/toggle-group";
+    import { Button } from "$lib/components/ui/button";
 
     interface Props {
         layers: Layer[];
@@ -94,65 +95,45 @@
 
 <Accordion.Item value="layers">
     <Accordion.Trigger>
-        Layers
-        <Icon icon="material-symbols:layers"/>
+        <div class="flex items-center gap-1.5">
+            Layers
+            <Icon icon="material-symbols:layers"/>
+        </div>
     </Accordion.Trigger>
     <Accordion.Content>
-        <!-- <div>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm"
-                on:click={addLayer}>
+        <div>
+            <Button variant='outline' size='icon'
+                onclick={addLayer}>
                 <Icon icon="mdi:plus"/>
-            </button>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm"
-                on:click={removeLayer}>
+            </Button>
+            <Button variant='outline' size='icon'
+                onclick={removeLayer}>
                 <Icon icon="mdi:minus"/>
-            </button>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm"
-                on:click={moveLayerUp}>
+            </Button>
+            <Button variant='outline' size='icon'
+                onclick={moveLayerUp}>
                 <Icon icon="mdi:arrow-up"/>
-            </button>
-            <button type="button" class="btn-icon variant-filled btn-icon-sm"
-                on:click={moveLayerDown}>
+            </Button>
+            <Button variant='outline' size='icon'
+                onclick={moveLayerDown}>
                 <Icon icon="mdi:arrow-down"/>
-            </button>
+            </Button>
         </div>
-        <div class="overflow-y-auto h-32 resize-y m-2 bg-surface-700">
-            <ScrollArea>
-                <ToggleGroup.Root type="single" orientation="vertical" class="flex-col" bind:value={selectedLayer}>
-                    {#each layers as layer, i}
-                    <ToggleGroup.Item value={i.toString()}>
-                        <svelte:fragment slot="lead">
-                            <button type="button" class="btn-icon" on:click={(e) => layer.visible = !layer.visible}>
-                                <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
-                            </button>
-                        </svelte:fragment>
-                        {layer.name}
-                        <svelte:fragment slot="trail">
-                            <button type="button" class="btn-icon" on:click={(e) => openLayerOptions(i)}> 
-                                <Icon icon="material-symbols:settings"/>
-                            </button>
-                        </svelte:fragment>
-                        {layer.name}
-                    </ToggleGroup.Item>
-                {/each}
-                </ToggleGroup.Root>
-            </ScrollArea>
-        </div> -->
 
-        <ScrollArea class="h-20 rounded-md border">
+        <ScrollArea class="overflow-y-auto h-32 resize-y rounded-md border">
             {#each layers as layer, index}
             <div
                 class="flex items-center justify-between px-2 py-1 border-b w-full data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 onclick={() => selectedLayer = index}
                 data-state={selectedLayer === index ? "on" : "off"}
             >
-                <button type="button" class="btn-icon" onclick={(e) => layer.visible = !layer.visible}>
+                <Button variant='ghost' size='icon'onclick={(e) => layer.visible = !layer.visible}>
                     <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
-                </button>
+                </Button>
                 <span class="select-none cursor-default">{layer.name}</span>
-                <button type="button" class="btn-icon" onclick={(e) => openLayerOptions(i)}> 
+                <Button variant='ghost' size='icon' onclick={(e) => openLayerOptions(i)}> 
                     <Icon icon="material-symbols:settings"/>
-                </button>
+                </Button>
                 
             </div>
             {/each}

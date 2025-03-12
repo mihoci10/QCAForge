@@ -16,22 +16,6 @@
 
         let model = simulation_models.get(selected_model_id!)!;
         openModal = true;
-        return;
-
-        return new Promise((resolve) => {
-            const modal: ModalSettings = {
-                type: 'component',
-                component: 'simModelOptions',
-                title: `${model.name} settings`,
-                meta: {model: model},
-                response: (r:any) => resolve(r),
-            };
-            modalStore.trigger(modal);
-            })
-        .then((res: any) => {
-            if (res)
-                model.settings = res;
-        });
     }
 
     interface Props {
@@ -53,8 +37,10 @@
 
 <Accordion.Item value="simulation-settings">
     <Accordion.Trigger>
-        Simulation settings
-        <Icon icon="material-symbols:science"/>
+        <div class="flex items-center gap-1.5">
+            <span>Simulation settings</span>
+            <Icon icon="material-symbols:science" />
+        </div>
     </Accordion.Trigger>
     <Accordion.Content>
         <div class="flex flex-col gap-2 px-1">

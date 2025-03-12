@@ -6,6 +6,7 @@
     import { Input } from "$lib/components/ui/input";
     import { Set } from 'typescript-collections'
     import * as Select from "$lib/components/ui/select";
+    import Label from "$lib/components/ui/label/label.svelte";
 
     let selectedClockMode: string|undefined = $state();
     let selectedCellType: string|undefined = $state();
@@ -114,13 +115,15 @@
 
 <Accordion.Item value="cell-props">
     <Accordion.Trigger>
-        Cell properties
-        <Icon icon="material-symbols:build-rounded"/>
+        <div class="flex items-center gap-1.5">
+            Cell properties
+            <Icon icon="material-symbols:build-rounded"/>
+        </div>
     </Accordion.Trigger>
     <Accordion.Content>
-        <form class="flex-1">
-            <label class="label">
-                <span>Clock mode</span>
+        <div class="flex flex-col gap-2 px-1">
+            <div class="flex flex-col gap-1.5">
+                <Label>Clock mode</Label>
                 <Select.Root bind:value={selectedClockMode} type="single">
                     <Select.Trigger>
                         {selected_clock_display}
@@ -132,9 +135,9 @@
                         <Select.Item value="3" label='Clock 4'/>
                     </Select.Content>
                 </Select.Root>
-            </label>
-            <label class="label">
-                <span>Cell type</span>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <Label>Cell type</Label>
                 <Select.Root bind:value={selectedCellType} type="single">
                     <Select.Trigger>
                         {selected_type_display}
@@ -146,10 +149,10 @@
                         <Select.Item value="3" label='Fixed'/>
                     </Select.Content>
                 </Select.Root>
-            </label>
-            <label class="label">
+            </div>
+            <div class="flex flex-col gap-1.5">
                 {#if polarizationInput && polarizationInput.length > 0}
-                <span>Polarization</span>
+                <Label>Polarization</Label>
                 {#each polarizationInput as polarization, i}
                     {#if polarizationInput.length > 1}
                         <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
@@ -161,9 +164,9 @@
                     {/if}
                 {/each}
                 {/if}
-            </label> 
-            <label class="label">
-                <span>Position</span>
+            </div> 
+            <div class="flex flex-col gap-1.5">
+                <Label>Position</Label>
                 <div class='flex'>
                     <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
                         <div class="input-group-shim bg-red-500">X</div>
@@ -174,7 +177,7 @@
                         <input type="number"/>
                     </div>
                 </div>
-            </label>
-        </form>
+            </div>
+        </div>
     </Accordion.Content>
 </Accordion.Item>
