@@ -5,15 +5,17 @@
     import Icon from "@iconify/svelte";
     import * as Accordion from "$lib/components/ui/accordion";
     import {ScrollArea} from "$lib/components/ui/scroll-area";
-    import * as ToggleGroup from "$lib/components/ui/toggle-group";
     import { Button } from "$lib/components/ui/button";
 
     interface Props {
         layers: Layer[];
         selectedLayer: number;
+        layerAddedCallback: (layerIndex: number) => void;
+        layerRemovedCallback: (layerIndex: number) => void;
+        layerMovedCallback: (fromIndex: number, toIndex: number) => void;
     }
 
-    let { layers = $bindable(), selectedLayer = $bindable() }: Props = $props();
+    let { layers = $bindable(), selectedLayer = $bindable(), layerAddedCallback, layerMovedCallback, layerRemovedCallback}: Props = $props();
     
     function openLayerOptions(layerIdx: number){
 
@@ -55,10 +57,12 @@
         }
 
         const i = selectedLayer;
+        const newLayerId = i + 1;
 
-        layers.splice(i+1, 0, {name: newLayerName, visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0})
-        dispatchLayerChange('addLayer', i+1);
+        layers.splice(newLayerId, 0, {name: newLayerName, visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0})
+        layerAddedCallback(newLayerId);
 
+        selectedLayer = newLayerId;
         layers = layers;
     }
 
@@ -68,6 +72,7 @@
 
         const i = selectedLayer;
         layers.splice(i, 1);
+        layerRemovedCallback(i);
 
         selectedLayer = Math.max(selectedLayer - 1, 0);
         layers = layers;
@@ -78,6 +83,8 @@
             return;
 
         layers[selectedLayer] = layers.splice(selectedLayer + 1, 1, layers[selectedLayer])[0];
+        layerMovedCallback(selectedLayer, selectedLayer + 1);
+
         selectedLayer++;
         layers = layers;
     }
@@ -87,6 +94,8 @@
             return;
 
         layers[selectedLayer] = layers.splice(selectedLayer - 1, 1, layers[selectedLayer])[0];
+        layerMovedCallback(selectedLayer, selectedLayer - 1);
+
         selectedLayer--;
         layers = layers;
     }

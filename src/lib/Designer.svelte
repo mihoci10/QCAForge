@@ -425,6 +425,18 @@
         });
         resizeObserver.observe(container!);
     });
+
+    function layerAddedCallback(layerId: number){
+        cellScene.addLayer(layerId);
+    }
+
+    function layerRemovedCallback(layerId: number){
+        cellScene.removeLayer(layerId);
+    }
+
+    function layerMovedCallback(oldLayerId: number, newLayerId: number){
+        cellScene.moveLayer(oldLayerId, newLayerId);
+    }
 </script>
 
 <Resizable.PaneGroup direction="horizontal">
@@ -432,7 +444,7 @@
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <Accordion.Root type="multiple">
                 <SimSettingsPanel {selected_model_id} {simulation_models}/>
-                <LayersPanel {layers} {selectedLayer}/>
+                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} {layerAddedCallback} {layerRemovedCallback} {layerMovedCallback} />
                 <CellPropsPanel bind:layers={layers} {selectedCells} bind:this={cellPropsPanel}/>
             </Accordion.Root>
         </div>

@@ -63,6 +63,12 @@ export class CellScene{
         this.layers.splice(layerInd, 1);
     }
 
+    moveLayer(from: number, to: number){
+        const layer = this.layers[from];
+        this.layers.splice(from, 1);
+        this.layers.splice(to, 0, layer);
+    }
+
     getIndexOfLayer(sceneLayer: CellSceneLayer){
         return this.layers.indexOf(sceneLayer);
     }
