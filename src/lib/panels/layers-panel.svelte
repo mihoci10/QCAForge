@@ -6,6 +6,7 @@
     import * as Accordion from "$lib/components/ui/accordion";
     import {ScrollArea} from "$lib/components/ui/scroll-area";
     import { Button } from "$lib/components/ui/button";
+    import LayerOptions from "$lib/modals/layer-options.svelte";
 
     interface Props {
         layers: Layer[];
@@ -16,24 +17,13 @@
     }
 
     let { layers = $bindable(), selectedLayer = $bindable(), layerAddedCallback, layerMovedCallback, layerRemovedCallback}: Props = $props();
+
+    let cachedLayer: Layer|undefined = $state();
+    let openModal: boolean = $state(false);
     
     function openLayerOptions(layerIdx: number){
-
-        return new Promise((resolve) => {
-            const modal: ModalSettings = {
-                type: 'component',
-                component: 'layerOptions',
-                title: `${layers[layerIdx].name} options`,
-                meta: {},
-                response: (r:any) => resolve(r),
-            };
-            modalStore.trigger(modal);
-            })
-        .then((res: any) => {
-            if(res){
-                layers[layerIdx].cell_architecture = res.cell_architecture;
-            }
-        });
+        cachedLayer = layers[layerIdx];
+        openModal = true;
     }
 
     function getIndexOfLayer(layerName: string): number{
@@ -140,12 +130,12 @@
                     <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
                 </Button>
                 <span class="select-none cursor-default">{layer.name}</span>
-                <Button variant='ghost' size='icon' onclick={(e) => openLayerOptions(i)}> 
+                <Button variant='ghost' size='icon' onclick={(e) => openLayerOptions(index)}> 
                     <Icon icon="material-symbols:settings"/>
                 </Button>
-                
             </div>
             {/each}
         </ScrollArea>
+        <LayerOptions bind:isOpen={openModal} layer={cachedLayer!}/>
     </Accordion.Content>
 </Accordion.Item> 

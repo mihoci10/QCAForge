@@ -1,14 +1,23 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
     import { type CellArchitecture, createCellArchitecture } from '$lib/CellArchitecture';
     import Icon from '@iconify/svelte';
+    import BaseModal from './base-modal.svelte';
+    import type { Layer } from '$lib/Layer';
+    import { Label } from '$lib/components/ui/label';
+    import * as Select from '$lib/components/ui/select';
+    import { Button } from '$lib/components/ui/button';
 
 	interface Props {
-		parent: any;
+		isOpen: boolean;
+		applyCallback?: (data: any) => void;
+		layer: Layer;
 	}
 
-	let { parent }: Props = $props();
+	let { 
+		isOpen = $bindable(),
+		applyCallback,
+		layer,
+	}: Props = $props();
 
 	const DEFAULT_CELL_ARCHS : [string, CellArchitecture][] = [
 		['Two state', createCellArchitecture(20, 5, 4, 6.36)],
@@ -17,58 +26,70 @@
 		['Tri state 110', createCellArchitecture(110, 10, 8, 110/(2*Math.sin(Math.PI/8)))]
 	];
 
-    function openArchitectureOptions(){
+	let selected_arch_id: string|undefined = $state();
+	let selected_arch_display = $derived(
+		selected_arch_id ? DEFAULT_CELL_ARCHS[parseInt(selected_arch_id)][0] : 'Select architecture'
+	);
 
-		return new Promise((resolve) => {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'cellArchitectureOptions',
-				title: `Cell arhitecture settings`,
-				meta: {},
-				response: (r:any) => resolve(r),
-			};
-			modalStore.trigger(modal);
-			})
-		.then((res: any) => {
-			console.log(res);
-		});
-	}
+    // function openArchitectureOptions(){
 
-	function formSubmit(e: SubmitEvent){
-		const form_data = new FormData(e.target as HTMLFormElement);
-		let data_obj = {};
+	// 	return new Promise((resolve) => {
+	// 		const modal: ModalSettings = {
+	// 			type: 'component',
+	// 			component: 'cellArchitectureOptions',
+	// 			title: `Cell arhitecture settings`,
+	// 			meta: {},
+	// 			response: (r:any) => resolve(r),
+	// 		};
+	// 		modalStore.trigger(modal);
+	// 		})
+	// 	.then((res: any) => {
+	// 		console.log(res);
+	// 	});
+	// }
 
-		for (var [key, value] of form_data.entries()) { 
-			data_obj[key] = DEFAULT_CELL_ARCHS[parseInt(value)][1];
-		}
+	// function formSubmit(e: SubmitEvent){
+	// 	const form_data = new FormData(e.target as HTMLFormElement);
+	// 	let data_obj = {};
 
-		if ($modalStore[0].response) {
-			$modalStore[0].response(data_obj);
-			modalStore.close();
-		}
-	}
+	// 	for (var [key, value] of form_data.entries()) { 
+	// 		data_obj[key] = DEFAULT_CELL_ARCHS[parseInt(value)][1];
+	// 	}
+
+	// 	if ($modalStore[0].response) {
+	// 		$modalStore[0].response(data_obj);
+	// 		modalStore.close();
+	// 	}
+	// }
+
 </script>
 
-{#if $modalStore[0]}
-	<div class="card p-4 w-modal shadow-xl space-y-4">
-		<header class="text-2xl font-bold">{$modalStore[0].title}</header>
-		<form class="modal-form" onsubmit={preventDefault(formSubmit)}>
-			<label class="label">
-				<span>Cell architecture</span>
-				
-				<div class="input-group input-group-divider grid-cols-[1fr_auto]">
-					<select id='cell_architecture' name='cell_architecture'>
+<BaseModal bind:open={isOpen} type='confirm' {applyCallback}>
+	{#snippet title()}
+		{layer.name} settings
+	{/snippet}
+	{#snippet description()}
+		Configure parameters for the selected layer.
+	{/snippet}
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-col gap-1.5">
+			<Label for='cell_architecture'>Cell architecture</Label>
+			<div class="flex gap-2">
+				<Select.Root type="single" bind:value={selected_arch_id}>
+					<Select.Trigger>
+						{selected_arch_display}
+					</Select.Trigger>
+					<Select.Content>
 						{#each DEFAULT_CELL_ARCHS as arcOption, i}
-						<option value={i}>{arcOption[0]}</option>
+							<Select.Item value={i.toString()} label={arcOption[0]}/>
 						{/each}
-					</select>
-					<button type="button" class="btn-icon w-full" onclick={(e) => openArchitectureOptions()}>
-                        <Icon width={16} icon="material-symbols:settings"/>
-                    </button>
-				</div>
-			</label>
-			<hr>
-			<button class="input" type="submit">Ok</button>
-		</form>
+					</Select.Content>
+				</Select.Root>
+		
+				<Button variant='outline' size='icon'>
+					<Icon icon="material-symbols:settings" />
+				</Button>
+			</div>
+		</div>
 	</div>
-{/if}	
+</BaseModal>
