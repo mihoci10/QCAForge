@@ -76,7 +76,12 @@
         cellScene = new CellScene(renderer, camera);
 
         stats = new Stats();
-        renderer.domElement.appendChild(stats.dom)
+        stats.dom.style.position = 'absolute';
+        stats.dom.style.left = '';
+        stats.dom.style.top = '';
+        stats.dom.style.right = '1px';
+        stats.dom.style.bottom = '1px';
+        container!.appendChild(stats.dom)
         statsDrawCall = stats.addPanel(new Stats.Panel('Draw calls', '#ff8', '#221'));
         stats.showPanel(0);
 
