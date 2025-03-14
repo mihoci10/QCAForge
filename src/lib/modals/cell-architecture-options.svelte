@@ -1,33 +1,35 @@
 <script lang="ts">
+    import type { CellArchitecture } from "$lib/CellArchitecture";
+    import Input from "$lib/components/ui/input/input.svelte";
+    import { Label } from "$lib/components/ui/label";
+    import BaseModal from "./base-modal.svelte";
+
 
 	interface Props {
-		parent: any;
+		isOpen: boolean;
+		applyCallback?: (data: any) => void;
+		cell_architecture: CellArchitecture;
 	}
 
-	let { parent }: Props = $props();
+	let { 
+		isOpen = $bindable(),
+		applyCallback,
+		cell_architecture,
+	}: Props = $props();
 
-	function formSubmit(e: SubmitEvent){
-		const form_data = new FormData(e.target as HTMLFormElement);
-		let data_obj = {};
-
-		for (var [key, value] of form_data.entries()) { 
-			data_obj[key] = parseFloat(value);
-		}
-
-		if ($modalStore[0].response) {
-			$modalStore[0].response(data_obj);
-			modalStore.close();
-		}
-	}
 </script>
 
-{#if $modalStore[0]}
-    <div class="card p-4 w-modal shadow-xl space-y-4">
-        <header class="text-2xl font-bold">{$modalStore[0].title}</header>
-		
-		<form class="modal-form" onsubmit={formSubmit}>
-		
-		<button class="input" type="submit">Ok</button>
-		</form>
+<BaseModal bind:open={isOpen} type='confirm' {applyCallback}>
+	{#snippet title()}
+		Cell Architecture settings
+	{/snippet}
+	{#snippet description()}
+		Configure parameters for the selected cell architecture.
+	{/snippet}
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-col gap-1.5">
+			<Label for='cell_architecture'>Name</Label>
+			<Input />
+		</div>
 	</div>
-{/if}
+</BaseModal>

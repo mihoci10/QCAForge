@@ -6,6 +6,7 @@
     import { Label } from '$lib/components/ui/label';
     import * as Select from '$lib/components/ui/select';
     import { Button } from '$lib/components/ui/button';
+    import CellArchitectureOptions from './cell-architecture-options.svelte';
 
 	interface Props {
 		isOpen: boolean;
@@ -13,11 +14,11 @@
 		layer: Layer;
 	}
 
-	let { 
-		isOpen = $bindable(),
-		applyCallback,
-		layer,
-	}: Props = $props();
+let { 
+	isOpen = $bindable(),
+	applyCallback,
+	layer,
+}: Props = $props();
 
 	const DEFAULT_CELL_ARCHS : [string, CellArchitecture][] = [
 		['Two state', createCellArchitecture(20, 5, 4, 6.36)],
@@ -31,36 +32,11 @@
 		selected_arch_id ? DEFAULT_CELL_ARCHS[parseInt(selected_arch_id)][0] : 'Select architecture'
 	);
 
-    // function openArchitectureOptions(){
+	let openModal: boolean = $state(false);
 
-	// 	return new Promise((resolve) => {
-	// 		const modal: ModalSettings = {
-	// 			type: 'component',
-	// 			component: 'cellArchitectureOptions',
-	// 			title: `Cell arhitecture settings`,
-	// 			meta: {},
-	// 			response: (r:any) => resolve(r),
-	// 		};
-	// 		modalStore.trigger(modal);
-	// 		})
-	// 	.then((res: any) => {
-	// 		console.log(res);
-	// 	});
-	// }
-
-	// function formSubmit(e: SubmitEvent){
-	// 	const form_data = new FormData(e.target as HTMLFormElement);
-	// 	let data_obj = {};
-
-	// 	for (var [key, value] of form_data.entries()) { 
-	// 		data_obj[key] = DEFAULT_CELL_ARCHS[parseInt(value)][1];
-	// 	}
-
-	// 	if ($modalStore[0].response) {
-	// 		$modalStore[0].response(data_obj);
-	// 		modalStore.close();
-	// 	}
-	// }
+	function openCellArchitectureOptions(){
+		openModal = true;
+	}
 
 </script>
 
@@ -86,9 +62,10 @@
 					</Select.Content>
 				</Select.Root>
 		
-				<Button variant='outline' size='icon'>
+				<Button variant='outline' size='icon' onclick={() => openCellArchitectureOptions()}>
 					<Icon icon="material-symbols:settings" />
 				</Button>
+				<CellArchitectureOptions bind:isOpen={openModal} cell_architecture={DEFAULT_CELL_ARCHS[parseInt(selected_arch_id!)][1]}/>
 			</div>
 		</div>
 	</div>

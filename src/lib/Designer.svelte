@@ -93,7 +93,6 @@
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = false;
-        controls.zoomSpeed = 0.1;
 
         ghostGeometry = new CellGeometry(true);
 
