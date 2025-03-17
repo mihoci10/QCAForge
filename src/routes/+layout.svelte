@@ -1,7 +1,6 @@
 <script lang="ts">
 	import '../app.css';
 	import { Toaster } from "$lib/components/ui/sonner";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 
 	import { page } from '$app/state';
     import { listen } from "@tauri-apps/api/event";
@@ -14,7 +13,7 @@
     import { onMount } from 'svelte';
     import { basename } from '@tauri-apps/api/path';
     import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-    import { getDefaultCellArchitecture } from '$lib/CellArchitecture';
+    import { DEFAULT_CELL_ARCHITECTURES, getDefaultCellArchitecture } from '$lib/CellArchitecture';
     import { generateDotDistribution } from '$lib/Cell';
 
 	let { children } = $props();
@@ -28,9 +27,12 @@
 			cells: [
 				{position: [0, 0], typ: 0, clock_phase_shift: 0, dot_probability_distribution: generateDotDistribution([0.5]), rotation: 0},
 			], 
-			z_position: 0}]
-			, undefined, new Map()).then((des) => {
-			design.set(des);
+			z_position: 0}], 
+			undefined, 
+			new Map(),
+			DEFAULT_CELL_ARCHITECTURES
+		).then((des) => { 
+			design.set(des); 
 		});
 	});
 
@@ -43,7 +45,12 @@
     })
 
 	listen(EVENT_NEW_FILE, () => {
-		createDesign([{name: "Main Layer", visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0}], undefined, new Map()).then((d) => {
+		createDesign(
+			[{name: "Main Layer", visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0}],
+			undefined,
+			new Map(),
+			DEFAULT_CELL_ARCHITECTURES
+		).then((d) => {
 			design.set(d);
 		})
 		design_filename.set(undefined);

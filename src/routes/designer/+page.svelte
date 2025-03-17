@@ -13,13 +13,13 @@
     import { design, design_filename } from "$lib/globals";
     import { get } from "svelte/store";
     import { type Layer } from "$lib/Layer.js";
-    import { getDefaultCellArchitecture } from "$lib/CellArchitecture";
-    import { CellType, generateDotDistribution } from "$lib/Cell";
+    import { DEFAULT_CELL_ARCHITECTURES, type CellArchitecture } from "$lib/CellArchitecture";
 
     let selected_model_id: string|undefined = $state();
     let layers: Layer[] = $state([]);
 
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
+    let cell_architectures: CellArchitecture[] = $state([]);
 
     design.subscribe((cur_design) => {
         layers = cur_design.layers;
@@ -32,7 +32,7 @@
     });
 
     onMount(() => {
-        invoke('get_sim_models').then((res: any[]) => {
+        invoke('get_sim_models').then((res: unknown) => {
             let model_list = res as any[];
             model_list.forEach(model => {
                 simulation_models.set(
@@ -47,6 +47,8 @@
             });
             simulation_models = simulation_models;
         });
+
+        cell_architectures = DEFAULT_CELL_ARCHITECTURES;
         
         const unlistenSave = listen(EVENT_SAVE_FILE, () => {
             new Promise((resolve : (value: string) => void, reject) => {
@@ -63,8 +65,8 @@
                     resolve(filename);
                     
             }).then((filename) => {
-                createDesign(layers, selected_model_id, simulation_models).then((design) => {
-                    writeTextFile(filename, serializeDesign(design), {dir: BaseDirectory.Desktop})
+                createDesign(layers, selected_model_id, simulation_models, cell_architectures).then((design) => {
+                    writeTextFile(filename, serializeDesign(design), {baseDir: BaseDirectory.Desktop})
                     design_filename.set(filename);
                 })
             })
@@ -78,7 +80,7 @@
                 if (!filename)
                     return;
 
-                createDesign(layers, selected_model_id, simulation_models).then((design) => {
+                createDesign(layers, selected_model_id, simulation_models, cell_architectures).then((design) => {
                     writeTextFile(filename, serializeDesign(design))
                     design_filename.set(filename);
                 })

@@ -1,12 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { SimulationModel } from "./SimulationModel";
 import { type Layer } from "./Layer";
+import { DEFAULT_CELL_ARCHITECTURES, type CellArchitecture } from "./CellArchitecture";
 
 export interface QCADesign{
     qca_core_version: string,
     layers: Layer[]
     simulation_model_settings: Map<string, string>,
-    selected_simulation_model_id: string|undefined
+    selected_simulation_model_id: string|undefined,
+    cell_architectures: CellArchitecture[],
 }
 
 export function serializeDesign(design: QCADesign): string{
@@ -24,7 +26,8 @@ export function deserializeDesign(str: string): QCADesign{
 export function createDesign(
     layers: Layer[],
     selected_simulation_model_id: string|undefined, 
-    simulation_models: Map<string, SimulationModel>): Promise<QCADesign>{
+    simulation_models: Map<string, SimulationModel>,
+    cell_architectures: CellArchitecture[]): Promise<QCADesign>{
 
     let simulation_model_settings: Map<string, string> = new Map();
     simulation_models.forEach((val, key, _) => {
@@ -38,6 +41,7 @@ export function createDesign(
             layers: layers, 
             selected_simulation_model_id: selected_simulation_model_id, 
             simulation_model_settings: simulation_model_settings,
+            cell_architectures: cell_architectures,
         }
     });
 }
