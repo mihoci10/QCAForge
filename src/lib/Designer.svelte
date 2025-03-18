@@ -98,7 +98,7 @@
 
         cellScene.addLayer(0);
 
-        renderer.setAnimationLoop(render);
+       renderer.setAnimationLoop(render);
         
         drawCurrentLayer();
     });
@@ -114,6 +114,7 @@
         renderer.setSize( container!.clientWidth * devicePixelRatio, container!.clientHeight * devicePixelRatio, false);
         camera.aspect = container!.clientWidth / container!.clientHeight; 
         camera.updateProjectionMatrix();
+        render();
     }
 
     function render(){
