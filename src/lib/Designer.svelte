@@ -21,6 +21,7 @@
     import { Menu } from "@tauri-apps/api/menu";
     import Button from "./components/ui/button/button.svelte";
     import Icon from "@iconify/svelte";
+    import InfiniteGrid from "./utils/infinite-grid";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -31,6 +32,7 @@
     let globalScene: THREE.Scene;
     let cellScene: CellScene;
 
+    let infinite_grid: InfiniteGrid;
     let ghostGeometry: CellGeometry;
     let snapDivider: number = 20;
 
@@ -94,7 +96,10 @@
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = false;
 
+        infinite_grid = new InfiniteGrid(20, 100, new THREE.Color('white'), 8000, 'xyz');
+
         ghostGeometry = new CellGeometry(true);
+        globalScene.add(infinite_grid);
 
         cellScene.addLayer(0);
 
