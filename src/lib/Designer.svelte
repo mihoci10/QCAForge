@@ -22,6 +22,7 @@
     import Button from "./components/ui/button/button.svelte";
     import Icon from "@iconify/svelte";
     import InfiniteGrid from "./utils/infinite-grid";
+    import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -403,16 +404,39 @@
         return newInputMode;
     }
 
+    function saveCellsToClipboard(cell_ids: Set<CellIndex>){
+        let cells = new Array<Cell>();
+        cell_ids.forEach((id) => {
+            cells.push(layers[id.getLayer()].cells[id.getCell()]);
+        });
+
+        writeText(JSON.stringify(cells));
+    }
+
+    async function pasteCellsFromClipboard(){
+        readText().then((text) => {
+            let cells = JSON.parse(text) as Cell[];
+            layers[selectedLayer].cells = layers[selectedLayer].cells.concat(cells);
+            drawCurrentLayer();
+        });
+    }
+
     async function showContextMenu(){
         const menu = await Menu.new({
             items: [
                 {
                     text: 'Copy',
-                    accelerator: 'ctrl+C'
+                    accelerator: 'ctrl+C',
+                    action: () => {
+                        saveCellsToClipboard(selectedCells);
+                    }
                 },
                 {
                     text: 'Paste',
-                    accelerator: 'ctrl+V'
+                    accelerator: 'ctrl+V',
+                    action: () => {
+                        pasteCellsFromClipboard();
+                    }
                 }
             ]
         });
