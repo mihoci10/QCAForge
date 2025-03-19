@@ -18,11 +18,13 @@
     import LayersPanel from "./panels/layers-panel.svelte";
 
     import { Set } from 'typescript-collections'
-    import { Menu } from "@tauri-apps/api/menu";
+    import { Menu, MenuItem } from "@tauri-apps/api/menu";
     import Button from "./components/ui/button/button.svelte";
     import Icon from "@iconify/svelte";
     import InfiniteGrid from "./utils/infinite-grid";
     import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
+
+    import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -43,6 +45,7 @@
     let inputModeIdx: number = $state(0);
 
     let mouseStartPos: THREE.Vector2|undefined;
+    let current_mouse_pos: THREE.Vector2|undefined;
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
 
@@ -104,12 +107,15 @@
 
         cellScene.addLayer(0);
 
-       renderer.setAnimationLoop(render);
+        renderer.setAnimationLoop(render);
         
         drawCurrentLayer();
+
+        registerKeyboardShortcuts();
     });
 
     onDestroy(() => {
+        unregisterKeyboardShortcuts();
         renderer.dispose();
         ghostGeometry.dispose();
         DrawableCellMaterial.dispose();
@@ -213,18 +219,18 @@
     }
 
     function mouseMove(e: MouseEvent){
-        const mousePos = getMouseEventPos(e);
+        current_mouse_pos = getMouseEventPos(e);
 
         if (inputMode == 0){
             if (mouseStartPos != undefined && mouseDragging){
-                repositionCells(mousePos.x, mousePos.y);
+                repositionCells(current_mouse_pos.x, current_mouse_pos.y);
             }
         }
         else if (inputMode == 1){
             if (mouseStartPos != undefined)
                 repositionGhostMesh(mouseStartPos!.x, mouseStartPos!.y);
             else
-                repositionGhostMesh(mousePos.x, mousePos.y);
+                repositionGhostMesh(current_mouse_pos.x, current_mouse_pos.y);
         }
     }
 
@@ -316,16 +322,22 @@
     }
 
     function endCellPlace(mouse_x: number, mouse_y: number){
-        let world_pos =  screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
-        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
-        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
+        let world_pos = screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
+        const adjusted_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
         
         layers[selectedLayer].cells.push({
-            position: [world_pos.x, world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
+            position: [adjusted_pos.x, adjusted_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
         })
         drawCurrentLayer();
+    }
+
+    function applySnapping(pos: THREE.Vector2){
+        return new THREE.Vector2(
+            Math.floor((pos.x + snapDivider / 2) / snapDivider) * snapDivider,
+            Math.floor((pos.y + snapDivider / 2) / snapDivider) * snapDivider
+        );
     }
 
     function deleteCells(cell_ids: Set<CellIndex>){
@@ -341,16 +353,14 @@
     }
 
     function repositionCells(mouse_x: number, mouse_y: number){
-        let orig_world_pos =  screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
-        orig_world_pos.x = Math.floor((orig_world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
-        orig_world_pos.y = Math.floor((orig_world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
+        let orig_world_pos = screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
+        const adjusted_orig_pos = applySnapping(new THREE.Vector2(orig_world_pos.x, orig_world_pos.y));
 
-        let world_pos =  screenSpaceToWorld(mouse_x, mouse_y);
-        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
-        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
+        let world_pos = screenSpaceToWorld(mouse_x, mouse_y);
+        const adjusted_world_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
 
-        let diff_x = world_pos.x - orig_world_pos.x;
-        let diff_y = world_pos.y - orig_world_pos.y;
+        let diff_x = adjusted_world_pos.x - adjusted_orig_pos.x;
+        let diff_y = adjusted_world_pos.y - adjusted_orig_pos.y;
 
         for (let key in cachedCellsPos) {
             let id = parseCellIndex(key);
@@ -367,10 +377,9 @@
 
     function repositionGhostMesh(mouse_x: number, mouse_y: number){
         let world_pos = screenSpaceToWorld(mouse_x, mouse_y);
-        world_pos.x = Math.floor((world_pos.x + snapDivider / 2) / snapDivider) * snapDivider;
-        world_pos.y = Math.floor((world_pos.y + snapDivider / 2) / snapDivider) * snapDivider;
+        const adjusted_world_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
         ghostGeometry.update([{
-            position: [world_pos.x, world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
+            position: [adjusted_world_pos.x, adjusted_world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
 
@@ -416,7 +425,29 @@
     async function pasteCellsFromClipboard(){
         readText().then((text) => {
             let cells = JSON.parse(text) as Cell[];
+
+            const centroid = cells.reduce((acc, cell) => {
+                return new THREE.Vector2(acc.x + cell.position[0], acc.y + cell.position[1]);
+            }, new THREE.Vector2(0, 0)).divideScalar(cells.length);
+
+            const snapped_centroid = applySnapping(centroid);
+            const world_pos = screenSpaceToWorld(current_mouse_pos!.x, current_mouse_pos!.y);
+            const snapped_world_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
+            const pos_diff = snapped_world_pos.sub(snapped_centroid);
+
+            cells.forEach((cell) => {
+                cell.position[0] += pos_diff.x;
+                cell.position[1] += pos_diff.y;
+            });
+
+            const number_of_cells = layers[selectedLayer].cells.length;
             layers[selectedLayer].cells = layers[selectedLayer].cells.concat(cells);
+            selectedCells.clear();
+            for (let i = 0; i < cells.length; i++) {
+                selectedCells.add(new CellIndex(selectedLayer, number_of_cells + i));
+            }
+            selectedCellsUpdated();
+
             drawCurrentLayer();
         });
     }
@@ -426,14 +457,15 @@
             items: [
                 {
                     text: 'Copy',
-                    accelerator: 'ctrl+C',
+                    accelerator: 'CommandOrControl+C',
                     action: () => {
                         saveCellsToClipboard(selectedCells);
-                    }
+                    },
+                    enabled: !selectedCells.isEmpty()
                 },
                 {
                     text: 'Paste',
-                    accelerator: 'ctrl+V',
+                    accelerator: 'CommandOrControl+V',
                     action: () => {
                         pasteCellsFromClipboard();
                     }
@@ -441,6 +473,22 @@
             ]
         });
         menu.popup();
+    }
+
+    function registerKeyboardShortcuts(){
+        register('CommandOrControl+C', (event) => {
+            if (event.state == 'Pressed')
+                saveCellsToClipboard(selectedCells);
+        });
+        register('CommandOrControl+V', (event) => {
+            if (event.state == 'Pressed')
+                pasteCellsFromClipboard();
+        });
+    }
+
+    function unregisterKeyboardShortcuts(){
+        unregister('CommandOrControl+C');
+        unregister('CommandOrControl+V');
     }
     
     let inputMode = $derived(inputModeChanged(inputModeIdx));

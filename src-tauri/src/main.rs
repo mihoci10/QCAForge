@@ -28,6 +28,7 @@ struct SimulationModelDescriptor {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .on_menu_event(|app, event| {
             let _ = app.emit(event.id().0.as_str(), {});
