@@ -194,7 +194,7 @@
             }
         }else if (inputMode == 1){
             if (e.button == 0)
-                startCellPlace(mousePos.x, mousePos.y);
+                startCellPlace(mousePos);
         }
     }
 
@@ -211,7 +211,7 @@
             }
         }else if (inputMode == 1){
             if (e.button == 0)
-                endCellPlace(mousePos.x, mousePos.y);
+                endCellPlace(mousePos);
         }
         
         mouseStartPos = undefined;
@@ -223,14 +223,11 @@
 
         if (inputMode == 0){
             if (mouseStartPos != undefined && mouseDragging){
-                repositionCells(current_mouse_pos.x, current_mouse_pos.y);
+                repositionCells(current_mouse_pos);
             }
         }
         else if (inputMode == 1){
-            if (mouseStartPos != undefined)
-                repositionGhostMesh(mouseStartPos!.x, mouseStartPos!.y);
-            else
-                repositionGhostMesh(current_mouse_pos.x, current_mouse_pos.y);
+            repositionGhostMesh(current_mouse_pos);
         }
     }
 
@@ -295,10 +292,10 @@
         cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
     }
 
-    function screenSpaceToWorld(mouse_x: number, mouse_y: number): THREE.Vector3{
+    function screenSpaceToWorld(pos: THREE.Vector2): THREE.Vector3{
         const mousePos = new THREE.Vector3(
-            ( (mouse_x) / renderer.domElement.width ) * 2 - 1,
-            - ( (mouse_y) / renderer.domElement.height ) * 2 + 1,
+            ( (pos.x) / renderer.domElement.width ) * 2 - 1,
+            - ( (pos.y) / renderer.domElement.height ) * 2 + 1,
             0
         );
 
@@ -317,19 +314,18 @@
         return intersectionPoint;
     }
 
-    function startCellPlace(mouse_x: number, mouse_y: number){
+    function startCellPlace(mouse_pos: THREE.Vector2){
 
     }
 
-    function endCellPlace(mouse_x: number, mouse_y: number){
-        let world_pos = screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
-        const adjusted_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
-        
-        layers[selectedLayer].cells.push({
-            position: [adjusted_pos.x, adjusted_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
-            rotation: 0,
-            dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
-        })
+    function endCellPlace(mouse_pos: THREE.Vector2){
+        calculate_ghost_positions(mouse_pos).forEach((pos) => {
+            layers[selectedLayer].cells.push({
+                position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
+                rotation: 0,
+                dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
+            })
+        });
         drawCurrentLayer();
     }
 
@@ -352,11 +348,11 @@
         selectedCellsUpdated();
     }
 
-    function repositionCells(mouse_x: number, mouse_y: number){
-        let orig_world_pos = screenSpaceToWorld(mouseStartPos!.x, mouseStartPos!.y);
+    function repositionCells(mouse_pos: THREE.Vector2){
+        let orig_world_pos = screenSpaceToWorld(mouseStartPos!);
         const adjusted_orig_pos = applySnapping(new THREE.Vector2(orig_world_pos.x, orig_world_pos.y));
 
-        let world_pos = screenSpaceToWorld(mouse_x, mouse_y);
+        let world_pos = screenSpaceToWorld(mouse_pos);
         const adjusted_world_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
 
         let diff_x = adjusted_world_pos.x - adjusted_orig_pos.x;
@@ -375,15 +371,49 @@
         drawCurrentLayer();
     }
 
-    function repositionGhostMesh(mouse_x: number, mouse_y: number){
-        let world_pos = screenSpaceToWorld(mouse_x, mouse_y);
+    function calculate_ghost_positions(mouse_pos: THREE.Vector2): THREE.Vector2[] {
+        const world_pos = screenSpaceToWorld(mouse_pos);
         const adjusted_world_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
-        ghostGeometry.update([{
-            position: [adjusted_world_pos.x, adjusted_world_pos.y], clock_phase_shift: 0, typ: CellType.Normal,
-            rotation: 0,
-            dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
 
-        }], new Set(), layers[selectedLayer].cell_architecture);
+        if (!mouseStartPos)
+            return [adjusted_world_pos];
+
+        const orig_world_pos = screenSpaceToWorld(mouseStartPos);
+        const adjusted_orig_world_pos = applySnapping(new THREE.Vector2(orig_world_pos.x, orig_world_pos.y));
+
+        const cell_size = layers[selectedLayer].cell_architecture.side_length;
+        const offset = new THREE.Vector2();
+
+        const diff = world_pos.clone().sub(orig_world_pos);
+        if (Math.abs(diff.x) > Math.abs(diff.y))
+            offset.x = Math.sign(diff.x) * cell_size;
+        else
+            offset.y = Math.sign(diff.y) * cell_size;
+
+        const cell_positions = [];
+        let current_pos = adjusted_orig_world_pos.clone();
+
+        while (
+            (offset.x != 0 && Math.abs(current_pos.x - world_pos.x) > cell_size) ||
+            (offset.y != 0 && Math.abs(current_pos.y - world_pos.y) > cell_size))
+        {
+            cell_positions.push(current_pos.clone());
+            current_pos.add(offset);
+        }
+        cell_positions.push(current_pos.clone());
+        return cell_positions;
+    }
+    
+
+    function repositionGhostMesh(mouse_pos: THREE.Vector2){
+        const cell_positions = calculate_ghost_positions(mouse_pos);
+        ghostGeometry.update(cell_positions.map((pos) => {
+            return {
+                position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
+                rotation: 0,
+                dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
+            }
+        }), new Set(), layers[selectedLayer].cell_architecture);
     }
 
     function inputModeChanged(newInputModeIdx: number){
@@ -431,7 +461,7 @@
             }, new THREE.Vector2(0, 0)).divideScalar(cells.length);
 
             const snapped_centroid = applySnapping(centroid);
-            const world_pos = screenSpaceToWorld(current_mouse_pos!.x, current_mouse_pos!.y);
+            const world_pos = screenSpaceToWorld(current_mouse_pos!);
             const snapped_world_pos = applySnapping(new THREE.Vector2(world_pos.x, world_pos.y));
             const pos_diff = snapped_world_pos.sub(snapped_centroid);
 
