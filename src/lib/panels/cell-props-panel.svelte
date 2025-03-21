@@ -96,12 +96,12 @@
 
     const selected_clock_display = $derived((() => {
         switch(selectedClockMode){
-            case '0': return 'Clock 1';
-            case '1': return 'Clock 2';
-            case '2': return 'Clock 3';
-            case '3': return 'Clock 4';
+            case '0': return '0 degrees';
+            case '90': return '90 degrees';
+            case '180': return '180 degrees';
+            case '270': return '270 degrees';
             case 'multiple': return 'Multiple';
-            default: return 'Select clock';
+            default: return 'Select phase shift';
         }
     })());
     const selected_type_display = $derived((() => {
@@ -127,16 +127,16 @@
     <Accordion.Content>
         <div class="flex flex-col gap-2 px-1">
             <div class="flex flex-col gap-1.5">
-                <Label>Clock mode</Label>
+                <Label>Clock phase shift</Label>
                 <Select.Root bind:value={selectedClockMode} onValueChange={selectedClockModeChanged} type="single">
                     <Select.Trigger>
                         {selected_clock_display}
                     </Select.Trigger>
                     <Select.Content>
-                        <Select.Item value="0" label='Clock 1'/>
-                        <Select.Item value="1" label='Clock 2'/>
-                        <Select.Item value="2" label='Clock 3'/>
-                        <Select.Item value="3" label='Clock 4'/>
+                        <Select.Item value="0" label='0 degrees'/>
+                        <Select.Item value="90" label='90 degrees'/>
+                        <Select.Item value="180" label='180 degrees'/>
+                        <Select.Item value="270" label='270 degrees'/>
                     </Select.Content>
                 </Select.Root>
             </div>
