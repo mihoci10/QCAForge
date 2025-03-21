@@ -50,6 +50,7 @@
     "@tauri-apps/plugin-dialog": "^2.0.1",
     "@tauri-apps/plugin-fs": "^2.0.3",
     "@tauri-apps/plugin-global-shortcut": "^2.2.0",
+    "@three.ez/instanced-mesh": "^0.3.0-alpha.10",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.473.0",
     "stats.js": "^0.17.0",
