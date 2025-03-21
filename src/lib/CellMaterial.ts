@@ -2,17 +2,25 @@ import * as THREE from 'three'
 
 const commonVertexSrc = `
 #include <instanced_pars_vertex>
+varying vec2 vUv;
 
 void main() {
     #include <instanced_vertex>
+    vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
 }`
 
 const drawableFragmentSrc = `
+uniform vec2 polarization;
+uniform float metadata;
+uniform float clock_phase;
+out vec4 outColor;
+varying vec2 vUv;
+vec2 uv_pos;
 
-/* float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
+float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
 {
-    vec2 value = abs(localPos - pos);
+    vec2 value = abs(uv_pos - pos);
 
     vec2 mask = smoothstep(bandStart - fade, bandStart, value);
     mask -= smoothstep(bandStop, bandStop + fade, value);
@@ -23,21 +31,23 @@ const drawableFragmentSrc = `
 float HollowCircleMask(vec2 pos, float radiusStart, float radiusStop, float fade)
 {
     radiusStop = max(radiusStart, radiusStop);
-    float value = length(localPos - pos);
+    float value = length(uv_pos - pos);
 
     float mask = smoothstep(radiusStart - fade, radiusStart, value);
     mask -= smoothstep(radiusStop, radiusStop + fade, value);
 
     return max(mask, 0.0);
-} */
-uniform vec2 polarization;
-uniform float metadata;
-out vec4 outColor;
+}
 
 void main() {
-    /* vec2 fragSize = fwidth(localPos);
-    bool selected = bool(metadata & (1 << 6));
-    bool ghosted = bool(metadata & (1 << 5));
+    uv_pos = vUv * 2.0 - 1.0;
+    vec2 fragSize = fwidth(uv_pos);
+
+    int polarizationCount = 1;
+    int metadata_int = int(metadata);
+    
+    bool selected = bool(metadata_int & (1 << 6));
+    bool ghosted = bool(metadata_int & (1 << 5));
 
     float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
@@ -51,7 +61,7 @@ void main() {
         float offX = cos(rotStep * float(i) + rotOffset) * 0.6;
         float offY = sin(rotStep * float(i) + rotOffset) * 0.6;
         
-        float dotSize = abs(polar[i % 2] / 2.0 + 0.5) * dotSizeMax;
+        float dotSize = abs(polarization[i % 2] / 2.0 + 0.5) * dotSizeMax;
         if (i/2 == 1)
             dotSize = dotSizeMax - dotSize;
         
@@ -68,8 +78,7 @@ void main() {
         outColor = vec4(vec3(mask), 1);
 
     if (ghosted)
-        outColor = vec4(outColor.rgb * 0.5, 1); */
-    outColor = vec4(metadata, 0, 1, 1);
+        outColor = vec4(outColor.rgb * 0.5, 1); 
 }
 `
 

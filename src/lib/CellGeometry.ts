@@ -19,7 +19,9 @@ export class CellGeometry{
         this.drawMesh.initUniformsPerInstance({fragment: {
             polarization: 'vec2',
             metadata: 'float',
+            clock_phase: 'float'
         }});
+        this.drawMesh.frustumCulled = false;
 
         this.pickMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new THREE.MeshBasicMaterial({color: 0x00ff00}));
         this.pickMesh.matrixAutoUpdate = false;
@@ -64,6 +66,8 @@ export class CellGeometry{
 
             const metadata = this.getCellMetadata(index, selectedCells.contains(index), this.ghostMode);
             instance.setUniform('metadata', metadata);
+
+            instance.setUniform('clock_phase', cell.clock_phase_shift);
         }
         
         if(cells.length != this.drawMesh.instancesCount){
