@@ -14,6 +14,7 @@
     import { get } from "svelte/store";
     import { type Layer } from "$lib/Layer.js";
     import { DEFAULT_CELL_ARCHITECTURES, type CellArchitecture } from "$lib/CellArchitecture";
+    import Button from "$lib/components/ui/button/button.svelte";
 
     let selected_model_id: string|undefined = $state();
     let layers: Layer[] = $state([]);
@@ -114,11 +115,9 @@
 <div class="w-full flex flex-col">
     <div class='my-1'>
         <div class="flex flex-row float-right">
-            <button type="button" class="btn variant-filled mx-2" 
-                disabled={!selected_model_id} 
-                onclick={(e) => executeSimulation()}>
+            <Button disabled={!selected_model_id} onclick={(e) => executeSimulation()}>
                 Run
-            </button>
+            </Button>
         </div>
     </div>
     <Designer bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models}/>

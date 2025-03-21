@@ -550,7 +550,7 @@
     <Resizable.Pane defaultSize={30} minSize={10}>
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <Accordion.Root type="multiple">
-                <SimSettingsPanel {selected_model_id} {simulation_models}/>
+                <SimSettingsPanel bind:selected_model_id={selected_model_id} {simulation_models}/>
                 <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} {layerAddedCallback} {layerRemovedCallback} {layerMovedCallback} />
                 <CellPropsPanel bind:layers={layers} {selectedCells} bind:this={cellPropsPanel}/>
             </Accordion.Root>

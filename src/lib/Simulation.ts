@@ -9,7 +9,7 @@ export function startSimulation(layers: Layer[], sim_model: SimulationModel): Pr
         {
             simModelId: sim_model.id, 
             simModelSettings: JSON.stringify(sim_model.settings), 
-            cells: serializeCells(cells)
+            layers: JSON.stringify(layers),
         }
     );
 }
