@@ -3,47 +3,39 @@ import { CellIndex, getPolarization, type Cell } from './Cell';
 import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
 import { Set } from 'typescript-collections'
 import { type CellArchitecture } from './CellArchitecture';
+import { InstancedEntity, InstancedMesh2 } from '@three.ez/instanced-mesh';
 
 export class CellGeometry{
-    private geometry: THREE.InstancedBufferGeometry;
-
-    private positionAttribute: THREE.BufferAttribute;
-    private localPositionAttribute: THREE.BufferAttribute;
-    private polarizationAttribute: THREE.BufferAttribute;
-    private metaAttribute: THREE.BufferAttribute;
-
-    private drawMesh: THREE.Mesh;
-    private pickMesh: THREE.Mesh;
+    private drawMesh: InstancedMesh2;
+    private pickMesh: InstancedMesh2;
 
     private ghostMode: boolean;
 
     constructor (ghostMode: boolean){
-        this.geometry = new THREE.InstancedBufferGeometry();
-        this.geometry.instanceCount = 0;
-
-        this.positionAttribute = new THREE.BufferAttribute(new Float32Array(0), 3);
-        this.localPositionAttribute = new THREE.BufferAttribute(new Float32Array(0), 2);
-        this.polarizationAttribute = new THREE.BufferAttribute(new Float32Array(0), 1);
-        this.metaAttribute = new THREE.BufferAttribute(new Int32Array(0), 1);
         this.ghostMode = ghostMode;
 
-        this.drawMesh = new THREE.Mesh(this.geometry, DrawableCellMaterial);
-        this.drawMesh.matrixAutoUpdate = false;
+        this.drawMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new DrawableCellMaterial());
+        console.log(new THREE.MeshBasicMaterial())
+        this.drawMesh.initUniformsPerInstance({fragment: {
+            polarization: 'vec2',
+            metadata: 'float',
+        }});
 
-        this.pickMesh = new THREE.Mesh(this.geometry, PickableCellMaterial);
+        this.pickMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new THREE.MeshBasicMaterial({color: 0x00ff00}));
         this.pickMesh.matrixAutoUpdate = false;
     }
 
-    getDrawMesh(): THREE.Mesh{
+    getDrawMesh(): InstancedMesh2{
         return this.drawMesh;
     }
 
-    getPickMesh(): THREE.Mesh{
+    getPickMesh(): InstancedMesh2{
         return this.pickMesh;
     }
 
     dispose(): void{
-        this.geometry.dispose();
+        this.drawMesh.dispose();
+        this.pickMesh.dispose();
     }
 
     private getCellMetadata(id: number, selected: boolean, ghosted: boolean): number{
@@ -57,79 +49,30 @@ export class CellGeometry{
     }
 
     update(cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture){
-        const MAX_POLARIZATION = 2;
-        const posOffs = [-1, 1];
 
-        let indeces = new Array(cells.length * 6);
-        let positionBuf = new Float32Array(cells.length * 4 * 3);
-        let localPositionBuf = new Float32Array(cells.length * 4 * 2);
-        let polarizationBuf = new Float32Array(cells.length * 4 * MAX_POLARIZATION);
-        let metaBuff = new Int32Array(cells.length * 4);
+        const init_cell_instance = (instance: InstancedEntity, index: number) => {
+            const cell = cells[index];
 
-        for (let i = 0; i < cells.length; i++) {
-            const cell = cells[i];
-
-            indeces[(i*6) + 0] = (i*4) + 0;
-            indeces[(i*6) + 1] = (i*4) + 2;
-            indeces[(i*6) + 2] = (i*4) + 1;
-            indeces[(i*6) + 3] = (i*4) + 1;
-            indeces[(i*6) + 4] = (i*4) + 2;
-            indeces[(i*6) + 5] = (i*4) + 3;
-
-            let cnt = 0;
-            for (let x = 0; x < posOffs.length; x++){
-                for (let y = 0; y < posOffs.length; y++){
-                    positionBuf[i*(4 * 3) + cnt + 0] = cell.position[0] + posOffs[x]/2 * architecture.side_length;
-                    positionBuf[i*(4 * 3) + cnt + 1] = cell.position[1] + posOffs[y]/2 * architecture.side_length;
-                    positionBuf[i*(4 * 3) + cnt + 2] = 0;
-                    cnt += 3;
-                }
-            }          
-            
-            cnt = 0
-            for (let x = 0; x < posOffs.length; x++){
-                for (let y = 0; y < posOffs.length; y++){
-                    localPositionBuf[i*(4 * 2) + cnt + 0] = posOffs[x];
-                    localPositionBuf[i*(4 * 2) + cnt + 1] = posOffs[y];
-                    cnt += 2;
-                }
-            }
-            
+            instance.position.set(cell.position[0], cell.position[1], 0);
+            instance.scale.set(architecture.side_length, architecture.side_length, 1);
 
             const polarization = getPolarization(cell);
-            for (let p = 0; p < MAX_POLARIZATION; p++) {
-                if (p < polarization.length){
-                    polarizationBuf[i*(4*MAX_POLARIZATION) + 0 * MAX_POLARIZATION + p] = polarization[p];
-                    polarizationBuf[i*(4*MAX_POLARIZATION) + 1 * MAX_POLARIZATION + p] = polarization[p];
-                    polarizationBuf[i*(4*MAX_POLARIZATION) + 2 * MAX_POLARIZATION + p] = polarization[p];
-                    polarizationBuf[i*(4*MAX_POLARIZATION) + 3 * MAX_POLARIZATION + p] = polarization[p];
-                }
-            }
+            if (polarization.length < 2)
+                polarization.push(0);
 
-            let metadata = this.getCellMetadata(i, selectedCells.contains(i), this.ghostMode);
+            instance.setUniform('polarization', new THREE.Vector2(polarization[0], polarization[1]));
 
-            metaBuff[i*4 + 0] = metadata;
-            metaBuff[i*4 + 1] = metadata;
-            metaBuff[i*4 + 2] = metadata;
-            metaBuff[i*4 + 3] = metadata;
+            const metadata = this.getCellMetadata(index, selectedCells.contains(index), this.ghostMode);
+            instance.setUniform('metadata', metadata);
         }
         
-        this.positionAttribute = new THREE.BufferAttribute(positionBuf, 3);
-        this.positionAttribute.setUsage(THREE.StaticDrawUsage);
-        this.localPositionAttribute = new THREE.BufferAttribute(localPositionBuf, 2);
-        this.localPositionAttribute.setUsage(THREE.StaticDrawUsage);
-        this.polarizationAttribute = new THREE.BufferAttribute(polarizationBuf, 2);
-        this.polarizationAttribute.setUsage(THREE.StaticDrawUsage);
-        this.metaAttribute = new THREE.BufferAttribute(metaBuff, 1);
-        this.metaAttribute.setUsage(THREE.StaticDrawUsage);
-
-        this.geometry.instanceCount = cells.length;
-        this.geometry.setIndex(indeces);
-        this.geometry.setAttribute('position', this.positionAttribute);
-        this.geometry.setAttribute('localPosition', this.localPositionAttribute);
-        this.geometry.setAttribute('polarization', this.polarizationAttribute);
-        this.geometry.setAttribute('inMetadata', this.metaAttribute);
-
-        this.drawMesh.material.uniforms.polarizationCount.value = architecture.dot_count / 4;
+        if(cells.length != this.drawMesh.instancesCount){
+            this.drawMesh.clearInstances();
+            this.drawMesh.addInstances(cells.length, init_cell_instance);
+            this.drawMesh.computeBVH();
+        }
+        else{
+            this.drawMesh.updateInstances(init_cell_instance);
+        }
     }
 }

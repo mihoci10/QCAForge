@@ -1,27 +1,16 @@
 import * as THREE from 'three'
 
 const commonVertexSrc = `
-attribute vec2 localPosition;
-attribute vec2 polarization;
-attribute int inMetadata;
-varying vec2 localPos;
-varying vec2 polar;
-flat varying int metadata;
+#include <instanced_pars_vertex>
+
 void main() {
-    localPos = localPosition;
-    polar = polarization;
-    metadata = inMetadata;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    #include <instanced_vertex>
+    gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
 }`
 
 const drawableFragmentSrc = `
-uniform int polarizationCount;
-varying vec2 localPos;
-varying vec2 polar;
-flat varying int metadata;
-out vec4 outColor;
 
-float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
+/* float HollowRectMask(vec2 pos, vec2 bandStart, vec2 bandStop, float fade)
 {
     vec2 value = abs(localPos - pos);
 
@@ -40,10 +29,13 @@ float HollowCircleMask(vec2 pos, float radiusStart, float radiusStop, float fade
     mask -= smoothstep(radiusStop, radiusStop + fade, value);
 
     return max(mask, 0.0);
-}
+} */
+uniform vec2 polarization;
+uniform float metadata;
+out vec4 outColor;
 
 void main() {
-    vec2 fragSize = fwidth(localPos);
+    /* vec2 fragSize = fwidth(localPos);
     bool selected = bool(metadata & (1 << 6));
     bool ghosted = bool(metadata & (1 << 5));
 
@@ -76,7 +68,8 @@ void main() {
         outColor = vec4(vec3(mask), 1);
 
     if (ghosted)
-        outColor = vec4(outColor.rgb * 0.5, 1);
+        outColor = vec4(outColor.rgb * 0.5, 1); */
+    outColor = vec4(metadata, 0, 1, 1);
 }
 `
 
@@ -91,18 +84,18 @@ void main() {
 }
 `
 
-export let DrawableCellMaterial = new THREE.ShaderMaterial({
-    uniforms: {polarizationCount: {value: 2}},
-    glslVersion: THREE.GLSL3,
-    vertexShader: commonVertexSrc,
-    fragmentShader: drawableFragmentSrc,
-    transparent: false,
-});
+export class DrawableCellMaterial extends THREE.ShaderMaterial{
+    public override vertexShader: string = commonVertexSrc;
+    public override fragmentShader: string = drawableFragmentSrc;
+    public override glslVersion = THREE.GLSL3;
+    public override transparent = false;
+
+    constructor(parameters?: THREE.ShaderMaterialParameters){
+        super(parameters);
+    }
+}
 
 export let PickableCellMaterial = new THREE.ShaderMaterial({
-    uniforms: {polarizationCount: {value: 1}},
-    glslVersion: THREE.GLSL3,
     vertexShader: commonVertexSrc,
     fragmentShader: pickableFragmentSrc,
-    transparent: false,
 });
