@@ -66,7 +66,7 @@
     let { selected_model_id = $bindable(), layers = $bindable(), simulation_models = $bindable() }: Props = $props();
 
     onMount(() => {
-        camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
+        camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 3000 );
         camera.position.z += 20;
 
         renderer = new THREE.WebGLRenderer({

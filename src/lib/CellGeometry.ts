@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { CellIndex, getPolarization, type Cell } from './Cell';
+import { CellIndex, CellType, getPolarization, type Cell } from './Cell';
 import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
 import { Set } from 'typescript-collections'
 import { type CellArchitecture } from './CellArchitecture';
@@ -19,11 +19,11 @@ export class CellGeometry{
         this.drawMesh.initUniformsPerInstance({fragment: {
             polarization: 'vec2',
             metadata: 'float',
-            clock_phase: 'float'
+            color: 'vec3'
         }});
         this.drawMesh.frustumCulled = false;
 
-        this.pickMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new THREE.MeshBasicMaterial({color: 0x00ff00}));
+        this.pickMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new PickableCellMaterial());
         this.pickMesh.matrixAutoUpdate = false;
     }
 
@@ -40,14 +40,41 @@ export class CellGeometry{
         this.pickMesh.dispose();
     }
 
-    private getCellMetadata(id: number, selected: boolean, ghosted: boolean): number{
+    private getCellMetadata(id: number, selected: boolean, ghosted: boolean, cell_type: CellType): number{
         let result = 0;
         result = id << 16;
-        if (selected)
-            result |= (0b1000000);
-        if (ghosted)
-            result |= (0b100000);
         return result;
+    }
+
+    private getClockPhaseColor(clock_phase: number): THREE.Color{
+        const phase = ((clock_phase % 360) + 360) % 360;
+        if (phase < 90)
+            return new THREE.Color(0, 1, 0);
+        else if (phase < 180)
+            return new THREE.Color(1, 0, 1);
+        else if (phase < 270)
+            return new THREE.Color(0, 1, 1);
+        else
+            return new THREE.Color(1, 1, 1);
+    }
+
+    private getCellColor(cell: Cell, selected: boolean): THREE.Color{
+        if (this.ghostMode)
+            return new THREE.Color(0.5, 0.5, 0.5);
+
+        if (selected)
+            return new THREE.Color(1, 0, 0);
+
+        switch(cell.typ){
+            case CellType.Normal:
+                return this.getClockPhaseColor(cell.clock_phase_shift);
+            case CellType.Input:
+                return new THREE.Color(0, 0, 1);
+            case CellType.Output:
+                return new THREE.Color(1, 1, 0);
+            case CellType.Fixed:
+                return new THREE.Color(1, 0.5, 0);
+        }
     }
 
     update(cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture){
@@ -64,10 +91,11 @@ export class CellGeometry{
 
             instance.setUniform('polarization', new THREE.Vector2(polarization[0], polarization[1]));
 
-            const metadata = this.getCellMetadata(index, selectedCells.contains(index), this.ghostMode);
+            const metadata = this.getCellMetadata(index, selectedCells.contains(index), this.ghostMode, cell.typ);
             instance.setUniform('metadata', metadata);
 
-            instance.setUniform('clock_phase', cell.clock_phase_shift);
+            const cell_color = this.getCellColor(cell, selectedCells.contains(index));
+            instance.setUniform('color', cell_color);
         }
         
         if(cells.length != this.drawMesh.instancesCount){

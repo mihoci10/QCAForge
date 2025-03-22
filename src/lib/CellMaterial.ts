@@ -13,7 +13,7 @@ void main() {
 const drawableFragmentSrc = `
 uniform vec2 polarization;
 uniform float metadata;
-uniform float clock_phase;
+uniform vec3 color;
 out vec4 outColor;
 varying vec2 vUv;
 vec2 uv_pos;
@@ -72,24 +72,21 @@ void main() {
         mask += HollowCircleMask(vec2(-offX, -offY), 0.0, dotSize + length(fragSize), 0.01);
     }
 
-    if (selected)
-        outColor = vec4(mask, 0, 0, 1);
-    else
-        outColor = vec4(vec3(mask), 1);
-
-    if (ghosted)
-        outColor = vec4(outColor.rgb * 0.5, 1); 
+    outColor = vec4(mask * color, 1);
 }
 `
 
 const pickableFragmentSrc = `
-varying vec2 localPos;
-varying vec2 polar;
-flat varying int metadata;
-out int out_id;
+uniform vec2 polarization;
+uniform float metadata;
+uniform float clock_phase;
+out vec4 outColor;
+varying vec2 vUv;
+vec2 uv_pos;
 
 void main() {
-    out_id = metadata >> 16;
+    int metadata_int = int(metadata);
+    out_id = metadata_int >> 16;
 }
 `
 
@@ -104,7 +101,13 @@ export class DrawableCellMaterial extends THREE.ShaderMaterial{
     }
 }
 
-export let PickableCellMaterial = new THREE.ShaderMaterial({
-    vertexShader: commonVertexSrc,
-    fragmentShader: pickableFragmentSrc,
-});
+export class PickableCellMaterial extends THREE.ShaderMaterial{
+    public override vertexShader: string = commonVertexSrc;
+    public override fragmentShader: string = pickableFragmentSrc;
+    public override glslVersion = THREE.GLSL3;
+    public override transparent = false;
+
+    constructor(parameters?: THREE.ShaderMaterialParameters){
+        super(parameters);
+    }
+}
