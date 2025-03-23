@@ -4,7 +4,6 @@
     import Stats from 'stats.js'
 
     import * as THREE from 'three'
-    import {DrawableCellMaterial, PickableCellMaterial} from './CellMaterial';
     import { CellGeometry } from './CellGeometry';
     import { CellIndex, CellType, parseCellIndex, type Cell } from './Cell';
     import { CellScene } from './CellScene';
@@ -18,7 +17,7 @@
     import LayersPanel from "./panels/layers-panel.svelte";
 
     import { Set } from 'typescript-collections'
-    import { Menu, MenuItem } from "@tauri-apps/api/menu";
+    import { Menu } from "@tauri-apps/api/menu";
     import Button from "./components/ui/button/button.svelte";
     import Icon from "@iconify/svelte";
     import InfiniteGrid from "./utils/infinite-grid";
@@ -118,8 +117,6 @@
         unregisterKeyboardShortcuts();
         renderer.dispose();
         ghostGeometry.dispose();
-        DrawableCellMaterial.dispose();
-        PickableCellMaterial.dispose();
     });
 
     function windowResize(){
