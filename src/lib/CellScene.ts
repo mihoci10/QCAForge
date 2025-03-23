@@ -22,13 +22,15 @@ class CellSceneLayer{
         this.pickScene.add(this.cellGeometry.getPickMesh());
     }
 
-    updateGeometry(layer: Layer, selectedCells: Set<CellIndex>): void{
+    update_geometry(layer: Layer, selectedCells: Set<CellIndex>): void{
         const selectedIds: Set<number> = new Set();
         selectedCells.forEach((id) => {
             if (id.getLayer() == this.parent.getIndexOfLayer(this))
                 selectedIds.add(id.getCell())
         });
-        this.cellGeometry.update(layer.cells, selectedIds, layer.cell_architecture)
+
+        this.cellGeometry.update_draw_mesh(layer.cells, selectedIds, layer.cell_architecture)
+        this.cellGeometry.update_pick_mesh(layer.cells, layer.cell_architecture)
     }
 
     getDrawScene(): THREE.Scene{
@@ -86,7 +88,8 @@ export class CellScene{
         for (let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
             if(layer.visible){
-                const pickBuffer = this.renderPickBuffer(layer.getPickScene(), x1, y1, x2, y2);
+                const pickBuffer = this.renderPickBuffer(layer, x1, y1, x2, y2);
+                console.log(pickBuffer);
                 for (let j = 0; j < pickBuffer.length/4; j++) {
                     const id = pickBuffer[j*4];
                     if (id >= 0)
@@ -97,11 +100,9 @@ export class CellScene{
         return selectedCells;
     }
 
-    updateGeometry(){
-        
-    }
+    private renderPickBuffer(layer: CellSceneLayer, x1: number, y1: number, x2: number, y2: number): Int32Array{
+        const scene = layer.getPickScene();
 
-    private renderPickBuffer(scene: THREE.Scene, x1: number, y1: number, x2: number, y2: number): Int32Array{
         const width = Math.max(Math.abs(x2 - x1), 1);
         const height = Math.max(Math.abs(y2 - y1), 1);
         const pickingTexture = new THREE.WebGLRenderTarget( 

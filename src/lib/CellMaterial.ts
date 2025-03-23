@@ -79,8 +79,8 @@ void main() {
 const pickableFragmentSrc = `
 uniform vec2 polarization;
 uniform float metadata;
-uniform float clock_phase;
-out vec4 outColor;
+uniform vec3 color;
+out int out_id;
 varying vec2 vUv;
 vec2 uv_pos;
 

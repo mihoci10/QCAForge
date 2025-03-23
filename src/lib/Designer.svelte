@@ -142,7 +142,7 @@
     }   
 
     function createGhostMesh(){
-        ghostGeometry.update([{
+        ghostGeometry.update_draw_mesh([{
             position: [0, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
@@ -151,7 +151,7 @@
     }
 
     function removeGhostMesh(){
-        ghostGeometry.update([], new Set(), layers[selectedLayer].cell_architecture);
+        ghostGeometry.update_draw_mesh([], new Set(), layers[selectedLayer].cell_architecture);
         globalScene.remove(ghostGeometry.getDrawMesh());
     }
 
@@ -173,7 +173,7 @@
         return new THREE.Vector2(
             (e.x - bounds.left), 
             (e.y - bounds.top)
-        ).multiplyScalar(devicePixelRatio);
+        ).multiplyScalar(devicePixelRatio).round();
     }
 
     function mouseDown(e: MouseEvent){
@@ -289,7 +289,7 @@
     }
 
     function drawCurrentLayer(){
-        cellScene.getLayer(selectedLayer).updateGeometry(layers[selectedLayer], selectedCells);
+        cellScene.getLayer(selectedLayer).update_geometry(layers[selectedLayer], selectedCells);
     }
 
     function screenSpaceToWorld(pos: THREE.Vector2): THREE.Vector3{
@@ -407,7 +407,7 @@
 
     function repositionGhostMesh(mouse_pos: THREE.Vector2){
         const cell_positions = calculate_ghost_positions(mouse_pos);
-        ghostGeometry.update(cell_positions.map((pos) => {
+        ghostGeometry.update_draw_mesh(cell_positions.map((pos) => {
             return {
                 position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
                 rotation: 0,

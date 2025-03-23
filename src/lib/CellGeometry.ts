@@ -14,17 +14,19 @@ export class CellGeometry{
     constructor (ghostMode: boolean){
         this.ghostMode = ghostMode;
 
-        this.drawMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new DrawableCellMaterial());
-        console.log(new THREE.MeshBasicMaterial())
-        this.drawMesh.initUniformsPerInstance({fragment: {
+        this.drawMesh = this.init_intanced_mesh(new THREE.PlaneGeometry(), new DrawableCellMaterial());
+        this.pickMesh = this.init_intanced_mesh(new THREE.PlaneGeometry(), new PickableCellMaterial());
+    }
+
+    private init_intanced_mesh(geometry: THREE.BufferGeometry, shader: THREE.ShaderMaterial): InstancedMesh2{
+        const mesh = new InstancedMesh2(geometry, shader);
+        mesh.initUniformsPerInstance({fragment: {
             polarization: 'vec2',
             metadata: 'float',
             color: 'vec3'
         }});
-        this.drawMesh.frustumCulled = false;
-
-        this.pickMesh = new InstancedMesh2(new THREE.PlaneGeometry(), new PickableCellMaterial());
-        this.pickMesh.matrixAutoUpdate = false;
+        mesh.frustumCulled = false;
+        return mesh;
     }
 
     getDrawMesh(): InstancedMesh2{
@@ -77,7 +79,7 @@ export class CellGeometry{
         }
     }
 
-    update(cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture){
+    private update_instanced_mesh(mesh: InstancedMesh2, cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture){
 
         const init_cell_instance = (instance: InstancedEntity, index: number) => {
             const cell = cells[index];
@@ -98,13 +100,22 @@ export class CellGeometry{
             instance.setUniform('color', cell_color);
         }
         
-        if(cells.length != this.drawMesh.instancesCount){
-            this.drawMesh.clearInstances();
-            this.drawMesh.addInstances(cells.length, init_cell_instance);
-            this.drawMesh.computeBVH();
+        if(cells.length != mesh.instancesCount){
+            mesh.clearInstances();
+            mesh.addInstances(cells.length, init_cell_instance);
         }
         else{
-            this.drawMesh.updateInstances(init_cell_instance);
+            mesh.updateInstances(init_cell_instance);
         }
+
+        mesh.computeBVH();
+    }
+
+    update_draw_mesh(cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture): void{
+        this.update_instanced_mesh(this.drawMesh, cells, selectedCells, architecture);
+    }
+
+    update_pick_mesh(cells: Cell[], architecture: CellArchitecture): void{
+        this.update_instanced_mesh(this.pickMesh, cells, new Set<number>(), architecture);
     }
 }
