@@ -29,6 +29,7 @@
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
     let container: HTMLElement|undefined = $state(); 
+    let selection_rect: HTMLElement|undefined = $state(); 
     let canvas: HTMLCanvasElement|undefined = $state();
 
     let globalScene: THREE.Scene;
@@ -187,7 +188,7 @@
                 }
 
                 if(!mouseDragging)
-                    startSelectRegion(mousePos.x, mousePos.y);
+                    start_cell_select();
             }
         }else if (inputMode == 1){
             if (e.button == 0)
@@ -200,7 +201,7 @@
         
         if (inputMode == 0){
             if (e.button == 0 && !mouseDragging)
-                applySelectRegion(mousePos.x, mousePos.y);
+                end_cell_select(mousePos);
             else if (e.button == 2 && 
                 mouseStartPos && mousePos.x == mouseStartPos!.x && mousePos.y == mouseStartPos!.y){
                 shouldMouseDrag(mousePos.x, mousePos.y);
@@ -215,13 +216,46 @@
         mouseDragging = false;
     }
 
+    function start_cell_select(){
+        selection_rect!.style.display = 'block';
+
+        move_cell_select(mouseStartPos!);
+    }
+
+    function end_cell_select(mouse_pos: THREE.Vector2){
+        selection_rect!.style.display = 'none';
+        applySelectRegion(mouse_pos.x, mouse_pos.y);
+    }
+
+    function move_cell_select(mouse_pos: THREE.Vector2){
+        if (!mouseStartPos)
+            return;
+
+        const start_pos = mouseStartPos.clone().divideScalar(devicePixelRatio);
+        const end_pos = mouse_pos.clone().divideScalar(devicePixelRatio);
+
+        const x = Math.min(start_pos.x, end_pos.x);
+        const y = Math.min(start_pos.y, end_pos.y);
+        const width = Math.abs(start_pos.x - end_pos.x);
+        const height = Math.abs(start_pos.y - end_pos.y);
+
+        selection_rect!.style.left = x + 'px';
+        selection_rect!.style.top = y + 'px';
+        selection_rect!.style.width = width + 'px';
+        selection_rect!.style.height = height + 'px';
+    }
+    
+
     function mouseMove(e: MouseEvent){
         current_mouse_pos = getMouseEventPos(e);
 
         if (inputMode == 0){
-            if (mouseStartPos != undefined && mouseDragging){
-                repositionCells(current_mouse_pos);
+            if (mouseDragging){
+                if (mouseStartPos != undefined)
+                    repositionCells(current_mouse_pos);
             }
+            else
+                move_cell_select(current_mouse_pos);
         }
         else if (inputMode == 1){
             repositionGhostMesh(current_mouse_pos);
@@ -252,9 +286,6 @@
 
     function endMouseDrag(){
         cachedCellsPos = {};
-    }
-
-    function startSelectRegion(mouse_x: number, mouse_y: number){
     }
 
     function getCellOnPos(mouse_x: number, mouse_y: number): CellIndex|undefined{
@@ -570,6 +601,7 @@
                     </Button>
                 </div>
             </div>
+            <div bind:this={selection_rect} class='absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50'></div>
             <canvas bind:this={canvas} class=""></canvas>
         </div>
     </Resizable.Pane>
