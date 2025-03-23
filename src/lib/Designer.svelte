@@ -144,12 +144,12 @@
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
         }], new Set(), layers[selectedLayer].cell_architecture);
-        globalScene.add(ghostGeometry.getDrawMesh());
+        globalScene.add(ghostGeometry.getDrawMesh() as unknown as THREE.Object3D);
     }
 
     function removeGhostMesh(){
         ghostGeometry.update_draw_mesh([], new Set(), layers[selectedLayer].cell_architecture);
-        globalScene.remove(ghostGeometry.getDrawMesh());
+        globalScene.remove(ghostGeometry.getDrawMesh() as unknown as THREE.Object3D);
     }
 
     function shouldMouseDrag(mouse_x: number, mouse_y: number): boolean{

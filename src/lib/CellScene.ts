@@ -18,8 +18,8 @@ class CellSceneLayer{
         this.pickScene = new THREE.Scene();
 
         this.cellGeometry = new CellGeometry(false);
-        this.drawScene.add(this.cellGeometry.getDrawMesh());
-        this.pickScene.add(this.cellGeometry.getPickMesh());
+        this.drawScene.add(this.cellGeometry.getDrawMesh() as unknown as THREE.Object3D);
+        this.pickScene.add(this.cellGeometry.getPickMesh() as unknown as THREE.Object3D);
     }
 
     update_geometry(layer: Layer, selectedCells: Set<CellIndex>): void{
