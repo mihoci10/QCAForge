@@ -8,11 +8,13 @@
 	interface Props {
 		isOpen: boolean;
 		cell_architecture: CellArchitecture;
+		architecture_changed_callback: (cell_architecture: CellArchitecture) => void;
 	}
 
 	let { 
 		isOpen = $bindable(),
-		cell_architecture = $bindable(),
+		cell_architecture,
+		architecture_changed_callback,
 	}: Props = $props();
 
 	function applyCallback(data: any){
@@ -22,7 +24,8 @@
 		let side_length = parseFloat(data.cell_architecture_side_length);
 		let position_radius = parseFloat(data.cell_architecture_position_radius);
 
-		cell_architecture = createCellArchitecture(name, side_length, dot_diameter, dot_count, position_radius);
+		const new_architecture = createCellArchitecture(name, side_length, dot_diameter, dot_count, position_radius, cell_architecture.id);
+		architecture_changed_callback(new_architecture);
 	}
 
 </script>

@@ -3,6 +3,7 @@ import { CellIndex } from './Cell';
 import { CellGeometry } from './CellGeometry';
 import { Set } from 'typescript-collections'
 import { type Layer } from './Layer';
+import type { CellArchitecture } from './CellArchitecture';
 
 class CellSceneLayer{
     public visible: boolean;
@@ -22,15 +23,15 @@ class CellSceneLayer{
         this.pickScene.add(this.cellGeometry.getPickMesh() as unknown as THREE.Object3D);
     }
 
-    update_geometry(layer: Layer, selectedCells: Set<CellIndex>): void{
+    update_geometry(layer: Layer, selectedCells: Set<CellIndex>, cell_architecture: CellArchitecture): void{
         const selectedIds: Set<number> = new Set();
         selectedCells.forEach((id) => {
             if (id.getLayer() == this.parent.getIndexOfLayer(this))
                 selectedIds.add(id.getCell())
         });
 
-        this.cellGeometry.update_draw_mesh(layer.cells, selectedIds, layer.cell_architecture)
-        this.cellGeometry.update_pick_mesh(layer.cells, layer.cell_architecture)
+        this.cellGeometry.update_draw_mesh(layer.cells, selectedIds, cell_architecture)
+        this.cellGeometry.update_pick_mesh(layer.cells, cell_architecture)
     }
 
     getDrawScene(): THREE.Scene{
@@ -89,7 +90,6 @@ export class CellScene{
             const layer = this.layers[i];
             if(layer.visible){
                 const pickBuffer = this.renderPickBuffer(layer, x1, y1, x2, y2);
-                console.log(pickBuffer);
                 for (let j = 0; j < pickBuffer.length/4; j++) {
                     const id = pickBuffer[j*4];
                     if (id >= 0)

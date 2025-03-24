@@ -45,9 +45,9 @@ void main() {
 
     int polarizationCount = 1;
     int metadata_int = int(metadata);
-    
-    bool selected = bool(metadata_int & (1 << 6));
-    bool ghosted = bool(metadata_int & (1 << 5));
+
+    if ((metadata_int & (1 << 6)) != 0)
+        polarizationCount = 2;
 
     float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 

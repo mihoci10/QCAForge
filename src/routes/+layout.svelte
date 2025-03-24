@@ -13,7 +13,7 @@
     import { onMount } from 'svelte';
     import { basename } from '@tauri-apps/api/path';
     import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-    import { DEFAULT_CELL_ARCHITECTURES, getDefaultCellArchitecture } from '$lib/CellArchitecture';
+    import { generate_default_cell_architectures, get_default_cell_architecture_id } from '$lib/CellArchitecture';
     import { generateDotDistribution } from '$lib/Cell';
 
 	let { children } = $props();
@@ -23,14 +23,14 @@
 		createDesign([{
 			name: "Main Layer", 
 			visible: true, 
-			cell_architecture: getDefaultCellArchitecture(), 
+			cell_architecture_id: get_default_cell_architecture_id(), 
 			cells: [
 				{position: [0, 0], typ: 0, clock_phase_shift: 0, dot_probability_distribution: generateDotDistribution([0]), rotation: 0},
 			], 
 			z_position: 0}], 
 			undefined, 
 			new Map(),
-			DEFAULT_CELL_ARCHITECTURES
+			generate_default_cell_architectures()
 		).then((des) => { 
 			design.set(des); 
 		});
@@ -46,10 +46,10 @@
 
 	listen(EVENT_NEW_FILE, () => {
 		createDesign(
-			[{name: "Main Layer", visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0}],
+			[{name: "Main Layer", visible: true, cell_architecture_id: get_default_cell_architecture_id(), cells: [], z_position: 0}],
 			undefined,
 			new Map(),
-			DEFAULT_CELL_ARCHITECTURES
+			generate_default_cell_architectures()
 		).then((d) => {
 			design.set(d);
 		})

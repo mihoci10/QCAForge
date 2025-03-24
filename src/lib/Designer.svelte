@@ -24,6 +24,7 @@
     import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
 
     import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
+    import type { CellArchitecture } from "./CellArchitecture";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -52,8 +53,6 @@
     let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
     let cachedCellsPos: {[id: string]: [pos_x: number, pos_y: number]} = {};
 
-    let sim_models: string[] = [];
-
     let selectedLayer: number = $state(0);
     let cellPropsPanel: CellPropsPanel;
 
@@ -61,9 +60,10 @@
         selected_model_id: string|undefined,
         layers: Layer[];
         simulation_models: Map<string, SimulationModel>;
+        cell_architectures: Map<string, CellArchitecture>;
     }
 
-    let { selected_model_id = $bindable(), layers = $bindable(), simulation_models = $bindable() }: Props = $props();
+    let { selected_model_id = $bindable(), layers = $bindable(), simulation_models = $bindable(), cell_architectures = $bindable() }: Props = $props();
 
     onMount(() => {
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 3000 );
@@ -139,17 +139,21 @@
         statsDrawCall.update(renderer.info.render.calls, 10);
     }   
 
+    function get_current_cell_architecture(){
+        return cell_architectures.get(layers[selectedLayer].cell_architecture_id)!;
+    }
+
     function createGhostMesh(){
         ghostGeometry.update_draw_mesh([{
             position: [0, 0], clock_phase_shift: 0, typ: CellType.Normal,
             rotation: 0,
             dot_probability_distribution: [0, 0, 0, 0]
-        }], new Set(), layers[selectedLayer].cell_architecture);
+        }], new Set(), get_current_cell_architecture());
         globalScene.add(ghostGeometry.getDrawMesh() as unknown as THREE.Object3D);
     }
 
     function removeGhostMesh(){
-        ghostGeometry.update_draw_mesh([], new Set(), layers[selectedLayer].cell_architecture);
+        ghostGeometry.update_draw_mesh([], new Set(), get_current_cell_architecture());
         globalScene.remove(ghostGeometry.getDrawMesh() as unknown as THREE.Object3D);
     }
 
@@ -317,7 +321,7 @@
     }
 
     function drawCurrentLayer(){
-        cellScene.getLayer(selectedLayer).update_geometry(layers[selectedLayer], selectedCells);
+        cellScene.getLayer(selectedLayer).update_geometry(layers[selectedLayer], selectedCells, get_current_cell_architecture());
     }
 
     function screenSpaceToWorld(pos: THREE.Vector2): THREE.Vector3{
@@ -347,11 +351,12 @@
     }
 
     function endCellPlace(mouse_pos: THREE.Vector2){
+        const cell_architecture = get_current_cell_architecture();
         calculate_ghost_positions(mouse_pos).forEach((pos) => {
             layers[selectedLayer].cells.push({
                 position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
                 rotation: 0,
-                dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
+                dot_probability_distribution: new Array(cell_architecture.dot_count).fill(0.0)
             })
         });
         drawCurrentLayer();
@@ -409,7 +414,7 @@
         const orig_world_pos = screenSpaceToWorld(mouseStartPos);
         const adjusted_orig_world_pos = applySnapping(new THREE.Vector2(orig_world_pos.x, orig_world_pos.y));
 
-        const cell_size = layers[selectedLayer].cell_architecture.side_length;
+        const cell_size = get_current_cell_architecture().side_length;
         const offset = new THREE.Vector2();
 
         const diff = world_pos.clone().sub(orig_world_pos);
@@ -435,13 +440,14 @@
 
     function repositionGhostMesh(mouse_pos: THREE.Vector2){
         const cell_positions = calculate_ghost_positions(mouse_pos);
+        const cell_architecture = get_current_cell_architecture();
         ghostGeometry.update_draw_mesh(cell_positions.map((pos) => {
             return {
                 position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
                 rotation: 0,
-                dot_probability_distribution: new Array(layers[selectedLayer].cell_architecture.dot_count).fill(0.0)
+                dot_probability_distribution: new Array(cell_architecture.dot_count).fill(0.0)
             }
-        }), new Set(), layers[selectedLayer].cell_architecture);
+        }), new Set(), cell_architecture);
     }
 
     function inputModeChanged(newInputModeIdx: number){
@@ -572,6 +578,10 @@
     function layerMovedCallback(oldLayerId: number, newLayerId: number){
         cellScene.moveLayer(oldLayerId, newLayerId);
     }
+
+    function layerChangedCallback(layerId: number){
+        cellScene.getLayer(layerId).update_geometry(layers[layerId], selectedCells, cell_architectures.get(layers[layerId].cell_architecture_id)!);
+    }
 </script>
 
 <Resizable.PaneGroup direction="horizontal">
@@ -579,7 +589,7 @@
         <div class='h-full bg-surface-500 overflow-y-auto pr-2'>
             <Accordion.Root type="multiple">
                 <SimSettingsPanel bind:selected_model_id={selected_model_id} {simulation_models}/>
-                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} {layerAddedCallback} {layerRemovedCallback} {layerMovedCallback} />
+                <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} bind:cell_architectures={cell_architectures} {layerAddedCallback} {layerRemovedCallback} {layerMovedCallback} {layerChangedCallback} />
                 <CellPropsPanel bind:layers={layers} {selectedCells} bind:this={cellPropsPanel}/>
             </Accordion.Root>
         </div>

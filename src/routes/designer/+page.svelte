@@ -13,18 +13,19 @@
     import { design, design_filename } from "$lib/globals";
     import { get } from "svelte/store";
     import { type Layer } from "$lib/Layer.js";
-    import { DEFAULT_CELL_ARCHITECTURES, type CellArchitecture } from "$lib/CellArchitecture";
+    import { generate_default_cell_architectures, type CellArchitecture } from "$lib/CellArchitecture";
     import Button from "$lib/components/ui/button/button.svelte";
 
     let selected_model_id: string|undefined = $state();
     let layers: Layer[] = $state([]);
 
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
-    let cell_architectures: CellArchitecture[] = $state([]);
+    let cell_architectures: Map<string, CellArchitecture> = $state(new Map<string, CellArchitecture>());
 
     design.subscribe((cur_design) => {
         layers = cur_design.layers;
         selected_model_id = cur_design.selected_simulation_model_id;
+        cell_architectures = cur_design.cell_architectures;
         cur_design.simulation_model_settings.forEach((val, key, map) => {
             const model = simulation_models.get(key);
             if(model)
@@ -48,8 +49,6 @@
             });
             simulation_models = simulation_models;
         });
-
-        cell_architectures = DEFAULT_CELL_ARCHITECTURES;
         
         const unlistenSave = listen(EVENT_SAVE_FILE, () => {
             new Promise((resolve : (value: string) => void, reject) => {
@@ -120,5 +119,5 @@
             </Button>
         </div>
     </div>
-    <Designer bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models}/>
+    <Designer bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
 </div>

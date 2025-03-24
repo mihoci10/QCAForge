@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { CellIndex, CellType, getPolarization, type Cell } from './Cell';
+import { CellType, getPolarization, type Cell } from './Cell';
 import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
 import { Set } from 'typescript-collections'
 import { type CellArchitecture } from './CellArchitecture';
@@ -42,9 +42,13 @@ export class CellGeometry{
         this.pickMesh.dispose();
     }
 
-    private getCellMetadata(id: number, selected: boolean, ghosted: boolean, cell_type: CellType): number{
+    private getCellMetadata(id: number, cell_dot_count: number): number{
         let result = 0;
         result = id << 16;
+        if (cell_dot_count == 8)
+            result |= (0b1000000);
+        else if (cell_dot_count != 4)
+            throw new Error(`Invalid cell_dot_count: ${cell_dot_count}`);
         return result;
     }
 
@@ -93,7 +97,7 @@ export class CellGeometry{
 
             instance.setUniform('polarization', new THREE.Vector2(polarization[0], polarization[1]));
 
-            const metadata = this.getCellMetadata(index, selectedCells.contains(index), this.ghostMode, cell.typ);
+            const metadata = this.getCellMetadata(index, architecture.dot_count);
             instance.setUniform('metadata', metadata);
 
             const cell_color = this.getCellColor(cell, selectedCells.contains(index));

@@ -1,6 +1,6 @@
 <!-- @migration-task Error while migrating Svelte code: Cannot use `export let` in runes mode — use `$props()` instead -->
 <script lang="ts">
-    import { getDefaultCellArchitecture } from "$lib/CellArchitecture";
+    import { get_default_cell_architecture_id, type CellArchitecture } from "$lib/CellArchitecture";
     import type { Layer } from "$lib/Layer";
     import Icon from "@iconify/svelte";
     import * as Accordion from "$lib/components/ui/accordion";
@@ -11,18 +11,28 @@
     interface Props {
         layers: Layer[];
         selectedLayer: number;
+        cell_architectures: Map<string, CellArchitecture>;
         layerAddedCallback: (layerIndex: number) => void;
         layerRemovedCallback: (layerIndex: number) => void;
         layerMovedCallback: (fromIndex: number, toIndex: number) => void;
+        layerChangedCallback: (layerIndex: number) => void;
     }
 
-    let { layers = $bindable(), selectedLayer = $bindable(), layerAddedCallback, layerMovedCallback, layerRemovedCallback}: Props = $props();
+    let { 
+        layers = $bindable(), 
+        selectedLayer = $bindable(), 
+        cell_architectures = $bindable(), 
+        layerAddedCallback, 
+        layerMovedCallback, 
+        layerRemovedCallback, 
+        layerChangedCallback
+    }: Props = $props();
 
-    let cachedLayer: Layer|undefined = $state();
+    let settings_layer_id: number|undefined = $state();
     let openModal: boolean = $state(false);
     
     function openLayerOptions(layerIdx: number){
-        cachedLayer = layers[layerIdx];
+        settings_layer_id = layerIdx;
         openModal = true;
     }
 
@@ -49,7 +59,7 @@
         const i = selectedLayer;
         const newLayerId = i + 1;
 
-        layers.splice(newLayerId, 0, {name: newLayerName, visible: true, cell_architecture: getDefaultCellArchitecture(), cells: [], z_position: 0})
+        layers.splice(newLayerId, 0, {name: newLayerName, visible: true, cell_architecture_id: get_default_cell_architecture_id(), cells: [], z_position: 0})
         layerAddedCallback(newLayerId);
 
         selectedLayer = newLayerId;
@@ -89,6 +99,12 @@
         selectedLayer--;
         layers = layers;
     }
+
+    $effect(() => {
+        layers, cell_architectures;
+        if (settings_layer_id !== undefined)
+            layerChangedCallback(settings_layer_id);
+    });
 
 </script>
 
@@ -136,6 +152,6 @@
             </div>
             {/each}
         </ScrollArea>
-        <LayerOptions bind:isOpen={openModal} layer={cachedLayer!}/>
+        <LayerOptions bind:isOpen={openModal} bind:layer={layers[settings_layer_id!]} bind:cell_architectures={cell_architectures}/>
     </Accordion.Content>
 </Accordion.Item> 
