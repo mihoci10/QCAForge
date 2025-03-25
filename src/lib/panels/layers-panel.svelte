@@ -100,11 +100,10 @@
         layers = layers;
     }
 
-    $effect(() => {
-        layers, cell_architectures;
+    function applyCallback(){
         if (settings_layer_id !== undefined)
             layerChangedCallback(settings_layer_id);
-    });
+    }
 
 </script>
 
@@ -152,6 +151,6 @@
             </div>
             {/each}
         </ScrollArea>
-        <LayerOptions bind:isOpen={openModal} bind:layer={layers[settings_layer_id!]} bind:cell_architectures={cell_architectures}/>
+        <LayerOptions bind:isOpen={openModal} bind:layer={layers[settings_layer_id!]} bind:cell_architectures={cell_architectures} {applyCallback}/>
     </Accordion.Content>
 </Accordion.Item> 

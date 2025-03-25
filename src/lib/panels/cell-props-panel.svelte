@@ -11,13 +11,15 @@
     let selectedClockMode: string|undefined = $state();
     let selectedCellType: string|undefined = $state();
     let polarizationInput: number[] = $state([]);
+    let positionInput: number[] = $state([]);
 
     interface Props {
         layers: Layer[];
         selectedCells: Set<CellIndex>;
+        propertyChangedCallback: () => void;
     }
 
-    let { layers = $bindable(), selectedCells }: Props = $props();
+    let { layers = $bindable(), selectedCells, propertyChangedCallback }: Props = $props();
 
     function selectedClockModeChanged(newClockMode: string){
         selectedClockMode = newClockMode;
@@ -30,6 +32,7 @@
         selectedCells.forEach((id) => {
             layers[id.getLayer()].cells[id.getCell()].clock_phase_shift = clock_phase_shift;
         });
+        propertyChangedCallback();
     }
 
     function selectedCellTypeChanged(newCellType: string){
@@ -43,6 +46,7 @@
         selectedCells.forEach((id) => {
             layers[id.getLayer()].cells[id.getCell()].typ = cellType as CellType;
         });
+        propertyChangedCallback();
     }
 
     function polarizationInputChanged(){
@@ -52,6 +56,16 @@
         selectedCells.forEach((id) => {
             layers[id.getLayer()].cells[id.getCell()].dot_probability_distribution = generateDotDistribution(polarizationInput);
         });
+        propertyChangedCallback();
+    }
+
+    function positionInputChanged(ind: number){
+        selectedCells.forEach((id) => {
+            if (isNaN(positionInput[ind]))
+                return;
+            layers[id.getLayer()].cells[id.getCell()].position[ind] = positionInput[ind];
+        });
+        propertyChangedCallback();
     }
 
     export function selectedCellsUpdated(){
@@ -59,6 +73,7 @@
         let cellTypes: Set<CellType> = new Set();
         let polarizations : Set<number>[] = [];
         let cellArchitecture: Set<number> = new Set();
+        let cellPositions: [Set<number>, Set<number>] = [new Set(), new Set()];
 
         selectedCells.forEach((id) => {
             const cell = layers[id.getLayer()].cells[id.getCell()];
@@ -71,6 +86,9 @@
                 polarizations.push(new Set<number>)
             for (let i = 0; i < polarization.length; i++)
                 polarizations[i].add(polarization[i]);
+
+            for (let i = 0; i < 2; i++)
+                cellPositions[i].add(cell.position[i]);
         });
         
         if (clockModes.size() > 1)
@@ -91,6 +109,13 @@
                 polarizationInput = polarizations.map((v) => v.toArray()[0]);
             else
                 polarizationInput = new Array(polarizations.length).fill(NaN);
+        }
+
+        for (let i = 0; i < 2; i++){
+            if (cellPositions[i].size() > 1)
+                positionInput[i] = NaN;
+            else
+                positionInput[i] = cellPositions[i].toArray()[0];
         }
     }
 
@@ -158,34 +183,34 @@
                 {#if polarizationInput && polarizationInput.length > 0}
                 <Label>Polarization</Label>
                 {#each polarizationInput as polarization, i}
-                    {#if polarizationInput.length > 1}
-                        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-                            <div class="input-group-shim bg-tertiary">{'ABCDE'.at(i)}</div>
-                            <input class='input' type="number" min="-1" max="1" step="0.1" value={polarization}/>
-                            <Input type='number' min="-1" max="1" step="0.1" bind:value={polarizationInput[i]} onchange={polarizationInputChanged}/>
-                        </div>
-                    {:else}
+                    <div class="flex items-center gap-2">
+                        {#if polarizationInput.length > 1}
+                            <span>{'ABCDE'.at(i)}</span>
+                        {/if}
                         <Input type='number' min="-1" max="1" step="0.1" bind:value={polarizationInput[i]} onchange={polarizationInputChanged}/>
-                    {/if}
+                    </div>
                 {/each}
                 {/if}
             </div> 
             <div class="flex flex-col gap-1.5">
                 <Label>Position</Label>
-                <div class='flex gap-2'>
+                <div class='flex gap-5'>
                     <div class="flex">
-                        <div class='bg-red-500 flex items-center px-2'>X</div>
+                        <div class='bg-red-700 flex items-center px-2'>X</div>
                         <Input 
                             type="number" 
                             step="1"
-
+                            bind:value={positionInput[0]}
+                            onchange={() => positionInputChanged(0)}
                         />
                     </div>
                     <div class="flex">
-                        <div class='bg-green-500 flex items-center px-2'>Y</div>
+                        <div class='bg-green-700 flex items-center px-2'>Y</div>
                         <Input 
                             type="number" 
                             step="1"
+                            bind:value={positionInput[1]}
+                            onchange={() => positionInputChanged(1)}
                         />
                     </div>
                 </div>

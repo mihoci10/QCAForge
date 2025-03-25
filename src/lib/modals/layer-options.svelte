@@ -7,17 +7,20 @@
     import * as Select from '$lib/components/ui/select';
     import { Button } from '$lib/components/ui/button';
     import CellArchitectureOptions from './cell-architecture-options.svelte';
+    import { generateDotDistribution, getPolarization } from '$lib/Cell';
 
 	interface Props {
 		isOpen: boolean;
 		layer: Layer;
 		cell_architectures: Map<string, CellArchitecture>;
+		applyCallback: () => void;
 	}
 
 	let { 
 		isOpen = $bindable(),
 		layer = $bindable(),
 		cell_architectures = $bindable(),
+		applyCallback,
 	}: Props = $props();
 
 	let selected_arch_id: string|undefined = $state();
@@ -64,13 +67,28 @@
 			selected_arch_id = cell_architectures.keys().toArray()[new_index];
 	}
 
-	function apply_callback(data: any){
-		layer.cell_architecture_id = selected_arch_id!;
+	function applyCallbackInternal(data: any){
+		if(!selected_arch_id)
+			return;
+
+		layer.cell_architecture_id = selected_arch_id;
+		
+		const cell_architecture = cell_architectures.get(selected_arch_id)!
+		layer.cells.forEach((cell) => {
+			let polarization = getPolarization(cell);
+			while (polarization.length > cell_architecture.dot_count / 4)
+				polarization.pop();
+			while (polarization.length < cell_architecture.dot_count / 4)
+				polarization.push(0);
+			cell.dot_probability_distribution = generateDotDistribution(polarization);
+		});
+
+		applyCallback();
 	}
 
 </script>
 
-<BaseModal bind:open={isOpen} type='confirm' applyCallback={apply_callback}>
+<BaseModal bind:open={isOpen} type='confirm' applyCallback={applyCallbackInternal}>
 	{#snippet title()}
 		{layer.name} settings
 	{/snippet}

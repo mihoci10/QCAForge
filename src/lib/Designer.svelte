@@ -401,6 +401,7 @@
             layers[id.getLayer()].cells[id.getCell()].position[1] = pos[1] + diff_y;
         }
 
+        selectedCellsUpdated();
         drawCurrentLayer();
     }
 
@@ -580,8 +581,14 @@
     }
 
     function layerChangedCallback(layerId: number){
+        selectedCellsUpdated();
         cellScene.getLayer(layerId).update_geometry(layers[layerId], selectedCells, cell_architectures.get(layers[layerId].cell_architecture_id)!);
     }
+
+    function propertyChangedCallback(){
+        drawCurrentLayer();
+    }
+
 </script>
 
 <Resizable.PaneGroup direction="horizontal">
@@ -590,7 +597,7 @@
             <Accordion.Root type="multiple">
                 <SimSettingsPanel bind:selected_model_id={selected_model_id} {simulation_models}/>
                 <LayersPanel bind:layers={layers} bind:selectedLayer={selectedLayer} bind:cell_architectures={cell_architectures} {layerAddedCallback} {layerRemovedCallback} {layerMovedCallback} {layerChangedCallback} />
-                <CellPropsPanel bind:layers={layers} {selectedCells} bind:this={cellPropsPanel}/>
+                <CellPropsPanel bind:layers={layers} {selectedCells} bind:this={cellPropsPanel} {propertyChangedCallback}/>
             </Accordion.Root>
         </div>
     </Resizable.Pane>
