@@ -49,27 +49,31 @@ void main() {
     if ((metadata_int & (1 << 6)) != 0)
         polarizationCount = 2;
 
+    float polarizationSum = abs(polarization.x) + abs(polarization.y);
+    float polarizationOffset = (1.0 - polarizationSum) / float(2 * polarizationCount);
+
     float mask = HollowRectMask(vec2(0), vec2(1) - (vec2(4) * fragSize), vec2(1), 0.0);
 
     float circleSize = 0.15;
-    float dotSizeMax = 0.10;
+    float dotSizeMax = 0.15;
 
     float rotStep = 3.1415926535897932384626433832795/float(polarizationCount * 2);
     float rotOffset = 3.1415926535897932384626433832795 / 4.0;
 
     for(int i = 0; i < polarizationCount * 2; i++){
-        float offX = cos(rotStep * float(i) + rotOffset) * 0.6;
-        float offY = sin(rotStep * float(i) + rotOffset) * 0.6;
+        float rot = rotStep * float((i/2) + (i%2) * polarizationCount) + rotOffset;
+        float offX = cos(rot) * 0.6;
+        float offY = sin(rot) * 0.6;
         
-        float dotSize = abs(polarization[i % 2] / 2.0 + 0.5) * dotSizeMax;
-        if (i/2 == 1)
-            dotSize = dotSizeMax - dotSize;
+        float dotSize = max(0.0, polarization[i / 2] * (i % 2 == 0 ? 1.0 : -1.0)) + polarizationOffset;
+        dotSize *= dotSizeMax;
+        
         
         mask += HollowCircleMask(vec2(offX, offY), circleSize, circleSize + (length(fragSize)), 0.01);
         mask += HollowCircleMask(vec2(-offX, -offY), circleSize, circleSize + (length(fragSize)), 0.01);
 
-        mask += HollowCircleMask(vec2(offX, offY), 0.0, dotSize + length(fragSize), 0.01);
-        mask += HollowCircleMask(vec2(-offX, -offY), 0.0, dotSize + length(fragSize), 0.01);
+        mask += HollowCircleMask(vec2(offX, offY), 0.0, dotSize, 0.01);
+        mask += HollowCircleMask(vec2(-offX, -offY), 0.0, dotSize, 0.01);
     }
 
     outColor = vec4(mask * color, 1);
