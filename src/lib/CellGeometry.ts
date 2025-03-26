@@ -91,7 +91,7 @@ export class CellGeometry{
             instance.position.set(cell.position[0], cell.position[1], 0);
             instance.scale.set(architecture.side_length, architecture.side_length, 1);
 
-            const polarization = getPolarization(cell);
+            const polarization = getPolarization(cell.dot_probability_distribution);
             if (polarization.length < 2)
                 polarization.push(0);
 

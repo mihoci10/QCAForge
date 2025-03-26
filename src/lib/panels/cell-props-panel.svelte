@@ -79,7 +79,7 @@
             const cell = layers[id.getLayer()].cells[id.getCell()];
             clockModes.add(cell.clock_phase_shift);
             cellTypes.add(cell.typ);
-            const polarization = getPolarization(cell);
+            const polarization = getPolarization(cell.dot_probability_distribution);
             cellArchitecture.add(polarization.length);
 
             while (polarization.length > polarizations.length)

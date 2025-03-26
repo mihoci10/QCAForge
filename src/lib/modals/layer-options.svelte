@@ -75,7 +75,7 @@
 		
 		const cell_architecture = cell_architectures.get(selected_arch_id)!
 		layer.cells.forEach((cell) => {
-			let polarization = getPolarization(cell);
+			let polarization = getPolarization(cell.dot_probability_distribution);
 			while (polarization.length > cell_architecture.dot_count / 4)
 				polarization.pop();
 			while (polarization.length < cell_architecture.dot_count / 4)

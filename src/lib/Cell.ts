@@ -57,8 +57,8 @@ export function deserializeCells(str: string): Cell[]{
     return JSON.parse(str) as Cell[];
 }
 
-export function getPolarization(cell: Cell): number[]{
-    const arr = cell.dot_probability_distribution;
+export function getPolarization(dot_probability_distribution: number[]): number[]{
+    const arr = dot_probability_distribution;
     const sum = arr.reduce((acc, v) => acc + v, 0);
 
     if (sum == 0)
