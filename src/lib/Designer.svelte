@@ -25,6 +25,9 @@
 
     import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
     import type { CellArchitecture } from "./CellArchitecture";
+    import Slider from "./components/ui/slider/slider.svelte";
+    import Input from "./components/ui/input/input.svelte";
+    import DesignerToolbar from "./designer/designer-toolbar.svelte";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -38,12 +41,14 @@
 
     let infinite_grid: InfiniteGrid;
     let ghostGeometry: CellGeometry;
-    let snapDivider: number = 20;
 
     let stats: Stats;
     let statsDrawCall: Stats.Panel;
 
     let inputModeIdx: number = $state(0);
+    let snapEnabled: boolean = $state(true);
+    let snapDivider: number = $state(20);
+    let snapSliderShown: boolean = $state(false);
 
     let mouseStartPos: THREE.Vector2|undefined;
     let current_mouse_pos: THREE.Vector2|undefined;
@@ -363,9 +368,10 @@
     }
 
     function applySnapping(pos: THREE.Vector2){
+        const localSnapDivider = snapEnabled ? snapDivider : 1;
         return new THREE.Vector2(
-            Math.floor((pos.x + snapDivider / 2) / snapDivider) * snapDivider,
-            Math.floor((pos.y + snapDivider / 2) / snapDivider) * snapDivider
+            Math.floor((pos.x + localSnapDivider / 2) / localSnapDivider) * localSnapDivider,
+            Math.floor((pos.y + localSnapDivider / 2) / localSnapDivider) * localSnapDivider
         );
     }
 
@@ -604,20 +610,7 @@
     <Resizable.Handle />
     <Resizable.Pane minSize={10}>
         <div class="relative h-full w-full flex items-stretch" bind:this={container}>
-            <div class="absolute top-2 left-1 z-10 bg-background p-1 rounded-md">
-                <div class='flex flex-col gap-1'>
-                    <Button variant='ghost' size='icon' class='data-[state=on]:bg-accent'
-                    data-state={inputModeIdx === 0 ? "on" : "off"}
-                    onclick={() => inputModeIdx = 0}>
-                        <Icon width={24} icon='material-symbols:arrow-selector-tool' style="margin: auto;"/>
-                    </Button>
-                    <Button variant='ghost' size='icon' class='data-[state=on]:bg-accent'
-                    data-state={inputModeIdx === 1 ? "on" : "off"}
-                    onclick={() => inputModeIdx = 1}>
-                        <Icon width={24} icon='material-symbols:add-box-outline-rounded' style="margin: auto;"/>
-                    </Button>
-                </div>
-            </div>
+            <DesignerToolbar bind:inputModeIdx={inputModeIdx} bind:snapEnabled={snapEnabled} bind:snapDivider={snapDivider}/>            
             <div bind:this={selection_rect} class='absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50'></div>
             <canvas bind:this={canvas} class=""></canvas>
         </div>
