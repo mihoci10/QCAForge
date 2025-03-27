@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+// @ts-ignore
+import { Text } from 'troika-three-text';
 import { CellIndex } from './Cell';
 import { CellGeometry } from './CellGeometry';
 import { Set } from 'typescript-collections'
@@ -11,6 +13,7 @@ class CellSceneLayer{
     private drawScene: THREE.Scene;
     private pickScene: THREE.Scene;
     private cellGeometry: CellGeometry;
+    private labels: Text[] = [];
 
     constructor(parent: CellScene, visible: boolean) {
         this.parent = parent;
@@ -32,6 +35,31 @@ class CellSceneLayer{
 
         this.cellGeometry.update_draw_mesh(layer.cells, selectedIds, cell_architecture)
         this.cellGeometry.update_pick_mesh(layer.cells, cell_architecture)
+
+        const label_data = this.cellGeometry.update_labels(layer.cells, selectedIds, cell_architecture);
+
+        while(this.labels.length < label_data.length){
+            const label = new Text();
+            this.labels.push(label);
+            this.drawScene.add(label);
+        }
+        
+        while(this.labels.length > label_data.length){
+            const label = this.labels.pop();
+            this.drawScene.remove(label);
+        }
+
+        for (let i = 0; i < label_data.length; i++) {
+            const label = this.labels[i];
+            const data = label_data[i];
+            label.anchorX = 'center';
+            label.anchorY = 'middle';
+            label.fontSize = 12;
+            label.text = data.text;
+            label.position.set(data.position.x, data.position.y, 0);
+            label.color = data.color;
+            label.sync();
+        }
     }
 
     getDrawScene(): THREE.Scene{

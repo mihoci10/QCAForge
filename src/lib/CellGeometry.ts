@@ -122,4 +122,17 @@ export class CellGeometry{
     update_pick_mesh(cells: Cell[], architecture: CellArchitecture): void{
         this.update_instanced_mesh(this.pickMesh, cells, new Set<number>(), architecture);
     }
+
+    update_labels(cells: Cell[], selectedCells: Set<number>, architecture: CellArchitecture) {
+        return cells
+        .filter((cell) => [CellType.Input, CellType.Output, CellType.Fixed].includes(cell.typ))
+        .map((cell) => {
+            return {
+                position: new THREE.Vector2(cell.position[0], cell.position[1] + architecture.side_length),
+                text: cell.typ == CellType.Input ? 'I' : cell.typ == CellType.Output ? 'O' : 'F',
+                color: this.getCellColor(cell, selectedCells.contains(cells.indexOf(cell))),
+            }
+        });
+
+    }
 }

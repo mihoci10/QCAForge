@@ -18,15 +18,11 @@
 
     import { Set } from 'typescript-collections'
     import { Menu } from "@tauri-apps/api/menu";
-    import Button from "./components/ui/button/button.svelte";
-    import Icon from "@iconify/svelte";
     import InfiniteGrid from "./utils/infinite-grid";
     import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
 
     import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
     import type { CellArchitecture } from "./CellArchitecture";
-    import Slider from "./components/ui/slider/slider.svelte";
-    import Input from "./components/ui/input/input.svelte";
     import DesignerToolbar from "./designer/designer-toolbar.svelte";
 
     let camera: THREE.PerspectiveCamera;
@@ -48,7 +44,6 @@
     let inputModeIdx: number = $state(0);
     let snapEnabled: boolean = $state(true);
     let snapDivider: number = $state(20);
-    let snapSliderShown: boolean = $state(false);
 
     let mouseStartPos: THREE.Vector2|undefined;
     let current_mouse_pos: THREE.Vector2|undefined;
