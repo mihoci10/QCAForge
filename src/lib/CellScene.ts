@@ -54,7 +54,7 @@ class CellSceneLayer{
             const data = label_data[i];
             label.anchorX = 'center';
             label.anchorY = 'middle';
-            label.fontSize = 12;
+            label.fontSize = cell_architecture.side_length / 4 ;
             label.text = data.text;
             label.position.set(data.position.x, data.position.y, 0);
             label.color = data.color;

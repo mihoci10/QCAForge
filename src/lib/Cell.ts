@@ -104,3 +104,7 @@ export function generateDotDistribution(polarization: number[]): number[]{
 
     throw new Error("Polarization invalid array");
 }
+
+export function polarizationToString(polarization: number[]): string{
+    return polarization.map(v => v.toFixed(2)).join(', ');
+}

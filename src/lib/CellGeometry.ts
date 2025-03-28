@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { CellType, getPolarization, type Cell } from './Cell';
+import { CellType, getPolarization, polarizationToString, type Cell } from './Cell';
 import { DrawableCellMaterial, PickableCellMaterial } from './CellMaterial';
 import { Set } from 'typescript-collections'
 import { type CellArchitecture } from './CellArchitecture';
@@ -127,12 +127,16 @@ export class CellGeometry{
         return cells
         .filter((cell) => [CellType.Input, CellType.Output, CellType.Fixed].includes(cell.typ))
         .map((cell) => {
+            let text = polarizationToString(getPolarization(cell.dot_probability_distribution));
+            if (cell.typ == CellType.Output)
+                text = 'O';
+            else if (cell.typ == CellType.Input)
+                text = 'I';
             return {
-                position: new THREE.Vector2(cell.position[0], cell.position[1] + architecture.side_length),
-                text: cell.typ == CellType.Input ? 'I' : cell.typ == CellType.Output ? 'O' : 'F',
+                position: new THREE.Vector2(cell.position[0], cell.position[1]),
+                text,
                 color: this.getCellColor(cell, selectedCells.contains(cells.indexOf(cell))),
             }
         });
-
     }
 }
