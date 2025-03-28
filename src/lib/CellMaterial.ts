@@ -52,10 +52,8 @@ void main() {
     if ((metadata_int & (1 << 6)) != 0)
         polarizationCount = 2;
 
-    float rotStep = PI / float(polarizationCount * 2);
-
     if ((metadata_int & (1 << 5)) != 0)
-        polarizationRotation = rotStep / 2.0;
+        polarizationRotation = PI / 4.0;
 
     float polarizationSum = abs(polarization.x) + abs(polarization.y);
     float polarizationOffset = (1.0 - polarizationSum) / float(2 * polarizationCount);
@@ -66,6 +64,7 @@ void main() {
     float dotSizeMax = 0.15;
 
     float rotOffset = PI / 4.0 + polarizationRotation;
+    float rotStep = PI / float(polarizationCount * 2);
 
     for(int i = 0; i < polarizationCount * 2; i++){
         float rot = rotStep * float((i/2) + (i%2) * polarizationCount) + rotOffset;
