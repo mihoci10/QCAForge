@@ -42,13 +42,20 @@ export class CellGeometry{
         this.pickMesh.dispose();
     }
 
-    private getCellMetadata(id: number, cell_dot_count: number): number{
+    private getCellMetadata(id: number, cell_dot_count: number, cell_rotation: number): number{
         let result = 0;
         result = id << 16;
+
         if (cell_dot_count == 8)
             result |= (0b1000000);
         else if (cell_dot_count != 4)
             throw new Error(`Invalid cell_dot_count: ${cell_dot_count}`);
+
+        if (cell_rotation % 180 == 90)
+            result |= (0b100000);
+        else if (cell_rotation % 180 != 0)
+            throw new Error(`Invalid cell_rotation: ${cell_rotation}`);
+
         return result;
     }
 
@@ -97,7 +104,7 @@ export class CellGeometry{
 
             instance.setUniform('polarization', new THREE.Vector2(polarization[0], polarization[1]));
 
-            const metadata = this.getCellMetadata(index, architecture.dot_count);
+            const metadata = this.getCellMetadata(index, architecture.dot_count, cell.rotation);
             instance.setUniform('metadata', metadata);
 
             const cell_color = this.getCellColor(cell, selectedCells.contains(index));
