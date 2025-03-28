@@ -135,10 +135,8 @@ export class CellGeometry{
         .filter((cell) => [CellType.Input, CellType.Output, CellType.Fixed].includes(cell.typ))
         .map((cell) => {
             let text = polarizationToString(getPolarization(cell.dot_probability_distribution));
-            if (cell.typ == CellType.Output)
-                text = 'O';
-            else if (cell.typ == CellType.Input)
-                text = 'I';
+            if (cell.typ != CellType.Fixed)
+                text = cell.label? cell.label : '';
             return {
                 position: new THREE.Vector2(cell.position[0], cell.position[1]),
                 text,

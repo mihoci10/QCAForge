@@ -12,6 +12,7 @@
     let selectedCellType: string|undefined = $state();
     let selectedCellRotation: string|undefined = $state();
     let polarizationInput: number[] = $state([]);
+    let labelInput: string|undefined = $state();
     let positionInput: number[] = $state([]);
 
     interface Props {
@@ -74,6 +75,19 @@
         propertyChangedCallback();
     }
 
+    function labelInputChanged(){
+        if (!labelInput)
+            return;
+
+        if (labelInput.length == 0)
+            labelInput = undefined;
+
+        selectedCells.forEach((id) => {
+            layers[id.getLayer()].cells[id.getCell()].label = labelInput;
+        });
+        propertyChangedCallback();
+    }
+
     function positionInputChanged(ind: number){
         selectedCells.forEach((id) => {
             if (isNaN(positionInput[ind]))
@@ -90,6 +104,7 @@
         let polarizations : Set<number>[] = [];
         let cellArchitecture: Set<number> = new Set();
         let cellPositions: [Set<number>, Set<number>] = [new Set(), new Set()];
+        let cellLabels: Set<string|undefined> = new Set();
 
         selectedCells.forEach((id) => {
             const cell = layers[id.getLayer()].cells[id.getCell()];
@@ -98,6 +113,7 @@
             cellRotation.add(cell.rotation);
             const polarization = getPolarization(cell.dot_probability_distribution);
             cellArchitecture.add(polarization.length);
+            cellLabels.add(cell.label);
 
             while (polarization.length > polarizations.length)
                 polarizations.push(new Set<number>)
@@ -132,6 +148,11 @@
             else
                 polarizationInput = new Array(polarizations.length).fill(NaN);
         }
+
+        if (cellLabels.size() == 1)
+            labelInput = cellLabels.toArray()[0];
+        else
+            labelInput = undefined;
 
         for (let i = 0; i < 2; i++){
             if (cellPositions[i].size() > 1)
@@ -182,7 +203,10 @@
         <div class="flex flex-col gap-2 px-1">
             <div class="flex flex-col gap-1.5">
                 <Label>Clock phase shift</Label>
-                <Select.Root bind:value={selectedClockMode} onValueChange={selectedClockModeChanged} type="single">
+                <Select.Root 
+                    bind:value={selectedClockMode} onValueChange={selectedClockModeChanged} 
+                    type="single"
+                    disabled={(!selectedCellType) || !['0', '2'].includes(selectedCellType)}>
                     <Select.Trigger>
                         {selected_clock_display}
                     </Select.Trigger>
@@ -196,7 +220,9 @@
             </div>
             <div class="flex flex-col gap-1.5">
                 <Label>Cell type</Label>
-                <Select.Root bind:value={selectedCellType} onValueChange={selectedCellTypeChanged} type="single">
+                <Select.Root 
+                    bind:value={selectedCellType} onValueChange={selectedCellTypeChanged} 
+                    type="single">
                     <Select.Trigger>
                         {selected_type_display}
                     </Select.Trigger>
@@ -211,7 +237,9 @@
             {#if polarizationInput && polarizationInput.length == 1}
                 <div class="flex flex-col gap-1.5">
                     <Label>Cell rotation</Label>
-                    <Select.Root bind:value={selectedCellRotation} onValueChange={selectedCellRotationChanged} type="single">
+                    <Select.Root 
+                        bind:value={selectedCellRotation} onValueChange={selectedCellRotationChanged}
+                        type="single">
                         <Select.Trigger>
                             {selected_rotation_display}
                         </Select.Trigger>
@@ -230,10 +258,22 @@
                         {#if polarizationInput.length > 1}
                             <span>{'ABCDE'.at(i)}</span>
                         {/if}
-                        <Input type='number' min="-1" max="1" step="0.1" bind:value={polarizationInput[i]} onchange={polarizationInputChanged}/>
+                        <Input 
+                            type='number' min="-1" max="1" step="0.1" 
+                            bind:value={polarizationInput[i]} onchange={polarizationInputChanged}
+                            disabled={(!selectedCellType) || !['3'].includes(selectedCellType)}/>
                     </div>
                 {/each}
                 {/if}
+            </div> 
+            <div class="flex flex-col gap-1.5">
+                <Label>Cell label</Label>
+                <Input 
+                    type='text'
+                    bind:value={labelInput} onchange={labelInputChanged}
+                    placeholder= "Label"
+                    disabled={(!selectedCellType) || !['1', '2'].includes(selectedCellType)}
+                    />
             </div> 
             <div class="flex flex-col gap-1.5">
                 <Label>Position</Label>

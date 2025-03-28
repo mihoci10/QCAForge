@@ -40,6 +40,7 @@ export interface Cell{
     typ: CellType,
     clock_phase_shift: number, 
     dot_probability_distribution: number[],
+    label?: string,
 }
 
 export function serializeCell(cell: Cell): string{
