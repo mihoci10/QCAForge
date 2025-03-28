@@ -146,10 +146,14 @@
     }
 
     function createGhostMesh(){
+        const cell_template = cellPropsPanel.getCellProps();
         ghostGeometry.update_draw_mesh([{
-            position: [0, 0], clock_phase_shift: 0, typ: CellType.Normal,
-            rotation: 0,
-            dot_probability_distribution: [0, 0, 0, 0]
+            position: [0, 0], 
+            clock_phase_shift: cell_template.clock_phase_shift, 
+            typ: cell_template.typ,
+            rotation: cell_template.rotation,
+            dot_probability_distribution: cell_template.dot_probability_distribution,
+            label: cell_template.label,
         }], new Set(), get_current_cell_architecture());
         globalScene.add(ghostGeometry.getDrawMesh() as unknown as THREE.Object3D);
     }
@@ -353,12 +357,15 @@
     }
 
     function endCellPlace(mouse_pos: THREE.Vector2){
-        const cell_architecture = get_current_cell_architecture();
+        const cell_template = cellPropsPanel.getCellProps();
         calculate_ghost_positions(mouse_pos).forEach((pos) => {
             layers[selectedLayer].cells.push({
-                position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
-                rotation: 0,
-                dot_probability_distribution: new Array(cell_architecture.dot_count).fill(0.0)
+                position: [pos.x, pos.y], 
+                clock_phase_shift: cell_template.clock_phase_shift, 
+                typ: cell_template.typ,
+                rotation: cell_template.rotation,
+                dot_probability_distribution: cell_template.dot_probability_distribution,
+                label: cell_template.label,
             })
         });
         drawCurrentLayer();
@@ -445,11 +452,15 @@
     function repositionGhostMesh(mouse_pos: THREE.Vector2){
         const cell_positions = calculate_ghost_positions(mouse_pos);
         const cell_architecture = get_current_cell_architecture();
+        const cell_template = cellPropsPanel.getCellProps();
         ghostGeometry.update_draw_mesh(cell_positions.map((pos) => {
             return {
-                position: [pos.x, pos.y], clock_phase_shift: 0, typ: CellType.Normal,
-                rotation: 0,
-                dot_probability_distribution: new Array(cell_architecture.dot_count).fill(0.0)
+                position: [pos.x, pos.y], 
+                clock_phase_shift: cell_template.clock_phase_shift, 
+                typ: cell_template.typ,
+                rotation: cell_template.rotation,
+                dot_probability_distribution: cell_template.dot_probability_distribution,
+                label: cell_template.label,
             }
         }), new Set(), cell_architecture);
     }

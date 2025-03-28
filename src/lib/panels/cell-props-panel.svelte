@@ -11,7 +11,7 @@
     let selectedClockMode: string|undefined = $state();
     let selectedCellType: string|undefined = $state();
     let selectedCellRotation: string|undefined = $state();
-    let polarizationInput: number[] = $state([]);
+    let polarizationInput: number[] = $state([0.0]);
     let labelInput: string|undefined = $state();
     let positionInput: number[] = $state([]);
 
@@ -139,26 +139,37 @@
         else if (cellRotation.size() == 1)
             selectedCellRotation = (cellRotation.toArray()[0]).toString();
         
-        if (cellArchitecture.size() > 1)
-            polarizationInput = [NaN];
-        else {
+        if (cellArchitecture.size() == 1){
             let equalCheck = polarizations.reduce((acc, v) => acc && (v.size() == 1), true)
             if (equalCheck)
                 polarizationInput = polarizations.map((v) => v.toArray()[0]);
             else
                 polarizationInput = new Array(polarizations.length).fill(NaN);
         }
+        else if (cellArchitecture.size() > 1)
+            polarizationInput = [NaN];
 
         if (cellLabels.size() == 1)
             labelInput = cellLabels.toArray()[0];
-        else
-            labelInput = undefined;
+        else if (cellLabels.size() > 1)
+            labelInput = 'multiple';
 
         for (let i = 0; i < 2; i++){
             if (cellPositions[i].size() > 1)
                 positionInput[i] = NaN;
             else
                 positionInput[i] = cellPositions[i].toArray()[0];
+        }
+    }
+
+    export function getCellProps(): Cell{
+        return{
+            clock_phase_shift: parseInt(selectedClockMode || '0'),
+            typ: parseInt(selectedCellType || '0') as CellType,
+            rotation: parseInt(selectedCellRotation || '0'),
+            dot_probability_distribution: generateDotDistribution(polarizationInput),
+            label: labelInput,
+            position: positionInput.map((v) => Math.round(v)) as [number, number],
         }
     }
 
