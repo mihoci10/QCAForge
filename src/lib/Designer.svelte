@@ -99,6 +99,8 @@
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = false;
+        controls.minDistance = 10;
+        controls.maxDistance = 1000;
 
         infinite_grid = new InfiniteGrid(20, 100, new THREE.Color('white'), 8000, 'xyz');
 
