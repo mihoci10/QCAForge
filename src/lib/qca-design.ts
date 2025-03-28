@@ -14,12 +14,14 @@ export interface QCADesign{
 export function serializeDesign(design: QCADesign): string{
     const obj: any = {...design};
     obj.simulation_model_settings = Object.fromEntries(obj.simulation_model_settings);
+    obj.cell_architectures = Object.fromEntries(obj.cell_architectures);
     return JSON.stringify(obj, null, 2)
 }
 
 export function deserializeDesign(str: string): QCADesign{
     const obj = JSON.parse(str);
     obj.simulation_model_settings = new Map(Object.entries(obj.simulation_model_settings))
+    obj.cell_architectures = new Map(Object.entries(obj.cell_architectures));
     return obj as QCADesign
 }
 

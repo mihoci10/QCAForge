@@ -1,11 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{f64::consts::PI, fs::File, io::Write};
+use std::{fs::File, io::Write};
 
 use qca_core::sim::{
-    full_basis::FullBasisModel, run_simulation, settings::OptionsList, QCACell,
-    QCACellArchitecture, QCALayer, SimulationModelTrait,
+    full_basis::FullBasisModel, run_simulation, settings::OptionsList, QCALayer,
+    SimulationModelTrait,
 };
 use serde::Serialize;
 use tauri::{Emitter, Manager};
@@ -26,19 +26,26 @@ struct SimulationModelDescriptor {
     model_settings: String,
 }
 
+mod window_menu;
+use window_menu::create_menu_bar;
+
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .on_menu_event(|app, event| {
             let _ = app.emit(event.id().0.as_str(), {});
         })
         .setup(|app| {
-            let window = app
+            let _ = app
                 .handle()
                 .get_webview_window("main")
                 .unwrap()
                 .set_shadow(true);
+            let menu = create_menu_bar(app);
+            let _ = app.set_menu(menu);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

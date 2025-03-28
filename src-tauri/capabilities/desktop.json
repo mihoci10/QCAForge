@@ -17,6 +17,10 @@
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "global-shortcut:allow-is-registered",
-    "clipboard-manager:default"
+    "clipboard-manager:default",
+    "dialog:default",
+    "fs:default",
+    "fs:write-all",
+    "fs:read-all"
   ]
 }

@@ -1,30 +1,44 @@
-use tauri::menu::{Menu, MenuItem, Submenu};
+use tauri::{
+    menu::{Menu, MenuBuilder, MenuItemBuilder, SubmenuBuilder},
+    App, Wry,
+};
 
-pub fn create_menu_bar(app: &Manager) -> Menu {
-    let file_new_file = 
-        MenuItem::with_id(manager, "newFile", "New file", true, "CmdOrCtrl+n")
+pub fn create_menu_bar(app: &mut App) -> Menu<Wry> {
+    let file_new_design = MenuItemBuilder::new("New file")
+        .id("newFile")
+        .accelerator("CmdOrCtrl+N")
+        .build(app)
+        .unwrap();
+    let file_open_design = MenuItemBuilder::new("Open design")
+        .id("openDesign")
+        .accelerator("CmdOrCtrl+O")
+        .build(app)
+        .unwrap();
+    let file_open_simulation = MenuItemBuilder::new("Open simulation")
+        .id("openSimulation")
+        .build(app)
+        .unwrap();
+    let file_save_file = MenuItemBuilder::new("Save")
+        .id("saveFile")
+        .accelerator("CmdOrCtrl+S")
+        .build(app)
+        .unwrap();
+    let file_save_file_as = MenuItemBuilder::new("Save as")
+        .id("saveFileAs")
+        .accelerator("CmdOrCtrl+Shift+S")
+        .build(app)
+        .unwrap();
 
-    let file_open_design = 
-        CustomMenuItem::new(("openDesign").to_string(), "Open design".to_string())
-        .accelerator("CmdOrCtrl+o");
-    let file_open_simulation = 
-        CustomMenuItem::new(("openSimulation").to_string(), "Open simulation".to_string());
-    let file_save = 
-        CustomMenuItem::new(("saveFile").to_string(), "Save".to_string())
-        .accelerator("CmdOrCtrl+s");
-    let file_save_as = 
-        CustomMenuItem::new(("saveFileAs").to_string(), "Save as".to_string())
-        .accelerator("CmdOrCtrl+Shift+s");
+    let file_menu = SubmenuBuilder::new(app, "File")
+        .items(&[
+            &file_new_design,
+            &file_open_design,
+            &file_open_simulation,
+            &file_save_file,
+            &file_save_file_as,
+        ])
+        .build()
+        .unwrap();
 
-    let file = Submenu::new(("File").to_string(),
-        Menu::new()
-            .add_item(file_new_file)
-            .add_item(file_open_design)
-            .add_item(file_open_simulation)
-            .add_item(file_save)
-            .add_item(file_save_as)
-    );
-
-    Menu::new()
-        .add_submenu(file)
+    MenuBuilder::new(app).items(&[&file_menu]).build().unwrap()
 }
