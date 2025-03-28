@@ -10,6 +10,7 @@
 
     let selectedClockMode: string|undefined = $state();
     let selectedCellType: string|undefined = $state();
+    let selectedCellRotation: string|undefined = $state();
     let polarizationInput: number[] = $state([]);
     let positionInput: number[] = $state([]);
 
@@ -49,6 +50,20 @@
         propertyChangedCallback();
     }
 
+    function selectedCellRotationChanged(newCellRotation: string){
+        selectedCellRotation = newCellRotation;
+
+        if (isNaN(+selectedCellRotation))
+            return;
+
+        const rotation = parseInt(selectedCellRotation);
+
+        selectedCells.forEach((id) => {
+            layers[id.getLayer()].cells[id.getCell()].rotation = rotation;
+        });
+        propertyChangedCallback();
+    }
+
     function polarizationInputChanged(){
         if (polarizationInput.reduce((acc, v) => acc || isNaN(v), false))
             return;
@@ -71,6 +86,7 @@
     export function selectedCellsUpdated(){
         let clockModes: Set<number> = new Set();
         let cellTypes: Set<CellType> = new Set();
+        let cellRotation: Set<number> = new Set();
         let polarizations : Set<number>[] = [];
         let cellArchitecture: Set<number> = new Set();
         let cellPositions: [Set<number>, Set<number>] = [new Set(), new Set()];
@@ -79,6 +95,7 @@
             const cell = layers[id.getLayer()].cells[id.getCell()];
             clockModes.add(cell.clock_phase_shift);
             cellTypes.add(cell.typ);
+            cellRotation.add(cell.rotation);
             const polarization = getPolarization(cell.dot_probability_distribution);
             cellArchitecture.add(polarization.length);
 
@@ -100,6 +117,11 @@
             selectedCellType = 'multiple';
         else if (cellTypes.size() == 1)
             selectedCellType = (cellTypes.toArray()[0]).toString();
+
+        if (cellRotation.size() > 1)
+            selectedCellRotation = 'multiple';
+        else if (cellRotation.size() == 1)
+            selectedCellRotation = (cellRotation.toArray()[0]).toString();
         
         if (cellArchitecture.size() > 1)
             polarizationInput = [NaN];
@@ -137,6 +159,13 @@
             case '3': return 'Fixed';
             case 'multiple': return 'Multiple';
             default: return 'Select type';
+        }
+    })());
+    const selected_rotation_display = $derived((() => {
+        switch(selectedCellRotation){
+            case '0': return '0 degrees';
+            case '90': return '90 degrees';
+            default: return 'Select rotation';
         }
     })());
 
@@ -179,6 +208,20 @@
                     </Select.Content>
                 </Select.Root>
             </div>
+            {#if polarizationInput && polarizationInput.length == 1}
+                <div class="flex flex-col gap-1.5">
+                    <Label>Cell rotation</Label>
+                    <Select.Root bind:value={selectedCellRotation} onValueChange={selectedCellRotationChanged} type="single">
+                        <Select.Trigger>
+                            {selected_rotation_display}
+                        </Select.Trigger>
+                        <Select.Content>
+                            <Select.Item value="0" label='0 degrees'/>
+                            <Select.Item value="90" label='90 degrees'/>
+                        </Select.Content>
+                    </Select.Root>
+                </div>
+            {/if}
             <div class="flex flex-col gap-1.5">
                 {#if polarizationInput && polarizationInput.length > 0}
                 <Label>Polarization</Label>

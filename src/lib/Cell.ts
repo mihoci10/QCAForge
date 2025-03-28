@@ -106,5 +106,5 @@ export function generateDotDistribution(polarization: number[]): number[]{
 }
 
 export function polarizationToString(polarization: number[]): string{
-    return polarization.map(v => v.toFixed(2)).join(', ');
+    return polarization.map(v => v.toFixed(2)).join('\n');
 }
