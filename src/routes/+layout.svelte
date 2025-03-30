@@ -15,6 +15,8 @@
     import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
     import { generate_default_cell_architectures, get_default_cell_architecture_id } from '$lib/CellArchitecture';
     import { generateDotDistribution } from '$lib/Cell';
+    import { Button } from '$lib/components/ui/button';
+    import Icon from '@iconify/svelte';
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow()
@@ -79,8 +81,28 @@
 
 <Toaster/>
 
-<div class="flex flex-col h-full">
-	<div class="flex h-full overflow-auto">	
+<div class="flex flex-row h-full">
+	<div class='flex flex-col h-full bg-sidebar gap-1'>
+		<Button 
+			variant='ghost' size='icon' 
+			class='data-[state=on]:bg-sidebar-ring'
+			href="/designer"
+			data-state={page.url.pathname.startsWith('/designer') ? "on" : "off"}>
+            <Icon width={32} icon='material-symbols:design-services-outline'/>
+        </Button>
+		<Button 
+			variant='ghost' size='icon' 
+			class='data-[state=on]:bg-sidebar-ring'
+			href="/analyze"
+			data-state={page.url.pathname.startsWith('/analyze') ? "on" : "off"}>
+            <Icon width={32} icon='material-symbols:search-insights-rounded'/>
+        </Button>
+		<div class='grow'></div>
+		<Button variant='ghost' size='icon'>
+            <Icon width={24} icon='material-symbols:settings'/>
+        </Button>
+	</div>
+	<div class="flex h-full w-full overflow-auto">	
 		{@render children()}
 	</div>
 </div>
