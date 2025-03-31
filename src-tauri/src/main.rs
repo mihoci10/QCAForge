@@ -105,7 +105,7 @@ fn run_sim_model(
 ) -> Result<String, String> {
     let layers_obj: Result<Vec<QCALayer>, serde_json::Error> = serde_json::from_str(&layers);
     let architectures_map = serde_json::from_str::<HashMap<String, QCACellArchitecture>>(&architectures).unwrap();
-
+    
     match &mut create_sim_model(sim_model_id) {
         Some(model) => match layers_obj {
             Ok(layers) => match model.set_serialized_settings(&sim_model_settings) {

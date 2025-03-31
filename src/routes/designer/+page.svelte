@@ -100,7 +100,7 @@
         if (!simulation_models.has(selected_model_id!))
             console.error('invalid simulation model!');
 
-        startSimulation(layers, simulation_models.get(selected_model_id!)!)
+        startSimulation(layers, simulation_models.get(selected_model_id!)!, cell_architectures)
             .then((res) => {
                 toast.success('Simulation finished successfully.');
             })
