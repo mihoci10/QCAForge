@@ -167,7 +167,7 @@
             clock_phase_shift: parseInt(selectedClockMode || '0'),
             typ: parseInt(selectedCellType || '0') as CellType,
             rotation: parseInt(selectedCellRotation || '0'),
-            dot_probability_distribution: generateDotDistribution(polarizationInput),
+            dot_probability_distribution: generateDotDistribution(polarizationInput.map((v) => isNaN(v) ? 0 : v)),
             label: labelInput,
             position: positionInput.map((v) => Math.round(v)) as [number, number],
         }

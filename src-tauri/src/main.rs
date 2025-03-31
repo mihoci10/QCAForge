@@ -1,11 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{fs::File, io::Write};
+use std::{collections::HashMap, fs::File, io::Write};
 
 use qca_core::sim::{
-    full_basis::FullBasisModel, run_simulation, settings::OptionsList, QCALayer,
-    SimulationModelTrait,
+    architecture::QCACellArchitecture, full_basis::FullBasisModel, layer::QCALayer, model::SimulationModelTrait, run_simulation, settings::OptionsList
 };
 use serde::Serialize;
 use tauri::{Emitter, Manager};
@@ -101,16 +100,18 @@ fn get_sim_model_default_options(sim_model_id: String) -> Result<String, String>
 fn run_sim_model(
     sim_model_id: String,
     layers: String,
+    architectures: String,
     sim_model_settings: String,
 ) -> Result<String, String> {
     let layers_obj: Result<Vec<QCALayer>, serde_json::Error> = serde_json::from_str(&layers);
+    let architectures_map = serde_json::from_str::<HashMap<String, QCACellArchitecture>>(&architectures).unwrap();
 
     match &mut create_sim_model(sim_model_id) {
         Some(model) => match layers_obj {
             Ok(layers) => match model.set_serialized_settings(&sim_model_settings) {
                 Ok(()) => {
                     let file = Box::new(File::create("output.bin").unwrap()) as Box<dyn Write>;
-                    run_simulation(model, layers, Some(file));
+                    run_simulation(model, layers, architectures_map, Some(file));
                     Ok("".into())
                 }
                 Err(err) => Err(format!("Parsing settings error: {}", err.to_string())),
