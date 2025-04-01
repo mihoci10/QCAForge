@@ -20,10 +20,10 @@
     import { Menu } from "@tauri-apps/api/menu";
     import InfiniteGrid from "./utils/infinite-grid";
     import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
-
-    import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
+    
     import type { CellArchitecture } from "./CellArchitecture";
     import DesignerToolbar from "./designer/designer-toolbar.svelte";
+    import { HotkeyHandler } from "./utils/hotkey-handler";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
@@ -49,6 +49,7 @@
     let current_mouse_pos: THREE.Vector2|undefined;
     let multiselect: boolean = false;
     let mouseDragging: boolean = false;
+    let hotkeyHandler: HotkeyHandler;
 
     let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
     let cachedCellsPos: {[id: string]: [pos_x: number, pos_y: number]} = {};
@@ -555,19 +556,21 @@
     }
 
     function registerKeyboardShortcuts(){
-        register('CommandOrControl+C', (event) => {
-            if (event.state == 'Pressed')
+        hotkeyHandler = new HotkeyHandler(canvas!, [{
+            shortcut: 'CommandOrControl+C',
+            callback: () => {
                 saveCellsToClipboard(selectedCells);
-        });
-        register('CommandOrControl+V', (event) => {
-            if (event.state == 'Pressed')
+            },
+        }, {
+            shortcut: 'CommandOrControl+V',
+            callback: () => {
                 pasteCellsFromClipboard();
-        });
+            }
+        }]);
     }
 
     function unregisterKeyboardShortcuts(){
-        unregister('CommandOrControl+C');
-        unregister('CommandOrControl+V');
+        hotkeyHandler.dispose();
     }
     
     let inputMode = $derived(inputModeChanged(inputModeIdx));
@@ -620,7 +623,7 @@
         <div class="relative h-full w-full flex items-stretch" bind:this={container}>
             <DesignerToolbar bind:inputModeIdx={inputModeIdx} bind:snapEnabled={snapEnabled} bind:snapDivider={snapDivider}/>            
             <div bind:this={selection_rect} class='absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50'></div>
-            <canvas bind:this={canvas} class=""></canvas>
+            <canvas tabindex="0" bind:this={canvas} class=""></canvas>
         </div>
     </Resizable.Pane>
 </Resizable.PaneGroup>
