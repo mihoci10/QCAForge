@@ -110,7 +110,7 @@ fn run_sim_model(
         Some(model) => match layers_obj {
             Ok(layers) => match model.set_serialized_settings(&sim_model_settings) {
                 Ok(()) => {
-                    let file = Box::new(File::create("output.bin").unwrap()) as Box<dyn Write>;
+                    let file = Box::new(File::create("output.qcs").unwrap()) as Box<dyn Write>;
                     run_simulation(model, layers, architectures_map, Some(file));
                     Ok("".into())
                 }
