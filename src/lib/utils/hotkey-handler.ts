@@ -55,14 +55,13 @@ export class HotkeyHandler{
       console.error(`Invalid key: ${shortcutString}. Only single character keys are allowed.`);
 
     const isCmdOrCtrl = parts.includes('cmdorctrl') || parts.includes('commandorctrl') || parts.includes('cmdorcontrol') || parts.includes('commandorcontrol');
-    const ctrlOverride = (isCmdOrCtrl && isMac());
     
     return {
       key: key,
-      ctrl: parts.includes('control') || parts.includes('ctrl'),
+      ctrl: parts.includes('control') || parts.includes('ctrl') || (isCmdOrCtrl && !isMac()),
       alt: parts.includes('alt'),
       shift: parts.includes('shift'),
-      meta: parts.includes('meta') || parts.includes('cmd') || parts.includes('command') || ctrlOverride,
+      meta: parts.includes('meta') || parts.includes('cmd') || parts.includes('command') || (isCmdOrCtrl && isMac()),
     };
   }
   
