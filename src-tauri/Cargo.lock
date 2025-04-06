@@ -2836,7 +2836,7 @@ dependencies = [
 [[package]]
 name = "qca-core"
 version = "0.1.0"
-source = "git+https://github.com/mihoci10/QCASim.git#c2e076df89e35a7250703c62c657c6739fb21cc6"
+source = "git+https://github.com/mihoci10/QCASim.git#92b5f367f71867fcb4f15790e9b0ac131392e15a"
 dependencies = [
  "nalgebra",
  "semver",
@@ -2844,6 +2844,7 @@ dependencies = [
  "serde-inline-default",
  "serde_json",
  "serde_repr",
+ "tokio",
 ]
 
 [[package]]
