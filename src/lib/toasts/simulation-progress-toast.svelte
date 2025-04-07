@@ -7,18 +7,19 @@
 
     const unlisten = listen<number>(EVENT_SIMULATION_PROGRESS, (event) => {
         progress = event.payload;
+        progress = Math.round((progress + Number.EPSILON) * 100) / 100
     });
 
 </script>
 
-<div class="flex flex-row w-full gap-1">
+<div class="flex flex-row gap-1 w-80">
     {#if !isNaN(progress)}
-        <div>
+        <div class='w-full'>
             Simulation progress: {progress}%
-            <Progress value={progress}/>
+            <Progress value={progress} class='w-full'/>
         </div>
 		<div class='grow'></div>
-        <Button>Cancel</Button>
+        <Button disabled={isNaN(progress)} variant='destructive'>Cancel</Button>
     {:else}
         Simulation is starting...
     {/if}
