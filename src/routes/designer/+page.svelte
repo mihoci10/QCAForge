@@ -106,11 +106,11 @@
 
         startSimulation(layers, simulation_models.get(selected_model_id!)!, cell_architectures)
             .then((res) => {
-                toast.success('Simulation finished successfully.', {id: simulation_toast, duration: 5000});
+                toast.success('Simulation finished successfully.', {id: simulation_toast, duration: 5000, action: undefined});
             })
             .catch((err) => {
                 console.error(err);
-                toast.error('Simulation finished successfully.', {id: simulation_toast, duration: 5000});
+                toast.error('Simulation finished successfully.', {id: simulation_toast, duration: 5000, action: undefined});
             })
     }
 </script>

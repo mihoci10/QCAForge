@@ -6,7 +6,8 @@
     let progress = $state(NaN);
     let remaining_time = $state(NaN);
 
-    const averaging_window = 25; // seconds
+    const averaging_window = 100;
+    const averaging_window_min = 10;
     let progress_history: number[];
     let time_history: number[];
 
@@ -20,7 +21,7 @@
 
             progress_history.push(progress);
             time_history.push(Date.now());
-            if (progress_history.length < averaging_window)
+            if (progress_history.length < averaging_window_min)
                 return;
 
             if (progress_history.length > averaging_window) {
@@ -47,13 +48,15 @@
     <div>
         Simulation progress: {progress}%
     </div>
-    <div>
+    <div class='text-sm text-gray-500'>
         Time remaining: 
-        {#if !isNaN(remaining_time)}
-            {Math.round(remaining_time / 1000)} seconds
-        {:else}
-            Estimating...
-        {/if}
+        <span class='font-bold'>
+            {#if !isNaN(remaining_time)}
+                {Math.round(remaining_time / 1000)} seconds
+            {:else}
+                Estimating...
+            {/if}
+        </span>
     </div>
     {:else}
         Simulation is starting...
