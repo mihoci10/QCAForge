@@ -1,25 +1,60 @@
 <script lang="ts">
-    import { Button } from "$lib/components/ui/button";
-    import { Progress } from "$lib/components/ui/progress";
     import { EVENT_SIMULATION_PROGRESS } from "$lib/utils/events";
     import { listen } from "@tauri-apps/api/event";
-    let progress = $state(NaN);
+    import { onMount } from "svelte";
 
-    const unlisten = listen<number>(EVENT_SIMULATION_PROGRESS, (event) => {
-        progress = event.payload;
-        progress = Math.round((progress + Number.EPSILON) * 100) / 100
+    let progress = $state(NaN);
+    let remaining_time = $state(NaN);
+
+    const averaging_window = 25; // seconds
+    let progress_history: number[];
+    let time_history: number[];
+
+    onMount(() => {
+        progress_history = [];
+        time_history = [];
+
+        const unlisten = listen<number>(EVENT_SIMULATION_PROGRESS, (event) => {
+            let new_progress = event.payload;
+            progress = Math.round((new_progress + Number.EPSILON) * 100) / 100;
+
+            progress_history.push(progress);
+            time_history.push(Date.now());
+            if (progress_history.length < averaging_window)
+                return;
+
+            if (progress_history.length > averaging_window) {
+                progress_history.shift();
+                time_history.shift();
+            }
+
+            // Calculate the average progress and time
+            let avg_progress = 0;
+            for (let i = 0; i < progress_history.length - 1; i++) {
+                avg_progress += (progress_history[i + 1] - progress_history[i]) / (time_history[i + 1] - time_history[i]);
+            }
+            avg_progress /= (progress_history.length - 1);
+
+            // Calculate the remaining time
+            remaining_time = (100 - progress) / avg_progress;
+        });
     });
 
 </script>
 
-<div class="flex flex-row gap-1 w-80">
+<div>
     {#if !isNaN(progress)}
-        <div class='w-full'>
-            Simulation progress: {progress}%
-            <Progress value={progress} class='w-full'/>
-        </div>
-		<div class='grow'></div>
-        <Button disabled={isNaN(progress)} variant='destructive'>Cancel</Button>
+    <div>
+        Simulation progress: {progress}%
+    </div>
+    <div>
+        Time remaining: 
+        {#if !isNaN(remaining_time)}
+            {Math.round(remaining_time / 1000)} seconds
+        {:else}
+            Estimating...
+        {/if}
+    </div>
     {:else}
         Simulation is starting...
     {/if}
