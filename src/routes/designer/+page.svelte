@@ -104,14 +104,19 @@
 
         let simulation_toast = toast(SimulationProgressToast, {duration: Infinity, action: {label: 'Cancel', onClick: (e) => {}}});
 
-        startSimulation(layers, simulation_models.get(selected_model_id!)!, cell_architectures)
+        createDesign(layers, selected_model_id, simulation_models, cell_architectures).then((design) => {
+            startSimulation(design)
             .then((res) => {
                 toast.success('Simulation finished successfully.', {id: simulation_toast, duration: 5000, action: undefined});
             })
             .catch((err) => {
                 console.error(err);
-                toast.error('Simulation finished successfully.', {id: simulation_toast, duration: 5000, action: undefined});
+                toast.error('Simulation failed.', {id: simulation_toast, duration: 5000, action: undefined});
             })
+        }).catch((err) => {
+            console.error(err);
+            toast.error('Simulation failed.', {id: simulation_toast, duration: 5000, action: undefined});
+        });
     }
 </script>
 

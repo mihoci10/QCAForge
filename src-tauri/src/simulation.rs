@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs::File, io::Write};
+use std::{collections::HashMap, fs::File};
 
-use qca_core::{objects::{architecture::QCACellArchitecture, layer::QCALayer}, simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, run_simulation_async, SimulationProgress}};
+use qca_core::{design::{self, file::QCADesign}, objects::{architecture::QCACellArchitecture, layer::QCALayer}, simulation::{file::write_to_file, full_basis::FullBasisModel, model::SimulationModelTrait, run_simulation_async, SimulationProgress}};
 use tauri::{AppHandle, Emitter};
 
 pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>> {
@@ -14,22 +14,21 @@ pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelT
 #[tauri::command(async)]
 pub fn run_sim_model(
     app: AppHandle,
-    sim_model_id: String,
-    layers: String,
-    architectures: String,
-    sim_model_settings: String,
+    qca_design: QCADesign,
 ) -> Result<String, String> {
-    let layers_obj: Result<Vec<QCALayer>, serde_json::Error> = serde_json::from_str(&layers);
-    let architectures_map = serde_json::from_str::<HashMap<String, QCACellArchitecture>>(&architectures).unwrap();
-    
-    match create_sim_model(sim_model_id) {
-        Some(mut model) => match layers_obj {
-            Ok(layers) => match model.set_serialized_settings(&sim_model_settings) {
-                Ok(()) => {
-                    //let file = Box::new(File::create("output.qcs").unwrap()) as Box<dyn Write + Send>;
+    let sim_model_id = qca_design.selected_simulation_model_id.clone().unwrap();
+    let sim_model_settings = qca_design.simulation_model_settings[&sim_model_id].clone();
+    let layers = qca_design.layers.clone();
+    let architectures = qca_design.cell_architectures.clone();
 
-                    let (_, progress_rx, _) = 
-                        run_simulation_async(model, layers, architectures_map);
+    match create_sim_model(sim_model_id) {
+        Some(mut model) =>  {
+            match model.set_serialized_settings(&sim_model_settings.to_string()) {
+                Ok(()) => {
+                    let file = File::create("output.qcs").unwrap();
+
+                    let (sim_handle, progress_rx, _) =
+                        run_simulation_async(model, layers, architectures);
 
                     for progress in progress_rx {
                         match progress {
@@ -40,11 +39,13 @@ pub fn run_sim_model(
                             _ => {}
                         }
                     }
+
+                    let simulation_data = sim_handle.join().unwrap();
+                    write_to_file(file, &qca_design, &simulation_data);
                     Ok("".into())
                 }
                 Err(err) => Err(format!("Parsing settings error: {}", err.to_string())),
-            },
-            Err(err) => Err(format!("Parsing cells error: {}", err.to_string())),
+            }
         },
         None => Err("No model with such id exists".into()),
     }
