@@ -1,9 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use qca_core::sim::{
-    architecture::QCACellArchitecture, full_basis::FullBasisModel, layer::QCALayer, model::SimulationModelTrait, run_simulation, settings::OptionsList
-};
+use qca_core::{objects::{
+    architecture::QCACellArchitecture, layer::QCALayer
+}, simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList}};
 use serde::Serialize;
 use tauri::{Emitter, Manager};
 

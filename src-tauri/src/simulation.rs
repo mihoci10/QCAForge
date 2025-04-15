@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs::File, io::Write};
 
-use qca_core::sim::{architecture::QCACellArchitecture, full_basis::FullBasisModel, layer::QCALayer, model::SimulationModelTrait, run_simulation_async, SimulationProgress};
+use qca_core::{objects::{architecture::QCACellArchitecture, layer::QCALayer}, simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, run_simulation_async, SimulationProgress}};
 use tauri::{AppHandle, Emitter};
 
 pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>> {
@@ -26,10 +26,10 @@ pub fn run_sim_model(
         Some(mut model) => match layers_obj {
             Ok(layers) => match model.set_serialized_settings(&sim_model_settings) {
                 Ok(()) => {
-                    let file = Box::new(File::create("output.qcs").unwrap()) as Box<dyn Write + Send>;
+                    //let file = Box::new(File::create("output.qcs").unwrap()) as Box<dyn Write + Send>;
 
                     let (_, progress_rx, _) = 
-                        run_simulation_async(model, layers, architectures_map, Some(file));
+                        run_simulation_async(model, layers, architectures_map);
 
                     for progress in progress_rx {
                         match progress {
