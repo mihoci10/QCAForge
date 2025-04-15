@@ -102,15 +102,15 @@
         if (!simulation_models.has(selected_model_id!))
             console.error('invalid simulation model!');
 
-        let simulation_toast = toast(SimulationProgressToast, {duration: Infinity});
+        let simulation_toast = toast(SimulationProgressToast, {duration: Infinity, action: {label: 'Cancel', onClick: (e) => {}}});
 
         startSimulation(layers, simulation_models.get(selected_model_id!)!, cell_architectures)
             .then((res) => {
-                toast.success('Simulation finished successfully.', {id: simulation_toast, duration: 5000});
+                toast.success('Simulation finished successfully.', {id: simulation_toast, duration: 5000, action: undefined});
             })
             .catch((err) => {
                 console.error(err);
-                toast.error('Simulation finished successfully.', {id: simulation_toast, duration: 5000});
+                toast.error('Simulation finished successfully.', {id: simulation_toast, duration: 5000, action: undefined});
             })
     }
 </script>
