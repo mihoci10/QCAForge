@@ -1,10 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use qca_core::{objects::{
-    architecture::QCACellArchitecture, layer::QCALayer
-}, simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList}};
+use qca_core::{
+    objects::{architecture::QCACellArchitecture, layer::QCALayer},
+    simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList},
+};
 use serde::Serialize;
+use tauri::http::{header, Response, StatusCode};
 use tauri::{Emitter, Manager};
 
 #[derive(Serialize)]
@@ -46,6 +48,14 @@ fn main() {
             run_sim_model,
             get_sim_model_default_options
         ])
+        .register_uri_scheme_protocol("load-sim", |uri, req| {
+            Response::builder()
+                .status(StatusCode::OK)
+                .header("Access-Control-Allow-Origin", "*")
+                .header(header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+                .body("Hello".as_bytes().to_vec())
+                .unwrap()
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

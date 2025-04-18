@@ -22,6 +22,7 @@ qca-core = { git = "https://github.com/mihoci10/QCASim.git" }
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+mime = "0.3.17"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

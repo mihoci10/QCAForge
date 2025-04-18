@@ -93,8 +93,8 @@
 		<Button 
 			variant='ghost' size='icon' 
 			class='data-[state=on]:bg-sidebar-ring'
-			href="/analyze"
-			data-state={page.url.pathname.startsWith('/analyze') ? "on" : "off"}>
+			href="/analysis"
+			data-state={page.url.pathname.startsWith('/analysis') ? "on" : "off"}>
             <Icon width={32} icon='material-symbols:search-insights-rounded'/>
         </Button>
 		<div class='grow'></div>
