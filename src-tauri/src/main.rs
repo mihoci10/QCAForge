@@ -1,13 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::collections::HashMap;
 use qca_core::{
     objects::{architecture::QCACellArchitecture, layer::QCALayer},
     simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList},
 };
 use serde::Serialize;
 use tauri::http::{header, Response, StatusCode};
-use tauri::{Emitter, Manager};
+use tauri::{Emitter, Manager, Url};
 
 #[derive(Serialize)]
 struct SimulationModelDescriptor {
@@ -21,7 +22,10 @@ mod window_menu;
 use window_menu::create_menu_bar;
 
 mod simulation;
+mod analysis;
+
 use simulation::*;
+use analysis::*;
 
 fn main() {
     tauri::Builder::default()
@@ -48,13 +52,21 @@ fn main() {
             run_sim_model,
             get_sim_model_default_options
         ])
-        .register_uri_scheme_protocol("load-sim", |uri, req| {
-            Response::builder()
-                .status(StatusCode::OK)
-                .header("Access-Control-Allow-Origin", "*")
-                .header(header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
-                .body("Hello".as_bytes().to_vec())
-                .unwrap()
+        .register_uri_scheme_protocol("load-sim", |_, req| {
+            match handle_load_sim(req) {
+                Ok(bin_data) => Response::builder()
+                    .status(StatusCode::OK)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header(header::CONTENT_TYPE, mime::APPLICATION_OCTET_STREAM.essence_str())
+                    .body(bin_data)
+                    .unwrap(),
+                Err(error) => Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header(header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+                    .body(error.as_bytes().to_vec())
+                    .unwrap()
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

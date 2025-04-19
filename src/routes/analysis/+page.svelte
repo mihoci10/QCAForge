@@ -6,7 +6,7 @@
     let url = $state('')
 
     onMount(() => {
-        url = convertFileSrc('', 'load-sim')
+        url = convertFileSrc('', 'load-sim') + `?filename=file.qcs&indices=[0]`
         fetch(url, {
             headers: {
                 'mode': 'cors',
@@ -15,20 +15,28 @@
         })
         .then(response => {
             if (response.status === 200) {
-                let contents = response.body;
+                const arrayBuffer = response.arrayBuffer();
+                arrayBuffer.then(buffer => {
+                    const floatArray = new Float64Array(buffer);
+                    let result = floatArray.toString();
+                    display = ('Request succeeded: ' + result);
+                });
+            } else {let contents = response.body;
+                if (!contents) {
+                    display = ('Request failed: ' + response.statusText);
+                    return;
+                }
                 let reader = contents.getReader();
                 let decoder = new TextDecoder('utf-8');
                 let result = '';
                 reader.read().then(function processText({ done, value }) {
                     if (done) {
-                        display = ('Request was successful: ' + result);
+                        display = ('Request failed: ' + result);
                         return;
                     }
                     result += decoder.decode(value, { stream: true });
                     return reader.read().then(processText);
                 });
-            } else {
-                display = ('Request failed with status:' + response.status);
             }
         })
         .catch(error => {
