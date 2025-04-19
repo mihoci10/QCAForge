@@ -8,9 +8,6 @@
     onMount(() => {
         url = convertFileSrc('', 'load-sim') + `?filename=file.qcs&indices=[0]`
         fetch(url, {
-            headers: {
-                'mode': 'cors',
-            },
             method: 'GET'
         })
         .then(response => {
