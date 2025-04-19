@@ -17,6 +17,7 @@
     import { generateDotDistribution } from '$lib/Cell';
     import { Button } from '$lib/components/ui/button';
     import Icon from '@iconify/svelte';
+    import { loadSimulationFromFile } from '$lib/qca-simulation';
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow()
@@ -74,7 +75,18 @@
 		});
 	});
 	listen(EVENT_OPEN_SIMULATION, () => {
-		console.log(EVENT_OPEN_SIMULATION);
+		open({
+			title: 'Load siimulation',
+			filters: [{name: 'Simulation', extensions: ['qcs']}]
+		}).then((filename) => {
+			if (!filename)
+				return;
+			loadSimulationFromFile(filename as string).then((simulation) => {
+				console.log(simulation);
+			}).catch((err) => {
+				console.error(err);
+			});
+		});
 	});
 
 </script>

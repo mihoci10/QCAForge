@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::fs::File;
-use qca_core::simulation::file::read_from_file;
+use qca_core::design::file::QCADesign;
+use qca_core::simulation::file::{read_from_file, QCASimulationData, QCASimulationMetadata};
+use tauri::AppHandle;
 use tauri::http::Request;
 use urlencoding::decode;
 
@@ -50,4 +52,14 @@ pub fn handle_load_sim(request: Request<Vec<u8>>) -> Result<Vec<u8>, String>{
     let (design, data) = read_from_file(file)?;
 
     Ok(f64_vec_to_u8_vec(vec![0.0, 1.0, 2.0, 3.0]))
+}
+
+
+#[tauri::command]
+pub fn load_simulation_file(filename: String) -> Result<(QCADesign, QCASimulationMetadata), String> {
+    let file = File::open(filename)
+        .map_err(|err| "File cannot be opened")?;
+    let (design, data) = read_from_file(file)?;
+
+    Ok((design, data.metadata))
 }

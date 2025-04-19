@@ -50,7 +50,8 @@ fn main() {
             get_sim_models,
             get_sim_model_options_list,
             run_sim_model,
-            get_sim_model_default_options
+            get_sim_model_default_options,
+            load_simulation_file
         ])
         .register_uri_scheme_protocol("load-sim", |_, req| {
             match handle_load_sim(req) {
