@@ -7,7 +7,7 @@
     import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION} from '$lib/utils/events';
     import { goto } from '$app/navigation';
     import { open } from '@tauri-apps/plugin-dialog';
-    import { design, design_filename } from '$lib/globals';
+    import { design, design_filename, simulation, simulation_filename } from '$lib/globals';
     import { createDesign, deserializeDesign } from '$lib/qca-design';
     import { readTextFile } from '@tauri-apps/plugin-fs';
     import { onMount } from 'svelte';
@@ -41,11 +41,19 @@
 
 	design_filename.subscribe((value) => {
         const DESIGN_MODE = page.url.pathname.startsWith('/designer');
-        if(value && DESIGN_MODE)
+        if(value)
 			basename(value).then((name) => appWindow.setTitle(`QCAForge - ${name}`));
 		else
 			appWindow.setTitle(`QCAForge`)
     })
+
+	simulation_filename.subscribe((value) => {
+		const ANALYSIS_MODE = page.url.pathname.startsWith('/analysis');
+		if(value)
+			basename(value).then((name) => appWindow.setTitle(`QCAForge - ${name}`));
+		else
+			appWindow.setTitle(`QCAForge`)
+	})
 
 	listen(EVENT_NEW_FILE, () => {
 		createDesign(
@@ -81,8 +89,10 @@
 		}).then((filename) => {
 			if (!filename)
 				return;
-			loadSimulationFromFile(filename as string).then((simulation) => {
-				console.log(simulation);
+			loadSimulationFromFile(filename).then((qcaSimulation) => {
+				simulation_filename.set(filename);
+				simulation.set(qcaSimulation);
+				goto('/analysis');
 			}).catch((err) => {
 				console.error(err);
 			});
