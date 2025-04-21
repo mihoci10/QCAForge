@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{metadata, File};
 use qca_core::design::file::QCADesign;
 use qca_core::simulation::file::{read_from_file, QCASimulationData, QCASimulationMetadata};
 use tauri::AppHandle;
@@ -41,17 +41,41 @@ pub fn handle_load_sim(request: Request<Vec<u8>>) -> Result<Vec<u8>, String>{
 
     let filename = query_params.get("filename")
         .ok_or("Missing query parameter 'filename'")?.as_str();
-    let data_indices_str = query_params.get("indices")
-        .ok_or("Missing query parameter 'indices'")?.as_str();
-    let data_indices = serde_json::from_str::<Vec<usize>>(data_indices_str)
-        .map_err(|err| "Invalid indices formatting")?;
+
+    let data_indices_str = query_params.get("indices");
+    let mut data_indices = vec![];
+    if let Some(data_indices_str) = data_indices_str {
+        data_indices = serde_json::from_str::<Vec<usize>>(data_indices_str)
+            .map_err(|err| "Invalid indices formatting")?;
+    }
 
     let file = File::open(filename)
         .map_err(|err| "File cannot be opened")?;
 
     let (design, data) = read_from_file(file)?;
 
-    Ok(f64_vec_to_u8_vec(vec![0.0, 1.0, 2.0, 3.0]))
+    let num_samples = data.metadata.num_samples;
+    let num_floats = 4 + data.metadata.stored_cells.iter().map(|index| {
+        let layer = design.layers.get(index.layer).unwrap();
+        let architecture = design.cell_architectures.get(layer.cell_architecture_id.as_str()).unwrap();
+        architecture.dot_count as usize / 4
+    }).sum::<usize>();
+
+    let mut result: Vec<f64> = Vec::with_capacity(num_samples * num_floats);
+    
+    for clock in& data.clock_data{
+        result.extend_from_slice(&clock);
+    }
+    
+    if data_indices.len() == 0{
+        data_indices = (0..data.metadata.stored_cells.len()).collect();
+    }
+    for i in data_indices{
+        let data_ref = data.cells_data.get(i).unwrap().data.as_ref();
+        result.extend_from_slice(data_ref);
+    }
+
+    Ok(f64_vec_to_u8_vec(result))
 }
 
 
