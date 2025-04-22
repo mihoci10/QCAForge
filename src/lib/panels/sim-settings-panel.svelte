@@ -61,7 +61,7 @@
                     <Button variant='outline' size='icon' disabled={!selected_model_id} onclick={openModelOptions}>
                         <Icon icon="material-symbols:settings" />
                     </Button>
-                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!} applyCallback={(data) => {console.log(data)}}/>
+                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!}/>
                 </div>
             </div>
         </div>

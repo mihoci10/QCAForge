@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { invoke } from '@tauri-apps/api/core';
     import type { SimulationModel } from '$lib/SimulationModel';
     import BaseModal from './base-modal.svelte';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
+    import { any } from 'zod';
 
 	interface Props {
 		isOpen: boolean;
@@ -13,12 +13,25 @@
 
     let { 
 		isOpen = $bindable(),
-		model,
-		applyCallback,
+		model = $bindable(),
 	}: Props = $props();
+
+	function applyModelChanges(data: any) {
+		model.option_list.forEach(option => {
+			if (option.type !== 'Input') return;
+
+			if (option.descriptor.type === 'NumberInput') {
+				const value = parseFloat(data[option.unique_id]);
+				if (!isNaN(value)) {
+					model.settings[option.unique_id] = value;
+				}
+			}
+		});
+		console.log('Model settings updated:', model.settings);
+	}
 </script>
 
-<BaseModal bind:open={isOpen} type='confirm' {applyCallback}>
+<BaseModal bind:open={isOpen} type='confirm' applyCallback={applyModelChanges}>
 	{#snippet title()}
 		{model.name} settings
 	{/snippet}
