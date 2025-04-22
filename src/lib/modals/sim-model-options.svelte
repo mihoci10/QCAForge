@@ -3,7 +3,6 @@
     import BaseModal from './base-modal.svelte';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
-    import { any } from 'zod';
 
 	interface Props {
 		isOpen: boolean;
@@ -27,7 +26,6 @@
 				}
 			}
 		});
-		console.log('Model settings updated:', model.settings);
 	}
 </script>
 
