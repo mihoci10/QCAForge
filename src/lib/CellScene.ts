@@ -29,8 +29,8 @@ class CellSceneLayer{
     update_geometry(layer: Layer, selectedCells: Set<CellIndex>, cell_architecture: CellArchitecture): void{
         const selectedIds: Set<number> = new Set();
         selectedCells.forEach((id) => {
-            if (id.getLayer() == this.parent.getIndexOfLayer(this))
-                selectedIds.add(id.getCell())
+            if (id.layer == this.parent.getIndexOfLayer(this))
+                selectedIds.add(id.cell)
         });
 
         this.cellGeometry.update_draw_mesh(layer.cells, selectedIds, cell_architecture)

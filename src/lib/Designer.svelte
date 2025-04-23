@@ -290,7 +290,7 @@
     function startMouseDrag(){
         cachedCellsPos = {};
         selectedCells.forEach((id) => {
-            const cell = layers[id.getLayer()].cells[id.getCell()];
+            const cell = layers[id.layer].cells[id.cell];
             cachedCellsPos[id.toString()] = [cell.position[0], cell.position[1]];
         });
     }
@@ -408,8 +408,8 @@
                 continue;
 
             let pos = cachedCellsPos[key];
-            layers[id.getLayer()].cells[id.getCell()].position[0] = pos[0] + diff_x;
-            layers[id.getLayer()].cells[id.getCell()].position[1] = pos[1] + diff_y;
+            layers[id.layer].cells[id.cell].position[0] = pos[0] + diff_x;
+            layers[id.layer].cells[id.cell].position[1] = pos[1] + diff_y;
         }
 
         selectedCellsUpdated();
@@ -496,7 +496,7 @@
     function saveCellsToClipboard(cell_ids: Set<CellIndex>){
         let cells = new Array<Cell>();
         cell_ids.forEach((id) => {
-            cells.push(layers[id.getLayer()].cells[id.getCell()]);
+            cells.push(layers[id.layer].cells[id.cell]);
         });
 
         writeText(JSON.stringify(cells));

@@ -32,7 +32,7 @@
         const clock_phase_shift = parseInt(selectedClockMode);
 
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].clock_phase_shift = clock_phase_shift;
+            layers[id.layer].cells[id.cell].clock_phase_shift = clock_phase_shift;
         });
         propertyChangedCallback();
     }
@@ -46,7 +46,7 @@
         const cellType = parseInt(selectedCellType);
 
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].typ = cellType as CellType;
+            layers[id.layer].cells[id.cell].typ = cellType as CellType;
         });
         propertyChangedCallback();
     }
@@ -60,7 +60,7 @@
         const rotation = parseInt(selectedCellRotation);
 
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].rotation = rotation;
+            layers[id.layer].cells[id.cell].rotation = rotation;
         });
         propertyChangedCallback();
     }
@@ -70,7 +70,7 @@
             return;
 
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].dot_probability_distribution = generateDotDistribution(polarizationInput);
+            layers[id.layer].cells[id.cell].dot_probability_distribution = generateDotDistribution(polarizationInput);
         });
         propertyChangedCallback();
     }
@@ -83,7 +83,7 @@
             labelInput = undefined;
 
         selectedCells.forEach((id) => {
-            layers[id.getLayer()].cells[id.getCell()].label = labelInput;
+            layers[id.layer].cells[id.cell].label = labelInput;
         });
         propertyChangedCallback();
     }
@@ -92,7 +92,7 @@
         selectedCells.forEach((id) => {
             if (isNaN(positionInput[ind]))
                 return;
-            layers[id.getLayer()].cells[id.getCell()].position[ind] = positionInput[ind];
+            layers[id.layer].cells[id.cell].position[ind] = positionInput[ind];
         });
         propertyChangedCallback();
     }
@@ -107,7 +107,7 @@
         let cellLabels: Set<string|undefined> = new Set();
 
         selectedCells.forEach((id) => {
-            const cell = layers[id.getLayer()].cells[id.getCell()];
+            const cell = layers[id.layer].cells[id.cell];
             clockModes.add(cell.clock_phase_shift);
             cellTypes.add(cell.typ);
             cellRotation.add(cell.rotation);
