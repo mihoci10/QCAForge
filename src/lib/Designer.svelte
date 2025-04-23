@@ -28,9 +28,10 @@
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let controls: OrbitControls;
-    let container: HTMLElement|undefined = $state(); 
-    let selection_rect: HTMLElement|undefined = $state(); 
-    let canvas: HTMLCanvasElement|undefined = $state();
+    let container: HTMLElement; 
+    let selection_rect: HTMLElement; 
+    let canvas: HTMLCanvasElement;
+    let resizeObserver: ResizeObserver;
 
     let globalScene: THREE.Scene;
     let cellScene: CellScene;
@@ -88,9 +89,14 @@
         stats.dom.style.top = '';
         stats.dom.style.right = '1px';
         stats.dom.style.bottom = '1px';
-        container!.appendChild(stats.dom)
+        container.appendChild(stats.dom)
         statsDrawCall = stats.addPanel(new Stats.Panel('Draw calls', '#ff8', '#221'));
         stats.showPanel(0);
+
+        resizeObserver = new ResizeObserver(() => {
+            windowResize();
+        });
+        resizeObserver.observe(container);
 
         renderer.domElement.addEventListener('mousedown', mouseDown);
         renderer.domElement.addEventListener('mousemove', mouseMove);
@@ -118,14 +124,15 @@
     });
 
     onDestroy(() => {
+        resizeObserver.disconnect();
         unregisterKeyboardShortcuts();
         renderer.dispose();
         ghostGeometry.dispose();
     });
 
     function windowResize(){
-        renderer.setSize( container!.clientWidth * devicePixelRatio, container!.clientHeight * devicePixelRatio, false);
-        camera.aspect = container!.clientWidth / container!.clientHeight; 
+        renderer.setSize( container.clientWidth * devicePixelRatio, container.clientHeight * devicePixelRatio, false);
+        camera.aspect = container.clientWidth / container.clientHeight; 
         camera.updateProjectionMatrix();
         render();
     }
@@ -228,13 +235,13 @@
     }
 
     function start_cell_select(){
-        selection_rect!.style.display = 'block';
+        selection_rect.style.display = 'block';
 
         move_cell_select(mouseStartPos!);
     }
 
     function end_cell_select(mouse_pos: THREE.Vector2){
-        selection_rect!.style.display = 'none';
+        selection_rect.style.display = 'none';
         applySelectRegion(mouse_pos.x, mouse_pos.y);
     }
 
@@ -250,10 +257,10 @@
         const width = Math.abs(start_pos.x - end_pos.x);
         const height = Math.abs(start_pos.y - end_pos.y);
 
-        selection_rect!.style.left = x + 'px';
-        selection_rect!.style.top = y + 'px';
-        selection_rect!.style.width = width + 'px';
-        selection_rect!.style.height = height + 'px';
+        selection_rect.style.left = x + 'px';
+        selection_rect.style.top = y + 'px';
+        selection_rect.style.width = width + 'px';
+        selection_rect.style.height = height + 'px';
     }
     
 
@@ -556,7 +563,7 @@
     }
 
     function registerKeyboardShortcuts(){
-        hotkeyHandler = new HotkeyHandler(canvas!, [{
+        hotkeyHandler = new HotkeyHandler(canvas, [{
             shortcut: 'CommandOrControl+C',
             callback: () => {
                 saveCellsToClipboard(selectedCells);
@@ -576,14 +583,6 @@
     let inputMode = $derived(inputModeChanged(inputModeIdx));
     // svelte-ignore state_referenced_locally
     let oldInputMode = inputModeIdx;
-
-        
-    $effect(() => {
-        const resizeObserver = new ResizeObserver(() => {
-            windowResize();
-        });
-        resizeObserver.observe(container!);
-    });
 
     function layerAddedCallback(layerId: number){
         cellScene.addLayer(layerId);
