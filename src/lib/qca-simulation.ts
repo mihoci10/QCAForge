@@ -20,7 +20,7 @@ export class QCASimulation {
     private _design: QCADesign;
     private _metadata: QCASimulationMetadata;
 
-    private _clockData: [Float64Array, Float64Array, Float64Array, Float64Array];
+    private _clockData: [Float64Array, Float64Array, Float64Array, Float64Array] | undefined;
     private _cellData: Map<CellIndex, Float64Array[]>;
 
     constructor(filename: string, design: QCADesign, metadata: QCASimulationMetadata){
@@ -28,20 +28,8 @@ export class QCASimulation {
         this._design = design;
         this._metadata = metadata;
 
-        this._clockData = [
-            new Float64Array(metadata.num_samples),
-            new Float64Array(metadata.num_samples),
-            new Float64Array(metadata.num_samples),
-            new Float64Array(metadata.num_samples)
-        ];
+        this._clockData = undefined;
         this._cellData = new Map<CellIndex, Float64Array[]>();
-
-        this.loadData().then(() => {
-            console.log("Simulation data loaded successfully.", this._clockData, this._cellData.values());
-        })
-        .catch((error) => {
-            console.error("Error loading simulation data:", error);
-        });
     }
 
     public get filename(): string {
@@ -52,6 +40,20 @@ export class QCASimulation {
     }
     public get metadata(): QCASimulationMetadata {
         return this._metadata;
+    }
+
+    public async getClockData(): Promise<[Float64Array, Float64Array, Float64Array, Float64Array]> {
+        if (this._clockData === undefined) {
+            await this.loadData();
+        }
+        return this._clockData!;
+    }
+
+    public async getCellData(cell: CellIndex): Promise<Float64Array[]> {
+        if (!this._cellData.has(cell)) {
+            await this.loadData();
+        }
+        return this._cellData.get(cell)!;
     }
 
     public loadData(): Promise<void> {
@@ -65,6 +67,13 @@ export class QCASimulation {
                     response.arrayBuffer().then(buffer => {
                         const data = new Float64Array(buffer);
                         const num_samples = this._metadata.num_samples;
+
+                        this._clockData = [
+                            new Float64Array(num_samples),
+                            new Float64Array(num_samples),
+                            new Float64Array(num_samples),
+                            new Float64Array(num_samples)
+                        ]
 
                         for (let i = 0; i < this._clockData.length; i++) {
                             this._clockData[i] = new Float64Array(num_samples);
