@@ -49,11 +49,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 720,
         "resizable": true,
         "title": "QCA Forge",
-        "width": 800,
-        "useHttpsScheme": true
+        "width": 1280
       }
     ],
     "security": {
