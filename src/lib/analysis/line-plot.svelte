@@ -59,6 +59,7 @@
     }
 
     function afterLoadData() {
+        calculateAxesExtent();
         draw();
     }
 
@@ -72,7 +73,7 @@
         draw();
     }
 
-    function drawAxes() {
+    function calculateAxesExtent() {
         let xExtents = [[0, 1]];
         let yExtents = [[0, 1]];
         drawData.forEach((data, i) => {
@@ -84,7 +85,9 @@
 
         xAxis.domain(xDomain as [number, number]);
         yAxis.domain(yDomain as [number, number]);
+    }
 
+    function drawAxes() {
         svg.append("g")
             .attr("transform", `translate(0,${height - margin.bottom})`)
             .call(d3.axisBottom(xAxis).ticks(5));
