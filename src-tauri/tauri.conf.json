@@ -48,7 +48,8 @@
   "app": {
     "windows": [
       {
-        "fullscreen": true,
+        "fullscreen": false,
+        "maximized": true,
         "height": 720,
         "resizable": true,
         "title": "QCA Forge",
