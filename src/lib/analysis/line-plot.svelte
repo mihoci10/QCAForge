@@ -73,6 +73,18 @@
     }
 
     function drawAxes() {
+        let xExtents = [[0, 1]];
+        let yExtents = [[0, 1]];
+        drawData.forEach((data, i) => {
+            xExtents.push(d3.extent(data, d => d[0]) as [number, number]);
+            yExtents.push(d3.extent(data, d => d[1]) as [number, number]);
+        });
+        const xDomain = [d3.min(xExtents, d => d[0]), d3.max(xExtents, d => d[1])];
+        const yDomain = [d3.min(yExtents, d => d[0]), d3.max(yExtents, d => d[1])];
+
+        xAxis.domain(xDomain as [number, number]);
+        yAxis.domain(yDomain as [number, number]);
+
         svg.append("g")
             .attr("transform", `translate(0,${height - margin.bottom})`)
             .call(d3.axisBottom(xAxis).ticks(5));
@@ -91,12 +103,6 @@
             let line = d3.line()
                 .x((x: [number, number]) => xAxis(x[0]))
                 .y((x: [number, number]) => yAxis(x[1]));
-
-            const xDomain = d3.extent(data, (d) => d[0]);
-            const yDomain = d3.extent(data, (d) => d[1]);
-
-            xAxis.domain([xDomain[0]!, xDomain[1]!]);
-            yAxis.domain([yDomain[0]!, yDomain[1]!]);
 
             svg.append("path")
                 .attr("d", line(data))

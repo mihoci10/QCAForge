@@ -5,5 +5,5 @@
 </script>
 
 <div class="w-full flex flex-col">
-    <LinePlot title='Line Plot' shownSignals={[{type: SignalType.CELL, index: 1, subindex: 0},{type: SignalType.CELL, index: 1, subindex: 1}]} />
+    <LinePlot title='Line Plot' shownSignals={[{type: SignalType.CLOCK, index: 1},{type: SignalType.CELL, index: 1, subindex: 1}]} />
 </div>
