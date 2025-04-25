@@ -7,6 +7,22 @@ export interface TimeDelta{
     nanoseconds: number,
 }
 
+export enum SignalType {
+    CLOCK = 0,
+    CELL = 1,
+}
+
+export interface SignalIndex{
+    type: number,
+    index: number,
+    subindex?: number
+}
+
+export interface Signal{
+    index: SignalIndex,
+    name: string,
+}
+
 export interface QCASimulationMetadata{
     qca_core_version: string,
     start_time: Date,
@@ -42,18 +58,29 @@ export class QCASimulation {
         return this._metadata;
     }
 
-    public async getClockData(): Promise<[Float64Array, Float64Array, Float64Array, Float64Array]> {
+    public async getClockData(index: number): Promise<Float64Array> {
         if (this._clockData === undefined) {
             await this.loadData();
         }
-        return this._clockData!;
+        return this._clockData![index];
     }
 
-    public async getCellData(cell: CellIndex): Promise<Float64Array[]> {
+    public async getCellData(cell: CellIndex, polarizationIndex: number): Promise<Float64Array> {
         if (!this._cellData.has(cell)) {
             await this.loadData();
         }
-        return this._cellData.get(cell)!;
+        return this._cellData.get(cell)![polarizationIndex];
+    }
+
+    public async getSignalData(signalIndex: SignalIndex): Promise<Float64Array> {
+        switch (signalIndex.type) {
+            case SignalType.CLOCK:
+                return this.getClockData(signalIndex.index);
+            case SignalType.CELL:
+                return this.getCellData(this.metadata.stored_cells[signalIndex.index], signalIndex.subindex!);
+            default:
+                throw new Error('Invalid signal type');
+        }
     }
 
     public loadData(): Promise<void> {

@@ -1,11 +1,19 @@
 <script lang='ts'>
     import { onDestroy, onMount } from "svelte";
     import * as d3 from 'd3';
-    import type { QCASimulation } from "$lib/qca-simulation";
-    import { simulation } from "$lib/globals";
-    import { number } from "zod";
-    import { get } from "svelte/store";
+    import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
+    import { COLORS } from "$lib/utils/visual-colors";
+
+    type Props = {
+		title: string;
+		shownSignals: SignalIndex[];
+	};
+ 
+	let {
+		title,
+		shownSignals = $bindable([])
+	}: Props = $props();
     
     let svgElement: SVGSVGElement;
     let svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -21,7 +29,7 @@
     let drawData: [number, number][][];
 
     onMount(() => {
-        svg = d3.select(svgElement)
+        svg = d3.select(svgElement);
 
         xAxis = d3.scaleLinear();
         yAxis = d3.scaleLinear();        
@@ -38,23 +46,20 @@
         resizeObserver.disconnect();
     });
 
-    simulation.subscribe((qcaSimulation: QCASimulation) => {
-        if (qcaSimulation) {
-            loadData(qcaSimulation);
-        }
-    });
+    function beforeLoadData() {
+        drawData = [];
+    }
 
-    function loadData(qcaSimulation: QCASimulation) {
-        qcaSimulation.getClockData().then((clockData) => {
-            clockData.forEach((clockData) => {
-                const data: [number, number][] = [];
-                for (let i = 0; i < clockData.length; i++) {
-                    data.push([i+1, clockData[i]]);
-                }
-                drawData.push(data);
-            });
-            draw();
-        });
+    function loadSignalData(signal: SignalIndex, data: Float64Array) {
+        const signalData: [number, number][] = [];
+        for (let i = 0; i < data.length; i++) {
+            signalData.push([i+1, data[i]]);
+        }
+        drawData.push(signalData);
+    }
+
+    function afterLoadData() {
+        draw();
     }
 
     function windowResize() {
@@ -82,7 +87,7 @@
 
         drawAxes();
         
-        drawData.forEach(data => {
+        drawData.forEach((data, i) => {
             let line = d3.line()
                 .x((x: [number, number]) => xAxis(x[0]))
                 .y((x: [number, number]) => yAxis(x[1]));
@@ -96,14 +101,14 @@
             svg.append("path")
                 .attr("d", line(data))
                 .attr("fill", "none")
-                .attr("stroke", "steelblue")
+                .attr("stroke", COLORS[i])
                 .attr("stroke-width", 1.5);
         });
     }
 
 </script>
 
-<BaseDataVis title="Line Plot">
+<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
     <svg bind:this={svgElement} 
         class='bg-background' 
         width='100%' height='100%'>
