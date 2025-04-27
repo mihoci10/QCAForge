@@ -4,6 +4,7 @@
     import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { COLORS } from "$lib/utils/visual-colors";
+    import { number } from "zod";
 
     type Props = {
 		title: string;
@@ -17,6 +18,8 @@
     
     let svgElement: SVGSVGElement;
     let svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+    let tooltip: HTMLDivElement;
+
     const margin = { top: 20, right: 30, bottom: 30, left: 40 };
     let width = $state(0);
     let height = $state(0);
@@ -97,6 +100,10 @@
             .call(d3.axisLeft(yAxis).ticks(5));
     }
 
+    function drawTooltip(){
+
+    }
+
     function draw(){
         svg.selectAll("*").remove(); // Clear previous content
 
@@ -115,10 +122,40 @@
         });
     }
 
+    function mouseMoved(event: MouseEvent) {
+        const [x, y] = d3.pointer(event, svgElement);
+
+        const xAxisBisector = d3.bisector((d: [number, number]) => d[0]).center;
+        const xInverted = xAxis.invert(x - margin.left);
+        const yInverted = yAxis.invert(y - margin.top);
+
+        const bisectedValue = drawData.reduce((acc, data) => {
+            const xIndex = xAxisBisector(data, xInverted, 1);
+            const bisectedValue = data[xIndex];
+            const diff = Math.abs(bisectedValue[1] - yInverted);
+            if (diff < acc[0]) {
+                acc[0] = diff;
+                acc[1] = bisectedValue;
+            }
+            return acc;
+        }, [Number.MAX_VALUE, undefined] as [number, [number, number] | undefined])[1]!;
+
+        const xValue = bisectedValue[0];
+        const yValue = bisectedValue[1];
+
+        const xPos = xAxis(xValue);
+        const yPos = yAxis(yValue);
+
+        tooltip.style.left = `${xPos + 10}px`;
+        tooltip.style.top = `${yPos + 10}px`;
+        tooltip.innerHTML = `X: ${xValue.toFixed(2)}, Y: ${yValue.toFixed(2)}`;
+    }
+
 </script>
 
-<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
-    <svg bind:this={svgElement} 
+<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData} onmousemove={mouseMoved}>
+    <div bind:this={tooltip} class='absolute bg-black'>A</div>
+    <svg bind:this={svgElement}
         class='bg-background' 
         width='100%' height='100%'>
     </svg>

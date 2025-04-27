@@ -3,8 +3,9 @@
     import { simulation } from "$lib/globals";
     import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
 	import type { Snippet } from "svelte";
+	import type { DOMAttributes } from "svelte/elements";
  
-	type Props = {
+	type Props = DOMAttributes<HTMLDivElement> & {
 		title: string;
         children: Snippet | undefined;
 		shownSignals: SignalIndex[];
@@ -20,6 +21,7 @@
 		beforeLoadData,
 		loadSignalData,
 		afterLoadData,
+		...restProps
 	}: Props = $props();
 
 	let status: 'loading' | 'success' | 'error' | 'empty' = $state('empty');
@@ -48,7 +50,7 @@
 	}
 </script>
 
-<div class='h-full flex flex-col items-center relative'>
+<div class='h-full flex flex-col items-center relative' {...restProps}>
     <Label class="text-lg font-semibold">{title}</Label>
 	{@render children?.()}
 	{#if status !== 'success'}
