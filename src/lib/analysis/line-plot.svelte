@@ -4,7 +4,6 @@
     import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { COLORS } from "$lib/utils/visual-colors";
-    import { number } from "zod";
 
     type Props = {
 		title: string;
@@ -18,7 +17,11 @@
     
     let svgElement: SVGSVGElement;
     let svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-    let tooltip: HTMLDivElement;
+
+    const CROSS_SIZE = 10;
+    let tooltipMarker: [
+        d3.Selection<SVGLineElement, unknown, null, undefined>, 
+        d3.Selection<SVGLineElement, unknown, null, undefined>];
 
     const margin = { top: 20, right: 30, bottom: 30, left: 40 };
     let width = $state(0);
@@ -33,6 +36,12 @@
 
     onMount(() => {
         svg = d3.select(svgElement);
+        tooltipMarker = [
+            svg.append("line")
+                .attr("class", "tooltip-marker"),
+            svg.append("line")
+                .attr("class", "tooltip-marker")
+        ]
 
         xAxis = d3.scaleLinear();
         yAxis = d3.scaleLinear();        
@@ -93,7 +102,7 @@
     function drawAxes() {
         svg.append("g")
             .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(xAxis).ticks(5));
+            .call(d3.axisBottom(xAxis).ticks(5))
 
         svg.append("g")
             .attr("transform", `translate(${margin.left},0)`)
@@ -105,7 +114,8 @@
     }
 
     function draw(){
-        svg.selectAll("*").remove(); // Clear previous content
+        svg.selectAll("g").remove();
+        svg.selectAll("path").remove(); 
 
         drawAxes();
         
@@ -120,41 +130,69 @@
                 .attr("stroke", COLORS[i])
                 .attr("stroke-width", 1.5);
         });
+
+        tooltipMarker.forEach((marker) => {
+            marker.raise()
+        });
     }
 
     function mouseMoved(event: MouseEvent) {
         const [x, y] = d3.pointer(event, svgElement);
 
-        const xAxisBisector = d3.bisector((d: [number, number]) => d[0]).center;
-        const xInverted = xAxis.invert(x - margin.left);
-        const yInverted = yAxis.invert(y - margin.top);
+        let minDistance = Infinity;
+        let nearestPoint: [number, number] | undefined = undefined;
+        let nearestLine = undefined;
+        
+        drawData.forEach((data, i) => {
+            data.forEach((point) => {
+                const pointX = xAxis(point[0]);
+                const pointY = yAxis(point[1]);
+                const distance = Math.sqrt(Math.pow(pointX - x, 2) + Math.pow(pointY - y, 2));
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestPoint = point;
+                    nearestLine = i;
+                }
+            });
+        });
 
-        const bisectedValue = drawData.reduce((acc, data) => {
-            const xIndex = xAxisBisector(data, xInverted, 1);
-            const bisectedValue = data[xIndex];
-            const diff = Math.abs(bisectedValue[1] - yInverted);
-            if (diff < acc[0]) {
-                acc[0] = diff;
-                acc[1] = bisectedValue;
-            }
-            return acc;
-        }, [Number.MAX_VALUE, undefined] as [number, [number, number] | undefined])[1]!;
+        if (nearestPoint === undefined || nearestLine === undefined) return;
 
-        const xValue = bisectedValue[0];
-        const yValue = bisectedValue[1];
+        const xValue = nearestPoint[0];
+        const yValue = nearestPoint[1];
 
         const xPos = xAxis(xValue);
         const yPos = yAxis(yValue);
 
-        tooltip.style.left = `${xPos + 10}px`;
-        tooltip.style.top = `${yPos + 10}px`;
-        tooltip.innerHTML = `X: ${xValue.toFixed(2)}, Y: ${yValue.toFixed(2)}`;
+        tooltipMarker[0]
+            .attr("x1", xPos - CROSS_SIZE)
+            .attr("x2", xPos + CROSS_SIZE)
+            .attr("y1", yPos)
+            .attr("y2", yPos)
+            .style("opacity", 0.7);
+        tooltipMarker[1]
+            .attr("x1", xPos)
+            .attr("x2", xPos)
+            .attr("y1", yPos - CROSS_SIZE)
+            .attr("y2", yPos + CROSS_SIZE)
+            .style("opacity", 0.7);
     }
 
 </script>
 
+<style>
+    :global(.tooltip-marker) {
+        stroke-width: 2;
+        opacity: 0;
+        stroke: #ffffff;
+    }
+    :global(.grid-lines line) {
+        stroke: gray;
+        stroke-opacity: 0.5;
+    }
+</style>
+
 <BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData} onmousemove={mouseMoved}>
-    <div bind:this={tooltip} class='absolute bg-black'>A</div>
     <svg bind:this={svgElement}
         class='bg-background' 
         width='100%' height='100%'>
