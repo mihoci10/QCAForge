@@ -33,6 +33,7 @@
     let resizeObserver: ResizeObserver;
 
     let drawData: [number, number][][];
+    let filteredDrawData: [number, number][][];
 
     onMount(() => {
         svg = d3.select(svgElement);
@@ -60,6 +61,7 @@
 
     function beforeLoadData() {
         drawData = [];
+        filteredDrawData = [];
     }
 
     function loadSignalData(signal: SignalIndex, data: Float64Array) {
@@ -68,6 +70,7 @@
             signalData.push([i+1, data[i]]);
         }
         drawData.push(signalData);
+        filteredDrawData.push(signalData);
     }
 
     function afterLoadData() {
@@ -85,10 +88,10 @@
         draw();
     }
 
-    function calculateAxesExtent() {
+    function calculateAxesExtent(transitionDuration = 0) {
         let xExtents = [[0, 1]];
         let yExtents = [[0, 1]];
-        drawData.forEach((data, i) => {
+        filteredDrawData.forEach((data, i) => {
             xExtents.push(d3.extent(data, d => d[0]) as [number, number]);
             yExtents.push(d3.extent(data, d => d[1]) as [number, number]);
         });
@@ -97,8 +100,18 @@
 
         xAxis.domain(xDomain as [number, number]);
         yAxis.domain(yDomain as [number, number]);
-    }
 
+        svg.select(".x-axis")
+            .transition()
+            .duration(transitionDuration)
+            .call(d3.axisBottom(xAxis).ticks(5));
+
+        svg.select(".x-axis")
+            .transition()
+            .duration(transitionDuration)
+            .call(d3.axisLeft(yAxis).ticks(5));
+
+    }
     function drawAxes() {
         svg.append("g")
             .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -136,7 +149,7 @@
         });
     }
 
-    function mouseMoved(event: MouseEvent) {
+    function onMouseMove(event: MouseEvent) {
         const [x, y] = d3.pointer(event, svgElement);
 
         let minDistance = Infinity;
@@ -178,6 +191,33 @@
             .style("opacity", 0.7);
     }
 
+    function onDisplayRangeChange(displayRange: [number, number]) {
+        const [min, max] = displayRange;
+
+        filteredDrawData = drawData.map((data) => {
+            return data.filter((point) => {
+                return point[0] >= min && point[0] <= max;
+            });
+        });
+
+        calculateAxesExtent(300);
+        //draw();
+    }
+
+    function onWheel(event: WheelEvent) {
+        event.preventDefault();
+
+        const delta = event.deltaY > 0 ? -1 : 1;
+        const currentRange = xAxis.domain() as [number, number];
+        const rangeExtent = currentRange[1] - currentRange[0];
+        const newDisplayRange = [
+            Math.floor(currentRange[0] + (delta * rangeExtent * 0.1)),
+            Math.ceil(currentRange[1] - (delta * rangeExtent * 0.1))
+        ] as [number, number];
+        console.log(newDisplayRange);
+        onDisplayRangeChange(newDisplayRange);
+    }
+
 </script>
 
 <style>
@@ -192,7 +232,7 @@
     }
 </style>
 
-<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData} onmousemove={mouseMoved}>
+<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData} onmousemove={onMouseMove} onwheel={onWheel}>
     <svg bind:this={svgElement}
         class='bg-background' 
         width='100%' height='100%'>
