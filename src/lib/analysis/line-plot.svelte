@@ -89,8 +89,8 @@
     }
 
     function calculateAxesExtent(transitionDuration = 0) {
-        let xExtents = [[0, 1]];
-        let yExtents = [[0, 1]];
+        let xExtents: [number, number][] = [];
+        let yExtents: [number, number][] = [];
         filteredDrawData.forEach((data, i) => {
             xExtents.push(d3.extent(data, d => d[0]) as [number, number]);
             yExtents.push(d3.extent(data, d => d[1]) as [number, number]);
@@ -193,7 +193,7 @@
 
     function onDisplayRangeChange(displayRange: [number, number]) {
         const [min, max] = displayRange;
-
+        
         filteredDrawData = drawData.map((data) => {
             return data.filter((point) => {
                 return point[0] >= min && point[0] <= max;
@@ -206,16 +206,21 @@
 
     function onWheel(event: WheelEvent) {
         event.preventDefault();
+        const [x, y] = d3.pointer(event, svgElement);
 
         const delta = event.deltaY > 0 ? -1 : 1;
+
         const currentRange = xAxis.domain() as [number, number];
         const rangeExtent = currentRange[1] - currentRange[0];
+
+        const xRatio = (x - margin.left) / (width - margin.left - margin.right);
         const newDisplayRange = [
-            Math.floor(currentRange[0] + (delta * rangeExtent * 0.1)),
-            Math.ceil(currentRange[1] - (delta * rangeExtent * 0.1))
+            Math.floor(currentRange[0] + (delta * rangeExtent * 0.1 * xRatio)),
+            Math.ceil(currentRange[1] - (delta * rangeExtent * 0.1 * (1 - xRatio)))
         ] as [number, number];
-        console.log(newDisplayRange);
+        
         onDisplayRangeChange(newDisplayRange);
+        draw();
     }
 
 </script>
