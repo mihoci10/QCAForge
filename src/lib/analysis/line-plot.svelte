@@ -72,6 +72,7 @@
         resizeObserver.observe(svgElement);
 
         drawData = [];
+        filteredDrawData = drawData;
     });
 
     onDestroy(() => {
@@ -80,7 +81,7 @@
 
     function beforeLoadData() {
         drawData = [];
-        filteredDrawData = [];
+        filteredDrawData = filteredDrawData;
     }
 
     function loadSignalData(signal: SignalIndex, data: Float64Array) {
@@ -147,7 +148,7 @@
 
         drawAxes();
         
-        drawData.forEach((data, i) => {
+        filteredDrawData.forEach((data, i) => {
             let line = d3.line()
                 .x((x: [number, number]) => xAxis(x[0]))
                 .y((x: [number, number]) => yAxis(x[1]));
@@ -158,6 +159,19 @@
                 .attr("fill", "none")
                 .attr("stroke", COLORS[i])
                 .attr("stroke-width", 1.5);
+
+            if (data.length <= width / 10){
+                svg.append("g")
+                    .selectAll("circle")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d: [number, number]) => xAxis(d[0]))
+                    .attr("cy", (d: [number, number]) => yAxis(d[1]))
+                    .attr("r", 3)
+                    .attr("fill", COLORS[i])
+                    .attr("clip-path", "url(#clip)")
+            }
         });
 
         tooltipMarker.forEach((marker) => {
@@ -172,7 +186,7 @@
         let nearestPoint: [number, number] | undefined = undefined;
         let nearestLine = undefined;
         
-        drawData.forEach((data, i) => {
+        filteredDrawData.forEach((data, i) => {
             data.forEach((point) => {
                 const pointX = xAxis(point[0]);
                 const pointY = yAxis(point[1]);
