@@ -16,7 +16,9 @@
 	}: Props = $props();
     
     let svgElement: SVGSVGElement;
-    let svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+    let svg: d3.Selection<SVGGElement, unknown, null, undefined>;
+    let clipRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
+    let interactionRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
 
     const CROSS_SIZE = 10;
     let tooltipMarker: [
@@ -36,7 +38,24 @@
     let filteredDrawData: [number, number][][];
 
     onMount(() => {
-        svg = d3.select(svgElement);
+        svg = d3.select(svgElement)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // fix for wheel event not firing on svg
+        d3.select(document.body)
+            .on('wheel.body', e => {});
+
+        clipRect = svg.append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height);
+
+        interactionRect = svg.append("rect")
+            .on("mousemove", onMouseMove)
+            .on("wheel", onWheel);
+
         tooltipMarker = [
             svg.append("line")
                 .attr("class", "tooltip-marker"),
@@ -79,11 +98,18 @@
     }
 
     function windowResize() {
-        width = svgElement.clientWidth;
-        height = svgElement.clientHeight;
+        width = svgElement.clientWidth - margin.left - margin.right;
+        height = svgElement.clientHeight - margin.top - margin.bottom;
 
-        xAxis.range([margin.left, width - margin.right]);
-        yAxis.range([height - margin.bottom, margin.top]);
+        clipRect
+            .attr("width", width)
+            .attr("height", height);
+        interactionRect
+            .attr("width", width)
+            .attr("height", height);
+
+        xAxis.range([0, width]);
+        yAxis.range([height, 0]);
 
         draw();
     }
@@ -101,24 +127,13 @@
         xAxis.domain(xDomain as [number, number]);
         yAxis.domain(yDomain as [number, number]);
 
-        svg.select(".x-axis")
-            .transition()
-            .duration(transitionDuration)
-            .call(d3.axisBottom(xAxis).ticks(5));
-
-        svg.select(".x-axis")
-            .transition()
-            .duration(transitionDuration)
-            .call(d3.axisLeft(yAxis).ticks(5));
-
     }
     function drawAxes() {
         svg.append("g")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(xAxis).ticks(5))
 
         svg.append("g")
-            .attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(yAxis).ticks(5));
     }
 
@@ -138,6 +153,7 @@
                 .y((x: [number, number]) => yAxis(x[1]));
 
             svg.append("path")
+                .attr('clip-path', 'url(#clip)')
                 .attr("d", line(data))
                 .attr("fill", "none")
                 .attr("stroke", COLORS[i])
@@ -150,7 +166,7 @@
     }
 
     function onMouseMove(event: MouseEvent) {
-        const [x, y] = d3.pointer(event, svgElement);
+        const [x, y] = d3.pointer(event, interactionRect.node());
 
         let minDistance = Infinity;
         let nearestPoint: [number, number] | undefined = undefined;
@@ -206,14 +222,15 @@
 
     function onWheel(event: WheelEvent) {
         event.preventDefault();
-        const [x, y] = d3.pointer(event, svgElement);
+        const [x, y] = d3.pointer(event, interactionRect.node());
+        const width = svgElement.clientWidth - margin.left - margin.right;
 
         const delta = event.deltaY > 0 ? -1 : 1;
 
         const currentRange = xAxis.domain() as [number, number];
         const rangeExtent = currentRange[1] - currentRange[0];
 
-        const xRatio = (x - margin.left) / (width - margin.left - margin.right);
+        const xRatio = x / width;
         const newDisplayRange = [
             Math.floor(currentRange[0] + (delta * rangeExtent * 0.1 * xRatio)),
             Math.ceil(currentRange[1] - (delta * rangeExtent * 0.1 * (1 - xRatio)))
@@ -235,9 +252,15 @@
         stroke: gray;
         stroke-opacity: 0.5;
     }
+    :global(rect) {
+      pointer-events: all;
+      fill-opacity: 0;
+      stroke-opacity: 0;
+      z-index: 1;
+    }
 </style>
 
-<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData} onmousemove={onMouseMove} onwheel={onWheel}>
+<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
     <svg bind:this={svgElement}
         class='bg-background' 
         width='100%' height='100%'>
