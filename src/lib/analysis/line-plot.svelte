@@ -20,6 +20,17 @@
     let clipRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
     let interactionRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
 
+    let xAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;
+    let yAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;
+
+    interface SignalSVG {
+        line: d3.Selection<SVGPathElement, unknown, null, undefined>;
+        dots: d3.Selection<SVGGElement, unknown, null, undefined>;
+    }
+
+    let signalSvgs: SignalSVG[] = [];
+    let lineGenerator: d3.Line<[number, number]>;
+
     const CROSS_SIZE = 10;
     let tooltipMarker: [
         d3.Selection<SVGLineElement, unknown, null, undefined>, 
@@ -56,6 +67,8 @@
             .on("mousemove", onMouseMove)
             .on("wheel", onWheel);
 
+        signalSvgs = [];
+
         tooltipMarker = [
             svg.append("line")
                 .attr("class", "tooltip-marker"),
@@ -64,7 +77,15 @@
         ]
 
         xAxis = d3.scaleLinear();
-        yAxis = d3.scaleLinear();        
+        yAxis = d3.scaleLinear();  
+
+        xAxisElement = svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+        yAxisElement = svg.append("g");
+        
+        lineGenerator = d3.line()
+            .x((d: [number, number]) => xAxis(d[0]))
+            .y((d: [number, number]) => yAxis(d[1]));
 
         resizeObserver = new ResizeObserver(() => {
             windowResize();
@@ -115,7 +136,7 @@
         draw();
     }
 
-    function calculateAxesExtent(transitionDuration = 0) {
+    function calculateAxesExtent() {
         let xExtents: [number, number][] = [];
         let yExtents: [number, number][] = [];
         filteredDrawData.forEach((data, i) => {
@@ -130,11 +151,11 @@
 
     }
     function drawAxes() {
-        svg.append("g")
+        xAxisElement
             .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(xAxis).ticks(5))
+            .call(d3.axisBottom(xAxis).ticks(5));
 
-        svg.append("g")
+        yAxisElement
             .call(d3.axisLeft(yAxis).ticks(5));
     }
 
@@ -143,34 +164,45 @@
     }
 
     function draw(){
-        svg.selectAll("g").remove();
-        svg.selectAll("path").remove(); 
-
         drawAxes();
+
+        while (signalSvgs.length > filteredDrawData.length) {
+            let signalSvg = signalSvgs.pop();
+            if (signalSvg) {
+                signalSvg.line.remove();
+                signalSvg.dots.remove();
+            }
+        }
+        while (signalSvgs.length < filteredDrawData.length) {
+            signalSvgs.push({
+                line: svg.append("path")
+                    .attr('clip-path', 'url(#clip)'),
+                dots: svg.append("g")
+            });
+        }
         
         filteredDrawData.forEach((data, i) => {
-            let line = d3.line()
-                .x((x: [number, number]) => xAxis(x[0]))
-                .y((x: [number, number]) => yAxis(x[1]));
-
-            svg.append("path")
+            signalSvgs[i].line
                 .attr('clip-path', 'url(#clip)')
-                .attr("d", line(data))
+                .attr("d", lineGenerator(data))
                 .attr("fill", "none")
                 .attr("stroke", COLORS[i])
                 .attr("stroke-width", 1.5);
 
             if (data.length <= width / 10){
-                svg.append("g")
+                signalSvgs[i].dots
                     .selectAll("circle")
                     .data(data)
-                    .enter()
-                    .append("circle")
+                    .join("circle")
                     .attr("cx", (d: [number, number]) => xAxis(d[0]))
                     .attr("cy", (d: [number, number]) => yAxis(d[1]))
                     .attr("r", 3)
                     .attr("fill", COLORS[i])
-                    .attr("clip-path", "url(#clip)")
+                    .attr("clip-path", "url(#clip)");
+            } else {
+                signalSvgs[i].dots
+                    .selectAll("circle")
+                    .remove();
             }
         });
 
@@ -230,8 +262,7 @@
             });
         });
 
-        calculateAxesExtent(300);
-        //draw();
+        calculateAxesExtent();
     }
 
     function onWheel(event: WheelEvent) {
@@ -258,6 +289,7 @@
 
 <style>
     :global(.tooltip-marker) {
+        pointer-events: none;
         stroke-width: 2;
         opacity: 0;
         stroke: #ffffff;
