@@ -93,7 +93,7 @@
         resizeObserver.observe(svgElement);
 
         drawData = [];
-        filteredDrawData = drawData;
+        filteredDrawData = [];
     });
 
     onDestroy(() => {
@@ -102,7 +102,7 @@
 
     function beforeLoadData() {
         drawData = [];
-        filteredDrawData = filteredDrawData;
+        filteredDrawData = [];
     }
 
     function loadSignalData(signal: SignalIndex, data: Float64Array) {
