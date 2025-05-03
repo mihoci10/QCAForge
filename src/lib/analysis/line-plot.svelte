@@ -65,7 +65,8 @@
 
         interactionRect = svg.append("rect")
             .on("mousemove", onMouseMove)
-            .on("wheel", onWheel);
+            .on("wheel", onWheel)
+            .on("mouseleave", onMouseLeave);
 
         signalSvgs = [];
 
@@ -283,6 +284,12 @@
         
         onDisplayRangeChange(newDisplayRange);
         draw();
+    }
+
+    function onMouseLeave() {
+        tooltipMarker.forEach((marker) => {
+            marker.style("opacity", 0);
+        });
     }
 
 </script>

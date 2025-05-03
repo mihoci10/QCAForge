@@ -10,7 +10,7 @@ export class CellIndex{
     public get layer(): number {return this._layer;}
     public get cell(): number {return this._cell;}
 
-    toString(): string{
+    public toString(): string{
         return `${this.layer}-${this.cell}`;
     }
 }

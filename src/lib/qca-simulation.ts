@@ -83,6 +83,40 @@ export class QCASimulation {
         }
     }
 
+    public getSignals(): Signal[] {
+        const signals: Signal[] = [];
+
+        for (let i = 0; i < 4; i++) {
+            signals.push({
+                index: { type: SignalType.CLOCK, index: i },
+                name: `Clock ${i}`
+            });
+        }
+
+        for (let i = 0; i < this._metadata.stored_cells.length; i++) {
+            const cellIndex = this._metadata.stored_cells[i];
+            const layer = cellIndex.layer;
+            const arch_id = this._design.layers[layer].cell_architecture_id;
+            const arch = this._design.cell_architectures.get(arch_id)!;
+            const polarization_n = arch.dot_count / 4;
+            for (let j = 0; j < polarization_n; j++) {
+                let cellName = this._design.layers[layer].cells[cellIndex.cell].label;
+                if (cellName === undefined) {
+                    cellName = `Cell ${cellIndex.layer}-${cellIndex.cell}`;
+                }
+                if (polarization_n > 1) {
+                    cellName += ` ${'ABCDE'[j]}`;
+                }
+                signals.push({
+                    index: { type: SignalType.CELL, index: i, subindex: j },
+                    name: cellName
+                });
+            }
+        }
+
+        return signals;
+    }
+
     public loadData(): Promise<void> {
         return new Promise((resolve, reject) => {
             const url = convertFileSrc('', 'load-sim') + `?filename=${this._filename}`;
