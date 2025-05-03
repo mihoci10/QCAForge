@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Designer from "$lib/Designer.svelte";
+	import Designer from "$lib/design/designer.svelte";
     import { onMount } from "svelte";
     import { startSimulation } from "$lib/Simulation";
     import type { SimulationModel } from "$lib/SimulationModel";

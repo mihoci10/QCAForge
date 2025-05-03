@@ -4,26 +4,26 @@
     import Stats from 'stats.js'
 
     import * as THREE from 'three'
-    import { CellGeometry } from './CellGeometry';
-    import { CellIndex, CellType, parseCellIndex, type Cell } from './Cell';
-    import { CellScene } from './CellScene';
-    import { OrbitControls } from './utils/OrbitControls';
+    import { CellGeometry } from '../CellGeometry';
+    import { CellIndex, CellType, parseCellIndex, type Cell } from '../Cell';
+    import { CellScene } from '../CellScene';
+    import { OrbitControls } from '../utils/OrbitControls';
     import * as Resizable from "$lib/components/ui/resizable";
 
-    import type { Layer } from './Layer';
-    import type { SimulationModel } from './SimulationModel';
+    import type { Layer } from '../Layer';
+    import type { SimulationModel } from '../SimulationModel';
     import SimSettingsPanel from './panels/sim-settings-panel.svelte';
     import CellPropsPanel from './panels/cell-props-panel.svelte';
     import LayersPanel from "./panels/layers-panel.svelte";
 
     import { Set } from 'typescript-collections'
     import { Menu } from "@tauri-apps/api/menu";
-    import InfiniteGrid from "./utils/infinite-grid";
+    import InfiniteGrid from "../utils/infinite-grid";
     import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
     
-    import type { CellArchitecture } from "./CellArchitecture";
-    import DesignerToolbar from "./designer/designer-toolbar.svelte";
-    import { HotkeyHandler } from "./utils/hotkey-handler";
+    import type { CellArchitecture } from "../CellArchitecture";
+    import DesignerToolbar from "./designer-toolbar.svelte";
+    import { HotkeyHandler } from "../utils/hotkey-handler";
 
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;

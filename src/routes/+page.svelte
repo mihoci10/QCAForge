@@ -1,2 +1,2 @@
 <div>Main page</div>
-<a href="/designer">Link to Designer</a>
+<a href="/design">Link to Designer</a>

@@ -40,7 +40,7 @@
 	});
 
 	design_filename.subscribe((value) => {
-        const DESIGN_MODE = page.url.pathname.startsWith('/designer');
+        const DESIGN_MODE = page.url.pathname.startsWith('/design');
         if(value)
 			basename(value).then((name) => appWindow.setTitle(`QCAForge - ${name}`));
 		else
@@ -65,7 +65,7 @@
 			design.set(d);
 		})
 		design_filename.set(undefined);
-		goto(`/designer`);
+		goto(`/design`);
 	});
 	listen(EVENT_OPEN_DESIGN, () => {
 		open({
@@ -78,7 +78,7 @@
 			readTextFile(filename as string).then((contents) => {
 				design_filename.set(filename as string);
 				design.set(deserializeDesign(contents));
-				goto(`/designer`);
+				goto(`/design`);
 			})
 		});
 	});
@@ -108,8 +108,8 @@
 		<Button 
 			variant='ghost' size='icon' 
 			class='data-[state=on]:bg-sidebar-ring'
-			href="/designer"
-			data-state={page.url.pathname.startsWith('/designer') ? "on" : "off"}>
+			href="/design"
+			data-state={page.url.pathname.startsWith('/design') ? "on" : "off"}>
             <Icon width={32} icon='material-symbols:design-services-outline'/>
         </Button>
 		<Button 
