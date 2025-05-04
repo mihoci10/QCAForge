@@ -6,11 +6,13 @@
     import { COLORS } from "$lib/utils/visual-colors";
 
     type Props = {
+        qcaSimulation: QCASimulation | undefined;
 		title: string;
 		shownSignals: SignalIndex[];
 	};
  
 	let {
+        qcaSimulation,
 		title,
 		shownSignals = $bindable([])
 	}: Props = $props();
@@ -313,7 +315,7 @@
     }
 </style>
 
-<BaseDataVis {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
+<BaseDataVis {qcaSimulation} {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
     <svg bind:this={svgElement}
         class='bg-background' 
         width='100%' height='100%'>

@@ -1,43 +1,124 @@
 <script lang="ts">
-    import * as Accordion from "$lib/components/ui/accordion";
     import Label from "$lib/components/ui/label/label.svelte";
     import { simulation } from "$lib/globals";
-    import type { QCASimulation, Signal } from "$lib/qca-simulation";
+    import type { QCASimulation, Signal, SignalIndex } from "$lib/qca-simulation";
     import { onMount } from "svelte";
-
-    let signals: Signal[];
+    
+    let signals: Signal[] = $state([]);
     let filteredSignals: Signal[] = $state([]);
+    let selectedSignals: string[] = $state([]);
+    let searchTerm: string = $state("");
 
+    interface Props {
+        qcaSimulation: QCASimulation | undefined;
+        onSignallAdded: (signalIndex: SignalIndex) => void;
+        onSignalRemoved: (signalIndex: SignalIndex) => void;
+    }
+    let { 
+        qcaSimulation,
+        onSignallAdded,
+        onSignalRemoved
+     }: Props = $props();
+    
     onMount(() => {
         signals = [];
         filteredSignals = [];
-    });
-
-    simulation.subscribe((qcaSimulation: QCASimulation) => {
-        if (qcaSimulation) {
+        if (qcaSimulation)
             getSignals(qcaSimulation);
-        }
     });
 
+    $effect(() => {
+        if (qcaSimulation)
+            getSignals(qcaSimulation);
+        
+    });
+    
     function getSignals(simulation: QCASimulation) {
         signals = simulation.getSignals();
-        filteredSignals = signals;
+        searchTerm = "";
     }
+    
+    function toggleSignalSelection(signalName: string) {
+        let signal = signals.find(s => s.name === signalName);
+        if (!signal)
+            throw new Error(`Signal ${signalName} not found`);
+
+        if (selectedSignals.includes(signalName)) {
+            selectedSignals = selectedSignals.filter(name => name !== signalName);
+            onSignalRemoved(signal.index);
+        } else {
+            selectedSignals.push(signalName);
+            onSignallAdded(signal.index);
+        }
+    }
+    
+    function applyFilter() {
+        if (!searchTerm) {
+            filteredSignals = signals;
+        } else {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            filteredSignals = signals.filter(signal => 
+                signal.name.toLowerCase().includes(lowerSearchTerm)
+            );
+        }
+    }
+
+    $effect(() => {
+        searchTerm;
+        applyFilter();
+    });
 </script>
 
-<Accordion.Item value="signals-list">
-    <Accordion.Trigger>
-        <div class="flex items-center gap-1.5">
-            <span>Signal list</span>
+<div class="flex flex-col gap-2 p-2 border rounded-md">
+    <div class="flex items-center justify-between">
+        <Label for="signals-list" class="text-lg font-medium">Signal Selector</Label>
+        <div class="text-sm">
+            {selectedSignals.length} selected
         </div>
-    </Accordion.Trigger>
-    <Accordion.Content>
-        <div class="flex flex-col gap-2 px-1">
-            {#each filteredSignals as signal, i}
-                <div class="flex items-center gap-1.5">
-                    <Label for={signal.name} class="text-sm">{signal.name}</Label>
+    </div>
+    
+    <!-- Search input -->
+    <div class="relative">
+        <input
+            type="text"
+            placeholder="Search signals..."
+            class="w-full p-2 border rounded-md"
+            bind:value={searchTerm}
+        />
+    </div>
+    
+    <hr class="border-t" />
+    
+    <div class="flex flex-col gap-1 overflow-y-auto">
+        {#each filteredSignals as signal}
+            <div 
+                class="flex items-center p-2 rounded-md cursor-pointer hover:bg-accent transition-colors duration-150"
+                class:bg-primary-100={selectedSignals.includes(signal.name)}
+                class:text-primary-900={selectedSignals.includes(signal.name)}
+                onclick={() => toggleSignalSelection(signal.name)}
+                onkeydown={(e) => e.key === 'Enter' && toggleSignalSelection(signal.name)}
+                tabindex="0"
+                role="button"
+                aria-pressed={selectedSignals.includes(signal.name)}
+            >
+                <div class="flex items-center gap-2 w-full">
+                    <div class="w-4 h-4 flex items-center justify-center border rounded-sm" 
+                        class:bg-primary-500={selectedSignals.includes(signal.name)}>
+                        {#if selectedSignals.includes(signal.name)}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        {/if}
+                    </div>
+                    <span>{signal.name}</span>
                 </div>
-            {/each}
-        </div>
-    </Accordion.Content>
-</Accordion.Item>
+            </div>
+        {/each}
+        
+        {#if filteredSignals.length === 0}
+            <div class="p-4 text-center text-accent-foreground">
+                No signals found
+            </div>
+        {/if}
+    </div>
+</div>

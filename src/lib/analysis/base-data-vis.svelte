@@ -6,6 +6,7 @@
 	import type { DOMAttributes } from "svelte/elements";
  
 	type Props = DOMAttributes<HTMLDivElement> & {
+		qcaSimulation: QCASimulation | undefined;
 		title: string;
         children: Snippet | undefined;
 		shownSignals: SignalIndex[];
@@ -15,6 +16,7 @@
 	};
  
 	let {
+		qcaSimulation,
 		title,
         children,
 		shownSignals = $bindable([]),
@@ -26,13 +28,17 @@
 
 	let status: 'loading' | 'success' | 'error' | 'empty' = $state('empty');
 
-    simulation.subscribe((qcaSimulation: QCASimulation) => {
-        if (qcaSimulation) {
-            loadData(qcaSimulation);
-        }
-    });
+	$effect(() => {
+		if (qcaSimulation) {
+			loadData();
+		}
+	});
 
-	function loadData(qcaSimulation: QCASimulation) {
+	function loadData() {
+		if (!qcaSimulation) {
+			status = 'empty';
+			return;
+		}
 		status = 'loading';
 		beforeLoadData?.();
 		const allSignals = shownSignals.map((signal) => qcaSimulation.getSignalData(signal));
