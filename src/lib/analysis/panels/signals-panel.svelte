@@ -30,7 +30,6 @@
     $effect(() => {
         if (qcaSimulation)
             getSignals(qcaSimulation);
-        
     });
     
     function getSignals(simulation: QCASimulation) {

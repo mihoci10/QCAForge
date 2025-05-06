@@ -16,6 +16,9 @@
 		title,
 		shownSignals = $bindable([])
 	}: Props = $props();
+
+    let numTicksX = 5;
+    let numTicksY = 5;
     
     let svgElement: SVGSVGElement;
     let svg: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -24,6 +27,9 @@
 
     let xAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;
     let yAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;
+
+    let xGridElement: d3.Selection<SVGGElement, unknown, null, undefined>;
+    let yGridElement: d3.Selection<SVGGElement, unknown, null, undefined>;
 
     interface SignalSVG {
         line: d3.Selection<SVGPathElement, unknown, null, undefined>;
@@ -85,6 +91,11 @@
         xAxisElement = svg.append("g")
             .attr("transform", `translate(0,${height})`)
         yAxisElement = svg.append("g");
+
+        xGridElement = svg.append("g")
+            .attr("class", "grid-lines");
+        yGridElement = svg.append("g")
+            .attr("class", "grid-lines");
         
         lineGenerator = d3.line()
             .x((d: [number, number]) => xAxis(d[0]))
@@ -156,10 +167,28 @@
     function drawAxes() {
         xAxisElement
             .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(xAxis).ticks(5));
+            .call(d3.axisBottom(xAxis).ticks(numTicksX));
 
         yAxisElement
-            .call(d3.axisLeft(yAxis).ticks(5));
+            .call(d3.axisLeft(yAxis).ticks(numTicksY));
+
+        xGridElement
+            .selectAll("line")
+            .data(xAxis.ticks())
+            .join("line")
+            .attr("x1", (d: number) => xAxis(d))
+            .attr("x2", (d: number) => xAxis(d))
+            .attr("y1", 0)
+            .attr("y2", height);
+
+        yGridElement
+            .selectAll("line")
+            .data(yAxis.ticks())
+            .join("line")
+            .attr("x1", 0)
+            .attr("x2", width)
+            .attr("y1", (d: number) => yAxis(d))
+            .attr("y2", (d: number) => yAxis(d));
     }
 
     function drawTooltip(){

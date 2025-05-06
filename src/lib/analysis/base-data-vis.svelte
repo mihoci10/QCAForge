@@ -46,7 +46,7 @@
 			signalData.forEach((data, i) => {
 				loadSignalData?.(shownSignals[i], data);
 			});
-			status = 'success';
+			status = shownSignals.length > 0 ? 'success' : 'empty';
 		}).catch((error) => {
 			console.error("Error loading data:", error);
 			status = 'error';
@@ -66,7 +66,7 @@
 		{:else if status === 'error'}
 			<Label class="text-lg text-red-500">Error loading data</Label>
 		{:else if status === 'empty'}
-			<Label class="text-lg text-gray-500">No data available</Label>
+			<Label class="text-lg text-gray-500">No data displayed</Label>
 		{:else}
 			<Label class="text-lg text-gray-500">Unknown status</Label>
 		{/if}
