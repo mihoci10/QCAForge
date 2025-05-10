@@ -346,7 +346,6 @@
 
 <BaseDataVis {qcaSimulation} {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
     <svg bind:this={svgElement}
-        class='bg-background' 
-        width='100%' height='100%'>
+        class='bg-background w-full h-full'>
     </svg>
 </BaseDataVis>

@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Label } from "$lib/components/ui/label";
-    import { simulation } from "$lib/globals";
     import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
 	import type { Snippet } from "svelte";
 	import type { DOMAttributes } from "svelte/elements";
@@ -60,7 +59,7 @@
     <Label class="text-lg font-semibold">{title}</Label>
 	{@render children?.()}
 	{#if status !== 'success'}
-	<div class="absolute flex flex-col items-center justify-center h-full w-full">
+	<div class="absolute flex flex-col items-center justify-center w-full h-full">
 		{#if status === 'loading'}
 			<Label class="text-lg text-gray-500">Loading data...</Label>
 		{:else if status === 'error'}

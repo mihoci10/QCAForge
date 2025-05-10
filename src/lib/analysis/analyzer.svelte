@@ -4,6 +4,8 @@
     import { QCASimulation, SignalType, type SignalIndex } from "$lib/qca-simulation";
     import LinePlot from "./line-plot.svelte";
     import SignalsPanel from "./panels/signals-panel.svelte";
+    import * as Tabs from "$lib/components/ui/tabs/";
+    import { onMount, type SvelteComponent } from "svelte";
 
     interface Props {
         qcaSimulation: QCASimulation | undefined;
@@ -18,6 +20,14 @@
     function onSignalRemoved(signalIndex: SignalIndex) {
         shownSignals = shownSignals.filter(signal => signal !== signalIndex);
     }
+
+    let visuals: any = $state([]);
+
+    onMount(() => {
+        visuals = [
+            [LinePlot, { title: 'Line Plot'}],
+        ]
+    });
 </script>
 
 
@@ -30,8 +40,28 @@
         </div>  
     </Resizable.Pane>
     <Resizable.Handle />
-    <Resizable.Pane minSize={10}>
-        <LinePlot {qcaSimulation} title='Line Plot' {shownSignals}/>
+    <Resizable.Pane minSize={10} class=''>
+        <div class='h-full'>
+            <Tabs.Root class='h-full w-full flex flex-col' value={"0"}>
+                <Tabs.List class='self-start'>
+                    {#each visuals as [_, props], i}
+                        <Tabs.Trigger value={i.toString()}>
+                            {props.title}
+                        </Tabs.Trigger>
+                    {/each}
+                    <Tabs.Trigger value="new">
+                        +
+                    </Tabs.Trigger>
+                </Tabs.List>
+                <div class='h-full flex items-stretch'>
+                    {#each visuals as [Component, props], i}
+                        <Tabs.Content value={i.toString()} class='w-full'>
+                            <Component {...props} {qcaSimulation} {shownSignals}/>
+                        </Tabs.Content>
+                    {/each}
+                </div>
+            </Tabs.Root>
+        </div>
     </Resizable.Pane>
     <Resizable.Handle />
     <Resizable.Pane defaultSize={15} minSize={10}>

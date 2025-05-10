@@ -22,7 +22,7 @@
     "@types/node": "20.10.0",
     "@types/three": "^0.160.0",
     "autoprefixer": "10.4.16",
-    "bits-ui": "^1.3.17",
+    "bits-ui": "^1.4.7",
     "clsx": "^2.1.1",
     "formsnap": "^1.0.1",
     "lucide-svelte": "^0.473.0",
