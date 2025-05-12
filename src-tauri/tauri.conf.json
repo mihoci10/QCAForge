@@ -42,7 +42,6 @@
   },
   "productName": "qca-forge",
   "mainBinaryName": "qca-forge",
-  "version": "0.1.0",
   "identifier": "com.qca.dev",
   "plugins": {},
   "app": {
