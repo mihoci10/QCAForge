@@ -47,10 +47,7 @@ jobs:
 
       - name: Cache rust dependencies
         uses: Swatinem/rust-cache@v2
-
-      - name: Build Tauri
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: ${{ matrix.args }}
+        
+      - name: Build Backend
+        run: |
+          cargo build --release ${{ matrix.args }}
