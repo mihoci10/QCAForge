@@ -1,4 +1,4 @@
-name: 'Build and Test Tauri App'
+name: 'Build and Test QCAForge App'
 
 on:
   workflow_dispatch:
@@ -47,7 +47,7 @@ jobs:
 
       - name: Cache rust dependencies
         uses: Swatinem/rust-cache@v2
-        
+
       - name: Build Backend
         run: |
           cargo build --release ${{ matrix.args }}

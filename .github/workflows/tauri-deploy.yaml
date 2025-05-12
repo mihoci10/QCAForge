@@ -1,4 +1,4 @@
-name: 'Deploy Tauri App'
+name: 'Deploy QCAForge App'
 
 on:
   workflow_dispatch:
@@ -44,6 +44,9 @@ jobs:
 
       - name: Run unit tests
         run: npm test
+
+      - name: Cache rust dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
