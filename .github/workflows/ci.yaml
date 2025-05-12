@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+      - dev
 jobs:
   build:
     strategy:
@@ -14,8 +18,9 @@ jobs:
             args: "--target aarch64-apple-darwin"
           - platform: "ubuntu-22.04"
             args: ""
-          - platform: "windows-latest"
-            args: ""
+          #Removed windows-latest from the matrix as it has a very long build time.
+          # - platform: "windows-latest"
+          #   args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -31,7 +36,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
