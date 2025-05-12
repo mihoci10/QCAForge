@@ -1,4 +1,4 @@
-name: 'build-test'
+name: 'Deploy Tauri App'
 
 on:
   workflow_dispatch:
