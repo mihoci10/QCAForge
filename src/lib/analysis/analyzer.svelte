@@ -1,11 +1,12 @@
 <script lang="ts">
     import * as Resizable from "$lib/components/ui/resizable";
     import * as Accordion from "$lib/components/ui/accordion";
-    import { QCASimulation, SignalType, type SignalIndex } from "$lib/qca-simulation";
+    import { QCASimulation, type SignalIndex } from "$lib/qca-simulation";
     import LinePlot from "./line-plot.svelte";
     import SignalsPanel from "./panels/signals-panel.svelte";
     import * as Tabs from "$lib/components/ui/tabs/";
-    import { onMount, type SvelteComponent } from "svelte";
+    import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+    import { onMount } from "svelte";
 
     interface Props {
         qcaSimulation: QCASimulation | undefined;
@@ -42,7 +43,7 @@
     <Resizable.Handle />
     <Resizable.Pane minSize={10} class=''>
         <div class='h-full'>
-            <Tabs.Root class='h-full w-full flex flex-col' value={"0"}>
+            <Tabs.Root class='h-full w-full flex flex-col' value={"0"} activationMode="manual">
                 <Tabs.List class='self-start'>
                     {#each visuals as [_, props], i}
                         <Tabs.Trigger value={i.toString()}>
@@ -50,7 +51,16 @@
                         </Tabs.Trigger>
                     {/each}
                     <Tabs.Trigger value="new">
-                        +
+                        <DropdownMenu.Root>
+                            <DropdownMenu.Trigger class='w-full'>
+                                New
+                            </DropdownMenu.Trigger>
+                            <DropdownMenu.Content class='w-48'>
+                                <DropdownMenu.Item onclick={() => {}}>
+                                    Line Plot
+                                </DropdownMenu.Item>
+                            </DropdownMenu.Content>
+                        </DropdownMenu.Root>
                     </Tabs.Trigger>
                 </Tabs.List>
                 <div class='h-full flex items-stretch'>

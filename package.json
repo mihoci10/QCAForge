@@ -14,6 +14,7 @@
   "devDependencies": {
     "@iconify/icons-material-symbols": "^1.2.58",
     "@iconify/svelte": "^3.1.6",
+    "@lucide/svelte": "^0.510.0",
     "@sveltejs/adapter-auto": "^3.0.0",
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.5.27",
@@ -22,7 +23,7 @@
     "@types/node": "20.10.0",
     "@types/three": "^0.160.0",
     "autoprefixer": "10.4.16",
-    "bits-ui": "^1.4.7",
+    "bits-ui": "^1.4.8",
     "clsx": "^2.1.1",
     "formsnap": "^1.0.1",
     "lucide-svelte": "^0.473.0",
