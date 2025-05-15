@@ -2,7 +2,7 @@
 	import Designer from "$lib/design/designer.svelte";
     import { onMount } from "svelte";
     import { startSimulation } from "$lib/Simulation";
-    import type { SimulationModel } from "$lib/SimulationModel";
+    import { loadSimulationModels, type SimulationModel } from "$lib/SimulationModel";
     import { invoke } from "@tauri-apps/api/core";
     import { toast } from "svelte-sonner";
     import { listen } from "@tauri-apps/api/event";
@@ -26,32 +26,19 @@
 
     design.subscribe((cur_design) => {
         layers = cur_design.layers;
-        selected_model_id = cur_design.selected_simulation_model_id;
         cell_architectures = cur_design.cell_architectures;
-        cur_design.simulation_model_settings.forEach((val, key, map) => {
-            const model = simulation_models.get(key);
-            if(model)
-                model.settings = val;
-        })
+        setSimulationModels().then(() => {
+            selected_model_id = cur_design.selected_simulation_model_id;
+            cur_design.simulation_model_settings.forEach((val, key, map) => {
+                const model = simulation_models.get(key);
+                if(model)
+                    model.settings = val;
+            });
+        });
     });
 
     onMount(() => {
-        invoke('get_sim_models').then((res: unknown) => {
-            let model_list = res as any[];
-            model_list.forEach(model => {
-                simulation_models.set(
-                    model['model_id'], 
-                    {
-                        id: model['model_id'],
-                        name: model['model_name'],
-                        option_list: model['model_option_list'],
-                        settings: JSON.parse(model['model_settings']),
-                    }
-                );
-            });
-            simulation_models = simulation_models;
-        });
-        
+        setSimulationModels();        
         const unlistenSave = listen(EVENT_SAVE_FILE, () => {
             new Promise((resolve : (value: string) => void, reject) => {
                 let filename = get(design_filename);
@@ -94,6 +81,27 @@
             unlistenSaveAs.then(f => f())
         };
     });
+
+    function setSimulationModels(): Promise<void> {
+        simulation_models.clear();
+        return new Promise((resolve) => {
+            loadSimulationModels().then((models) => {
+                models.forEach(model => {
+                    simulation_models.set(
+                        model.id, 
+                        {
+                            id: model.id,
+                            name: model.name,
+                            option_list: model.option_list,
+                            settings: model.settings,
+                        }
+                    );
+                });
+                simulation_models = simulation_models;
+                resolve();
+            });
+        });
+    }
     
     function executeSimulation(){
         if (!selected_model_id)
