@@ -1,5 +1,5 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import type { CellIndex } from "./Cell";
+import type { Cell, CellIndex } from "./Cell";
 import { deserializeDesign, type QCADesign } from "./qca-design";
 
 export interface TimeDelta{
@@ -70,6 +70,15 @@ export class QCASimulation {
             await this.loadData();
         }
         return this._cellData.get(cell)![polarizationIndex];
+    }
+
+    public getCell(cellIndex: CellIndex): Cell {
+        const layer = cellIndex.layer;
+        const arch_id = this._design.layers[layer].cell_architecture_id;
+        const arch = this._design.cell_architectures.get(arch_id)!;
+        const polarization_n = arch.dot_count / 4;
+        const cell = this._design.layers[layer].cells[cellIndex.cell];
+        return cell;
     }
 
     public async getSignalData(signalIndex: SignalIndex): Promise<Float64Array> {

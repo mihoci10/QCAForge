@@ -2,12 +2,13 @@
     import * as Resizable from "$lib/components/ui/resizable";
     import * as Accordion from "$lib/components/ui/accordion";
     import { QCASimulation, type SignalIndex } from "$lib/qca-simulation";
-    import LinePlot from "./line-plot.svelte";
+    import LinePlotVis from "./line-plot-vis.svelte";
     import SignalsPanel from "./panels/signals-panel.svelte";
     import * as Tabs from "$lib/components/ui/tabs/";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
     import { onMount } from "svelte";
     import Icon from "@iconify/svelte";
+    import TruthTableVis from "./truth-table-vis.svelte";
 
     interface Props {
         qcaSimulation: QCASimulation | undefined;
@@ -17,15 +18,24 @@
     let activeTab: string|undefined = $state('0');
     let selectedSignals: SignalIndex[] = $state([]);
 
-    function addPanel(panel: string) {
-        switch (panel) {
-            case 'Line Plot':
-                visuals.push([LinePlot, { title: 'Line Plot', signals: []}]);
-                break;
-            default:
-                break;
-        }
+    const VIS_PANELS = [
+        { id: 'linePlot', component: LinePlotVis, title: 'Line Plot' },
+        { id: 'truthTable', component: TruthTableVis, title: 'Truth Table' },
+    ];
 
+    function addPanel(panelId: string) {
+        const panel = VIS_PANELS.find(p => p.id === panelId);
+        if (!panel) 
+            return
+
+        const { component, title } = panel;
+        let componentTitle = title;
+        let titleIdx = 1;
+        while (visuals.some((visual: any) => visual[1].title == componentTitle)) {
+            componentTitle = `${title} ${titleIdx}`;
+            titleIdx++;
+        }
+        visuals.push([component, { title: componentTitle, signals: [] }]); 
         updateSignalPanel((visuals.length - 1).toString());
     }
 
@@ -56,7 +66,7 @@
 
     onMount(() => {
         visuals = [
-            [LinePlot, { title: 'Line Plot', signals: []}],
+            [LinePlotVis, { title: 'Line Plot', signals: []}],
         ]
         updateSignalPanel(activeTab!);
     });
@@ -89,9 +99,11 @@
                             </div>
                         </DropdownMenu.Trigger>
                         <DropdownMenu.Content class='w-48'>
-                            <DropdownMenu.Item onclick={() => {addPanel('Line Plot')}}>
-                                Line Plot
-                            </DropdownMenu.Item>
+                            {#each VIS_PANELS as { id, title }}
+                                <DropdownMenu.Item onclick={() => {addPanel(id)}}>
+                                    {title}
+                                </DropdownMenu.Item>
+                            {/each}
                         </DropdownMenu.Content>
                     </DropdownMenu.Root>
                 </Tabs.List>
