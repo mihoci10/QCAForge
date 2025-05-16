@@ -1,23 +1,19 @@
 <script lang="ts">
     import Label from "$lib/components/ui/label/label.svelte";
-    import { simulation } from "$lib/globals";
     import type { QCASimulation, Signal, SignalIndex } from "$lib/qca-simulation";
     import { onMount } from "svelte";
     
     let signals: Signal[] = $state([]);
     let filteredSignals: Signal[] = $state([]);
-    let selectedSignals: string[] = $state([]);
     let searchTerm: string = $state("");
 
     interface Props {
         qcaSimulation: QCASimulation | undefined;
-        onSignallAdded: (signalIndex: SignalIndex) => void;
-        onSignalRemoved: (signalIndex: SignalIndex) => void;
+        selectedSignals: SignalIndex[];
     }
     let { 
         qcaSimulation,
-        onSignallAdded,
-        onSignalRemoved
+        selectedSignals = $bindable([]),
      }: Props = $props();
     
     onMount(() => {
@@ -37,17 +33,11 @@
         searchTerm = "";
     }
     
-    function toggleSignalSelection(signalName: string) {
-        let signal = signals.find(s => s.name === signalName);
-        if (!signal)
-            throw new Error(`Signal ${signalName} not found`);
-
-        if (selectedSignals.includes(signalName)) {
-            selectedSignals = selectedSignals.filter(name => name !== signalName);
-            onSignalRemoved(signal.index);
+    function toggleSignalSelection(signal: Signal) {
+        if (selectedSignals.includes(signal.index)) {
+            selectedSignals = selectedSignals.filter(index => index !== signal.index);
         } else {
-            selectedSignals.push(signalName);
-            onSignallAdded(signal.index);
+            selectedSignals.push(signal.index);
         }
     }
     
@@ -92,18 +82,18 @@
         {#each filteredSignals as signal}
             <div 
                 class="flex items-center p-2 rounded-md cursor-pointer hover:bg-accent transition-colors duration-150"
-                class:bg-primary-100={selectedSignals.includes(signal.name)}
-                class:text-primary-900={selectedSignals.includes(signal.name)}
-                onclick={() => toggleSignalSelection(signal.name)}
-                onkeydown={(e) => e.key === 'Enter' && toggleSignalSelection(signal.name)}
+                class:bg-primary-100={selectedSignals.includes(signal.index)}
+                class:text-primary-900={selectedSignals.includes(signal.index)}
+                onclick={() => toggleSignalSelection(signal)}
+                onkeydown={(e) => e.key === 'Enter' && toggleSignalSelection(signal)}
                 tabindex="0"
                 role="button"
-                aria-pressed={selectedSignals.includes(signal.name)}
+                aria-pressed={selectedSignals.includes(signal.index)}
             >
                 <div class="flex items-center gap-2 w-full">
                     <div class="w-4 h-4 flex items-center justify-center border rounded-sm" 
-                        class:bg-primary-500={selectedSignals.includes(signal.name)}>
-                        {#if selectedSignals.includes(signal.name)}
+                        class:bg-primary-500={selectedSignals.includes(signal.index)}>
+                        {#if selectedSignals.includes(signal.index)}
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
