@@ -8,13 +8,13 @@
     type Props = {
         qcaSimulation: QCASimulation | undefined;
 		title: string;
-		shownSignals: SignalIndex[];
+		signals: SignalIndex[];
 	};
  
 	let {
         qcaSimulation,
 		title,
-		shownSignals = $bindable([])
+		signals,
 	}: Props = $props();
 
     let numTicksX = 5;
@@ -134,8 +134,8 @@
     }
 
     function windowResize() {
-        width = svgElement.clientWidth - margin.left - margin.right;
-        height = svgElement.clientHeight - margin.top - margin.bottom;
+        width = Math.max(0, svgElement.clientWidth - margin.left - margin.right);
+        height = Math.max(0, svgElement.clientHeight - margin.top - margin.bottom);
 
         clipRect
             .attr("width", width)
@@ -344,7 +344,7 @@
     }
 </style>
 
-<BaseDataVis {qcaSimulation} {title} {shownSignals} {beforeLoadData} {loadSignalData} {afterLoadData}>
+<BaseDataVis {qcaSimulation} {title} {signals} {beforeLoadData} {loadSignalData} {afterLoadData}>
     <svg bind:this={svgElement}
         class='bg-background w-full h-full'>
     </svg>

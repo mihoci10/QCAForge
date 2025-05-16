@@ -8,7 +8,7 @@
 		qcaSimulation: QCASimulation | undefined;
 		title: string;
         children: Snippet | undefined;
-		shownSignals: SignalIndex[];
+		signals: SignalIndex[];
 		beforeLoadData?: () => void;
 		loadSignalData?: (signalIndex: SignalIndex, data: Float64Array) => void;
 		afterLoadData?: () => void;
@@ -18,7 +18,7 @@
 		qcaSimulation,
 		title,
         children,
-		shownSignals = $bindable([]),
+		signals,
 		beforeLoadData,
 		loadSignalData,
 		afterLoadData,
@@ -40,12 +40,12 @@
 		}
 		status = 'loading';
 		beforeLoadData?.();
-		const allSignals = shownSignals.map((signal) => qcaSimulation.getSignalData(signal));
+		const allSignals = signals.map((signal) => qcaSimulation.getSignalData(signal));
 		Promise.all(allSignals).then((signalData) => {
 			signalData.forEach((data, i) => {
-				loadSignalData?.(shownSignals[i], data);
+				loadSignalData?.(signals[i], data);
 			});
-			status = shownSignals.length > 0 ? 'success' : 'empty';
+			status = signals.length > 0 ? 'success' : 'empty';
 		}).catch((error) => {
 			console.error("Error loading data:", error);
 			status = 'error';

@@ -20,34 +20,27 @@
     function addPanel(panel: string) {
         switch (panel) {
             case 'Line Plot':
-                visuals.push([LinePlot, { title: 'Line Plot', shownSignals: []}]);
+                visuals.push([LinePlot, { title: 'Line Plot', signals: []}]);
                 break;
             default:
                 break;
         }
 
-        activeTab = (visuals.length - 1).toString();
+        updateSignalPanel((visuals.length - 1).toString());
     }
 
     let visuals: any = $state([]);
 
     $effect(() => {
-        if (activeTab)
-            updateSignalPanel();
-    });
-
-    $effect(() => {
         updatePanelSignals();
     });
 
-    function updateSignalPanel(){
-        if (!activeTab) {
-            return;
-        }
-        const selected = visuals[parseInt(activeTab)];
-        if (selected) {
-            const [_, props] = selected;
-            selectedSignals = props.shownSignals;
+    function updateSignalPanel(value: string){
+        activeTab = value;
+
+        const selectedIdx = parseInt(activeTab);
+        if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
+            selectedSignals = [...visuals[selectedIdx][1].signals];
         }
     }
 
@@ -56,15 +49,16 @@
             return;
         }
         const selectedIdx = parseInt(activeTab);
-        if (selectedIdx) {
-            visuals[selectedIdx][1].shownSignals = selectedSignals;
+        if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
+            visuals[selectedIdx][1].signals = [...selectedSignals];
         }
     };
 
     onMount(() => {
         visuals = [
-            [LinePlot, { title: 'Line Plot', shownSignals: []}],
+            [LinePlot, { title: 'Line Plot', signals: []}],
         ]
+        updateSignalPanel(activeTab!);
     });
 </script>
 
@@ -80,7 +74,7 @@
     <Resizable.Handle />
     <Resizable.Pane minSize={10} class=''>
         <div class='h-full'>
-            <Tabs.Root class='h-full w-full flex flex-col' bind:value={activeTab} activationMode="automatic">
+            <Tabs.Root class='h-full w-full flex flex-col' value={activeTab} onValueChange={updateSignalPanel} activationMode="automatic">
                 <Tabs.List class='self-start'>
                     {#each visuals as [_, props], i}
                         <Tabs.Trigger value={i.toString()}>

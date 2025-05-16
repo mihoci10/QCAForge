@@ -37,7 +37,7 @@
         if (selectedSignals.includes(signal.index)) {
             selectedSignals = selectedSignals.filter(index => index !== signal.index);
         } else {
-            selectedSignals.push(signal.index);
+            selectedSignals = [...selectedSignals, signal.index];
         }
     }
     
