@@ -54,7 +54,7 @@ export class QCASimulation {
     private _metadata: QCASimulationMetadata;
 
     private _clockData: [Float64Array, Float64Array, Float64Array, Float64Array] | undefined;
-    private _cellData: Map<CellIndex, Float64Array[]>;
+    private _cellData: Map<string, Float64Array[]>;
 
     constructor(filename: string, design: QCADesign, metadata: QCASimulationMetadata){
         this._filename = filename;
@@ -62,7 +62,7 @@ export class QCASimulation {
         this._metadata = metadata;
 
         this._clockData = undefined;
-        this._cellData = new Map<CellIndex, Float64Array[]>();
+        this._cellData = new Map<string, Float64Array[]>();
     }
 
     public get filename(): string {
@@ -83,10 +83,10 @@ export class QCASimulation {
     }
 
     public async getCellData(cell: CellIndex, polarizationIndex: number): Promise<Float64Array> {
-        if (!this._cellData.has(cell)) {
+        if (!this._cellData.has(cell.toString())) {
             await this.loadData();
         }
-        return this._cellData.get(cell)![polarizationIndex];
+        return this._cellData.get(cell.toString())![polarizationIndex];
     }
 
     public async getInputData(input: Input): Promise<Float64Array[]> {
@@ -229,7 +229,7 @@ export class QCASimulation {
                                     buf_offset++;
                                 }
                             }
-                            this._cellData.set(cell, cellData);
+                            this._cellData.set(cell.toString(), cellData);
                         }
 
                         resolve();

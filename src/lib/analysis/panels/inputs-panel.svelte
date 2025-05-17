@@ -10,10 +10,12 @@
     interface Props {
         qcaSimulation: QCASimulation | undefined;
         selectedInputs: Input[];
+        inputType: InputType;
     }
     let { 
         qcaSimulation,
         selectedInputs = $bindable([]),
+        inputType,
      }: Props = $props();
     
     onMount(() => {
@@ -29,7 +31,7 @@
     });
     
     function getSignals(simulation: QCASimulation) {
-        inputs = simulation.getInputs(InputType.SIGNAL);
+        inputs = simulation.getInputs(inputType);
         searchTerm = "";
     }
     
@@ -75,7 +77,7 @@
 
 <div class="flex flex-col gap-2 p-2 border rounded-md">
     <div class="flex items-center justify-between">
-        <Label for="signals-list" class="text-lg font-medium">Signal Selector</Label>
+        <Label for="inputs-list" class="text-lg font-medium">Input Selector</Label>
         <div class="text-sm">
             {selectedInputs.length} selected
         </div>
@@ -85,7 +87,7 @@
     <div class="relative">
         <input
             type="text"
-            placeholder="Search signals..."
+            placeholder="Search inputs..."
             class="w-full p-2 border rounded-md"
             bind:value={searchTerm}
         />

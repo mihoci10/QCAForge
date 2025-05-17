@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Resizable from "$lib/components/ui/resizable";
     import * as Accordion from "$lib/components/ui/accordion";
-    import { QCASimulation, type Input, type SignalIndex } from "$lib/qca-simulation";
+    import { QCASimulation, type Input, InputType } from "$lib/qca-simulation";
     import LinePlotVis from "./line-plot-vis.svelte";
     import InputsPanel from "./panels/inputs-panel.svelte";
     import * as Tabs from "$lib/components/ui/tabs/";
@@ -19,8 +19,8 @@
     let selectedInputs: Input[] = $state([]);
 
     const VIS_PANELS = [
-        { id: 'linePlot', component: LinePlotVis, title: 'Line Plot' },
-        { id: 'truthTable', component: TruthTableVis, title: 'Truth Table' },
+        { id: 'linePlot', component: LinePlotVis, title: 'Line Plot', inputMode: InputType.SIGNAL },
+        { id: 'truthTable', component: TruthTableVis, title: 'Truth Table', inputMode: InputType.CELL },
     ];
 
     function addPanel(panelId: string) {
@@ -28,14 +28,21 @@
         if (!panel) 
             return
 
-        const { component, title } = panel;
+        const { component, title, inputMode } = panel;
         let componentTitle = title;
         let titleIdx = 1;
-        while (visuals.some((visual: any) => visual[1].title == componentTitle)) {
+        while (visuals.some((visual: any) => visual.props.title == componentTitle)) {
             componentTitle = `${title} ${titleIdx}`;
             titleIdx++;
         }
-        visuals.push([component, { title: componentTitle, inputs: [] }]); 
+        visuals.push({
+            Component: component,
+            props: {
+                title: componentTitle,
+                inputs: [],
+            },
+            inputMode,
+        }); 
         updateSignalPanel((visuals.length - 1).toString());
     }
 
@@ -50,7 +57,7 @@
 
         const selectedIdx = parseInt(activeTab);
         if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
-            selectedInputs = [...visuals[selectedIdx][1].inputs];
+            selectedInputs = [...visuals[selectedIdx].props.inputs];
         }
     }
 
@@ -60,15 +67,23 @@
         }
         const selectedIdx = parseInt(activeTab);
         if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
-            visuals[selectedIdx][1].inputs = [...selectedInputs];
+            visuals[selectedIdx].props.inputs = [...selectedInputs];
         }
     };
 
+    function getInputMode() {
+        if (!activeTab) {
+            return;
+        }
+        const selectedIdx = parseInt(activeTab);
+        if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
+            return visuals[selectedIdx].inputMode;
+        }
+    }
+
     onMount(() => {
-        visuals = [
-            [LinePlotVis, { title: 'Line Plot', inputs: []}],
-        ]
-        updateSignalPanel(activeTab!);
+        visuals = [];
+        addPanel('linePlot');
     });
 </script>
 
@@ -86,7 +101,7 @@
         <div class='h-full'>
             <Tabs.Root class='h-full w-full flex flex-col' value={activeTab} onValueChange={updateSignalPanel} activationMode="automatic">
                 <Tabs.List class='self-start'>
-                    {#each visuals as [_, props], i}
+                    {#each visuals as {props}, i}
                         <Tabs.Trigger value={i.toString()}>
                             {props.title}
                         </Tabs.Trigger>
@@ -108,7 +123,7 @@
                     </DropdownMenu.Root>
                 </Tabs.List>
                 <div class='h-full flex items-stretch'>
-                    {#each visuals as [Component, props], i}
+                    {#each visuals as {Component, props}, i}
                         <Tabs.Content value={i.toString()} class='w-full'>
                             <Component {...props} {qcaSimulation}/>
                         </Tabs.Content>
@@ -121,7 +136,7 @@
     <Resizable.Pane defaultSize={15} minSize={10}>
         <div class='h-full overflow-y-auto p-2'>
             <Accordion.Root type='multiple'>
-                <InputsPanel {qcaSimulation} bind:selectedInputs={selectedInputs}/>
+                <InputsPanel {qcaSimulation} bind:selectedInputs={selectedInputs} inputType={getInputMode()}/>
             </Accordion.Root>
         </div>  
     </Resizable.Pane>

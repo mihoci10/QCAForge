@@ -1,7 +1,7 @@
 <script lang='ts'>
     import { onDestroy, onMount } from "svelte";
     import * as d3 from 'd3';
-    import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
+    import type { Input, QCASimulation, SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { COLORS } from "$lib/utils/visual-colors";
     import { calculateSize } from "@iconify/svelte";
@@ -9,13 +9,13 @@
     type Props = {
         qcaSimulation: QCASimulation | undefined;
 		title: string;
-		signals: SignalIndex[];
+		inputs: Input[];
 	};
  
 	let {
         qcaSimulation,
 		title,
-		signals,
+		inputs,
 	}: Props = $props();
 
     let rootDivElement: HTMLDivElement;
@@ -29,11 +29,8 @@
     function beforeLoadData() {
     }
 
-    function loadSignalData(signalIndex: SignalIndex, data: Float64Array) {
-        if (!qcaSimulation)
-            return;
+    function loadInputData(input: Input, data: Float64Array[]) {
         
-        const cell = qcaSimulation.getCell()
     }
 
     function afterLoadData() {
@@ -46,7 +43,7 @@
 
 </script>
 
-<BaseDataVis {qcaSimulation} {title} {signals} {beforeLoadData} {loadSignalData} {afterLoadData}>
+<BaseDataVis {qcaSimulation} {title} {inputs} {beforeLoadData} {loadInputData} {afterLoadData}>
     <div bind:this={rootDivElement}>
 
     </div>
