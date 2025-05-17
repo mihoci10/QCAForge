@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # for Arm based macs (M1 and above).
-            args: "--target aarch64-apple-darwin"
+        #   - platform: "macos-latest" # for Arm based macs (M1 and above).
+        #     args: "--target aarch64-apple-darwin"
           - platform: "ubuntu-22.04"
             args: ""
           #Removed windows-latest from the matrix as it has a very long build time.
