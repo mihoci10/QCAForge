@@ -17,7 +17,11 @@
         selectedInputs = $bindable([]),
         inputType,
      }: Props = $props();
-    
+
+     let selectedInputsString: string[] = $derived(
+        selectedInputs.map(input => getInputName(input))
+     );
+
     onMount(() => {
         inputs = [];
         filteredInputs = [];
@@ -36,7 +40,7 @@
     }
     
     function toggleInputSelection(input: Input) {
-        if (selectedInputs.includes(input)) {
+        if (selectedInputsString.includes(getInputName(input))) {
             selectedInputs = selectedInputs.filter(_input => _input !== input);
         } else {
             selectedInputs = [...selectedInputs, input];
@@ -99,18 +103,18 @@
         {#each filteredInputs as input}
             <div 
                 class="flex items-center p-2 rounded-md cursor-pointer hover:bg-accent transition-colors duration-150"
-                class:bg-primary-100={selectedInputs.includes(input)}
-                class:text-primary-900={selectedInputs.includes(input)}
+                class:bg-primary-100={selectedInputsString.includes(getInputName(input))}
+                class:text-primary-900={selectedInputsString.includes(getInputName(input))}
                 onclick={() => toggleInputSelection(input)}
                 onkeydown={(e) => e.key === 'Enter' && toggleInputSelection(input)}
                 tabindex="0"
                 role="button"
-                aria-pressed={selectedInputs.includes(input)}
+                aria-pressed={selectedInputsString.includes(getInputName(input))}
             >
                 <div class="flex items-center gap-2 w-full">
                     <div class="w-4 h-4 flex items-center justify-center border rounded-sm" 
-                        class:bg-primary-500={selectedInputs.includes(input)}>
-                        {#if selectedInputs.includes(input)}
+                        class:bg-primary-500={selectedInputsString.includes(getInputName(input))}>
+                        {#if selectedInputsString.includes(getInputName(input))}
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
