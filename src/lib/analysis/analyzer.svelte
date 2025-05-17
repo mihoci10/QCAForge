@@ -1,9 +1,9 @@
 <script lang="ts">
     import * as Resizable from "$lib/components/ui/resizable";
     import * as Accordion from "$lib/components/ui/accordion";
-    import { QCASimulation, type SignalIndex } from "$lib/qca-simulation";
+    import { QCASimulation, type Input, type SignalIndex } from "$lib/qca-simulation";
     import LinePlotVis from "./line-plot-vis.svelte";
-    import SignalsPanel from "./panels/signals-panel.svelte";
+    import InputsPanel from "./panels/inputs-panel.svelte";
     import * as Tabs from "$lib/components/ui/tabs/";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
     import { onMount } from "svelte";
@@ -16,7 +16,7 @@
     let { qcaSimulation = $bindable() }: Props = $props();
 
     let activeTab: string|undefined = $state('0');
-    let selectedSignals: SignalIndex[] = $state([]);
+    let selectedInputs: Input[] = $state([]);
 
     const VIS_PANELS = [
         { id: 'linePlot', component: LinePlotVis, title: 'Line Plot' },
@@ -35,14 +35,14 @@
             componentTitle = `${title} ${titleIdx}`;
             titleIdx++;
         }
-        visuals.push([component, { title: componentTitle, signals: [] }]); 
+        visuals.push([component, { title: componentTitle, inputs: [] }]); 
         updateSignalPanel((visuals.length - 1).toString());
     }
 
     let visuals: any = $state([]);
 
     $effect(() => {
-        updatePanelSignals();
+        updatePanelInputs();
     });
 
     function updateSignalPanel(value: string){
@@ -50,23 +50,23 @@
 
         const selectedIdx = parseInt(activeTab);
         if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
-            selectedSignals = [...visuals[selectedIdx][1].signals];
+            selectedInputs = [...visuals[selectedIdx][1].inputs];
         }
     }
 
-    function updatePanelSignals(){
+    function updatePanelInputs(){
         if (!activeTab) {
             return;
         }
         const selectedIdx = parseInt(activeTab);
         if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
-            visuals[selectedIdx][1].signals = [...selectedSignals];
+            visuals[selectedIdx][1].inputs = [...selectedInputs];
         }
     };
 
     onMount(() => {
         visuals = [
-            [LinePlotVis, { title: 'Line Plot', signals: []}],
+            [LinePlotVis, { title: 'Line Plot', inputs: []}],
         ]
         updateSignalPanel(activeTab!);
     });
@@ -121,7 +121,7 @@
     <Resizable.Pane defaultSize={15} minSize={10}>
         <div class='h-full overflow-y-auto p-2'>
             <Accordion.Root type='multiple'>
-                <SignalsPanel {qcaSimulation} bind:selectedSignals={selectedSignals}/>
+                <InputsPanel {qcaSimulation} bind:selectedInputs={selectedInputs}/>
             </Accordion.Root>
         </div>  
     </Resizable.Pane>

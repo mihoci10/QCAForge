@@ -23,6 +23,23 @@ export interface Signal{
     name: string,
 }
 
+export enum InputType {
+  CELL = 'CELL',
+  SIGNAL = 'SIGNAL',
+}
+
+export type CellInput = {
+  type: InputType.CELL;
+  index: CellIndex;
+};
+
+export type SignalInput = {
+  type: InputType.SIGNAL;
+  index: SignalIndex;
+};
+
+export type Input = CellInput | SignalInput;
+
 export interface QCASimulationMetadata{
     qca_core_version: string,
     start_time: Date,
@@ -72,27 +89,49 @@ export class QCASimulation {
         return this._cellData.get(cell)![polarizationIndex];
     }
 
-    public getCell(cellIndex: CellIndex): Cell {
-        const layer = cellIndex.layer;
-        const arch_id = this._design.layers[layer].cell_architecture_id;
-        const arch = this._design.cell_architectures.get(arch_id)!;
-        const polarization_n = arch.dot_count / 4;
-        const cell = this._design.layers[layer].cells[cellIndex.cell];
-        return cell;
-    }
-
-    public async getSignalData(signalIndex: SignalIndex): Promise<Float64Array> {
-        switch (signalIndex.type) {
-            case SignalType.CLOCK:
-                return this.getClockData(signalIndex.index);
-            case SignalType.CELL:
-                return this.getCellData(this.metadata.stored_cells[signalIndex.index], signalIndex.subindex!);
+    public async getInputData(input: Input): Promise<Float64Array[]> {
+        switch (input.type) {
+            case InputType.CELL: 
+                const cellIndex = input.index as CellIndex;
+                const archId = this._design.layers[cellIndex.layer].cell_architecture_id;
+                const arch = this._design.cell_architectures.get(archId)!;
+                const polarizationN = arch.dot_count / 4;
+                return Promise.all(
+                    Array.from({ length: polarizationN }, (_, i) => this.getCellData(cellIndex, i))
+                );            
+            case InputType.SIGNAL:
+                const signalIndex = input.index as SignalIndex;
+                switch (signalIndex.type) {
+                    case SignalType.CLOCK:  
+                        return [await this.getClockData(signalIndex.index)];
+                    case SignalType.CELL:
+                        const cellIndex = this._metadata.stored_cells[signalIndex.index];
+                        const polarizationIndex = signalIndex.subindex!;
+                        return [await this.getCellData(cellIndex, polarizationIndex)];
+                }
             default:
-                throw new Error('Invalid signal type');
+                throw new Error('Invalid input type');
         }
     }
 
-    public getSignals(): Signal[] {
+    public getInputs(type: InputType): Input[] {
+        switch (type) {
+            case InputType.CELL:
+                return this._metadata.stored_cells.map(cellIndex => ({
+                    type: InputType.CELL,
+                    index: cellIndex
+                }));       
+            case InputType.SIGNAL:
+                return this.getSignals().map(signal => ({
+                    type: InputType.SIGNAL,
+                    index: signal.index
+                }));
+            default:
+                throw new Error('Invalid input type');
+        }  
+    }
+
+    private getSignals(): Signal[] {
         const signals: Signal[] = [];
 
         for (let i = 0; i < 4; i++) {
@@ -124,6 +163,27 @@ export class QCASimulation {
         }
 
         return signals;
+    }
+
+    public getCell(cellIndex: CellIndex): Cell {
+        const layer = this._design.layers[cellIndex.layer];
+        const cell = layer.cells[cellIndex.cell];
+        if (!cell) {
+            throw new Error(`Cell not found!}`);
+        }
+        return cell;
+    }
+    
+    public getSignal(signalIndex: SignalIndex): Signal {
+        const signals = this.getSignals();
+        for (const signal of signals) {
+            if (signal.index.type === signalIndex.type && signal.index.index === signalIndex.index) {
+                if (signalIndex.subindex === undefined || signal.index.subindex === signalIndex.subindex) {
+                    return signal;
+                }
+            }
+        }
+        throw new Error('Signal not found');
     }
 
     public loadData(): Promise<void> {

@@ -1,20 +1,20 @@
 <script lang='ts'>
     import { onDestroy, onMount } from "svelte";
     import * as d3 from 'd3';
-    import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
+    import type { Input, QCASimulation, SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { COLORS } from "$lib/utils/visual-colors";
 
     type Props = {
         qcaSimulation: QCASimulation | undefined;
 		title: string;
-		signals: SignalIndex[];
+		inputs: Input[];
 	};
  
 	let {
         qcaSimulation,
 		title,
-		signals,
+		inputs,
 	}: Props = $props();
 
     let numTicksX = 5;
@@ -119,13 +119,15 @@
         filteredDrawData = [];
     }
 
-    function loadSignalData(signal: SignalIndex, data: Float64Array) {
-        const signalData: [number, number][] = [];
-        for (let i = 0; i < data.length; i++) {
-            signalData.push([i+1, data[i]]);
-        }
-        drawData.push(signalData);
-        filteredDrawData.push(signalData);
+    function loadInputData(input: Input, data: Float64Array[]) {
+        data.forEach((signal, _) => {
+            const signalData: [number, number][] = [];
+            for (let i = 0; i < signal.length; i++) {
+                signalData.push([i+1, signal[i]]);
+            }
+            drawData.push(signalData);
+            filteredDrawData.push(signalData);
+        });
     }
 
     function afterLoadData() {
@@ -344,7 +346,7 @@
     }
 </style>
 
-<BaseDataVis {qcaSimulation} {title} {signals} {beforeLoadData} {loadSignalData} {afterLoadData}>
+<BaseDataVis {qcaSimulation} {title} {inputs} {beforeLoadData} {loadInputData} {afterLoadData}>
     <svg bind:this={svgElement}
         class='bg-background w-full h-full'>
     </svg>

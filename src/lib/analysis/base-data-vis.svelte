@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Label } from "$lib/components/ui/label";
-    import type { QCASimulation, SignalIndex } from "$lib/qca-simulation";
+    import type { Input, QCASimulation, SignalIndex } from "$lib/qca-simulation";
 	import type { Snippet } from "svelte";
 	import type { DOMAttributes } from "svelte/elements";
  
@@ -8,9 +8,9 @@
 		qcaSimulation: QCASimulation | undefined;
 		title: string;
         children: Snippet | undefined;
-		signals: SignalIndex[];
+		inputs: Input[];
 		beforeLoadData?: () => void;
-		loadSignalData?: (signalIndex: SignalIndex, data: Float64Array) => void;
+		loadInputData?: (input: Input, data: Float64Array[]) => void;
 		afterLoadData?: () => void;
 	};
  
@@ -18,9 +18,9 @@
 		qcaSimulation,
 		title,
         children,
-		signals,
+		inputs,
 		beforeLoadData,
-		loadSignalData,
+		loadInputData,
 		afterLoadData,
 		...restProps
 	}: Props = $props();
@@ -40,12 +40,12 @@
 		}
 		status = 'loading';
 		beforeLoadData?.();
-		const allSignals = signals.map((signal) => qcaSimulation.getSignalData(signal));
+		const allSignals = inputs.map((input) => qcaSimulation.getInputData(input));
 		Promise.all(allSignals).then((signalData) => {
 			signalData.forEach((data, i) => {
-				loadSignalData?.(signals[i], data);
+				loadInputData?.(inputs[i], data);
 			});
-			status = signals.length > 0 ? 'success' : 'empty';
+			status = inputs.length > 0 ? 'success' : 'empty';
 		}).catch((error) => {
 			console.error("Error loading data:", error);
 			status = 'error';
