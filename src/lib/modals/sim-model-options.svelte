@@ -7,12 +7,13 @@
 	interface Props {
 		isOpen: boolean;
         model: SimulationModel;
-		applyCallback?: (data: any) => void;
+		applyCallback: () => void;
     }
 
     let { 
 		isOpen = $bindable(),
 		model = $bindable(),
+		applyCallback
 	}: Props = $props();
 
 	function applyModelChanges(data: any) {
@@ -26,6 +27,7 @@
 				}
 			}
 		});
+		applyCallback();
 	}
 </script>
 

@@ -6,6 +6,7 @@
     import SimModelOptions from "$lib/modals/sim-model-options.svelte";
     import Button from "$lib/components/ui/button/button.svelte";
     import { Label } from "$lib/components/ui/label";
+    import { simulation } from "$lib/globals";
 
     function openModelOptions(){
         if (!selected_model_id)
@@ -33,6 +34,12 @@
     let selectedModel: SimulationModel | undefined = $derived(
         selected_model_id ? simulation_models.get(selected_model_id) : undefined
     );
+
+    function applyCallback() {
+        if (!selectedModel)
+            throw new Error('Invalid simulation model!');
+        simulation_models.set(selectedModel.id, selectedModel);
+    }
 </script>
 
 <Accordion.Item value="simulation-settings">
@@ -61,7 +68,7 @@
                     <Button variant='outline' size='icon' disabled={!selected_model_id} onclick={openModelOptions}>
                         <Icon icon="material-symbols:settings" />
                     </Button>
-                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!}/>
+                    <SimModelOptions bind:isOpen={openModal} model={selectedModel!} {applyCallback}/>
                 </div>
             </div>
         </div>
