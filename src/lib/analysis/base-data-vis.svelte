@@ -12,6 +12,7 @@
 		beforeLoadData?: () => void;
 		loadInputData?: (input: Input, data: Float64Array[]) => void;
 		afterLoadData?: () => void;
+		getNeededInputs?: () => Input[];
 	};
  
 	let {
@@ -22,6 +23,7 @@
 		beforeLoadData,
 		loadInputData,
 		afterLoadData,
+		getNeededInputs,
 		...restProps
 	}: Props = $props();
 
@@ -39,13 +41,15 @@
 			return;
 		}
 		status = 'loading';
+		const neededInputs = getNeededInputs ? getNeededInputs() : [];
+		const loadInputs = [...new Set([...inputs, ...neededInputs])];
 		beforeLoadData?.();
-		const allSignals = inputs.map((input) => qcaSimulation.getInputData(input));
+		const allSignals = loadInputs.map((input) => qcaSimulation.getInputData(input));
 		Promise.all(allSignals).then((signalData) => {
 			signalData.forEach((data, i) => {
-				loadInputData?.(inputs[i], data);
+				loadInputData?.(loadInputs[i], data);
 			});
-			status = inputs.length > 0 ? 'success' : 'empty';
+			status = loadInputs.length > 0 ? 'success' : 'empty';
 		}).catch((error) => {
 			console.error("Error loading data:", error);
 			status = 'error';

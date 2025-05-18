@@ -3,10 +3,18 @@ import type { SimulationModel } from "./SimulationModel";
 import { type Layer } from "./Layer";
 import { type CellArchitecture } from "./CellArchitecture";
 
+export interface CommonSimulationModelSettings{
+    num_samples: number,
+    max_iter: number,
+    ampl_min: number,
+    ampl_max: number,
+    ampl_fac: number,
+}
+
 export interface QCADesign{
     qca_core_version: string,
     layers: Layer[]
-    simulation_model_settings: Map<string, string>,
+    simulation_model_settings: Map<string, Object>,
     selected_simulation_model_id: string|undefined,
     cell_architectures: Map<string, CellArchitecture>,
 }

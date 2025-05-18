@@ -1,6 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import type { Cell, CellIndex } from "./Cell";
-import { deserializeDesign, type QCADesign } from "./qca-design";
+import { deserializeDesign, type CommonSimulationModelSettings, type QCADesign } from "./qca-design";
 
 export interface TimeDelta{
     seconds: number,
@@ -244,6 +244,10 @@ export class QCASimulation {
                 reject(error);
             });
         });
+    }
+
+    public getSimulationModelSettings() : CommonSimulationModelSettings{
+        return this._design.simulation_model_settings.get(this._design.selected_simulation_model_id!)! as CommonSimulationModelSettings;
     }
 }
 
