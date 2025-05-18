@@ -1,5 +1,5 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import type { Cell, CellIndex } from "./Cell";
+import { CellIndex, type Cell } from "./Cell";
 import { deserializeDesign, type CommonSimulationModelSettings, type QCADesign } from "./qca-design";
 
 export interface TimeDelta{
@@ -46,6 +46,14 @@ export interface QCASimulationMetadata{
     duration: TimeDelta,
     num_samples: number,
     stored_cells: CellIndex[],
+}
+
+function deserializeMetadata(str: string): QCASimulationMetadata{
+    const obj = JSON.parse(str) as QCASimulationMetadata;
+    obj.stored_cells = obj.stored_cells.map((cell: any) => {
+        return new CellIndex(cell.layer, cell.cell);
+    });
+    return obj as QCASimulationMetadata;
 }
 
 export class QCASimulation {
@@ -149,7 +157,7 @@ export class QCASimulation {
             const polarization_n = arch.dot_count / 4;
             for (let j = 0; j < polarization_n; j++) {
                 let cellName = this._design.layers[layer].cells[cellIndex.cell].label;
-                if (cellName === undefined) {
+                if (cellName === null || cellName === undefined) {
                     cellName = `Cell ${cellIndex.layer}-${cellIndex.cell}`;
                 }
                 if (polarization_n > 1) {
@@ -256,8 +264,9 @@ export function loadSimulationFromFile(filename: string): Promise<QCASimulation>
         invoke('load_simulation_file', { filename: filename})
         .then((result: unknown) => {
             const resultPair = result as [QCADesign, QCASimulationMetadata];
+            const metadata = deserializeMetadata(JSON.stringify(resultPair[1]));
             const design = deserializeDesign(JSON.stringify(resultPair[0]));
-            resolve(new QCASimulation(filename, design, resultPair[1]));
+            resolve(new QCASimulation(filename, design, metadata));
         }).catch((error: any) => {
             console.error("Error loading simulation file:", error);
             reject(error);
