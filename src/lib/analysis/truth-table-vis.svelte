@@ -18,8 +18,6 @@
 		inputs,
 	}: Props = $props();
 
-    let rootDivElement: HTMLDivElement;
-
     type ClockRegion = {
         start: number;
         end: number;
@@ -56,6 +54,7 @@
     function beforeLoadData() {
         clockRegions = [];
         logicalData = [];
+        calculatedLogicalData = [];
     }
 
     function loadClockData(input: Input, data: Float64Array[]) {
@@ -226,9 +225,9 @@
                     {#if showRowNumbers}
                         <Table.Head>#</Table.Head>
                     {/if}
-                    {#each calculatedLogicalData as _, i}
+                    {#each inputs as input}
                         <Table.Head>
-                            {inputs[i].index.toString()}
+                            {input.index.toString()}
                         </Table.Head>
                     {/each}
                 </Table.Row>
