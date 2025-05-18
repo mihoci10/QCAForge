@@ -2,6 +2,9 @@
     import { onDestroy, onMount } from "svelte";
     import { InputType, SignalType, type Input, type QCASimulation, type SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
+    import { CellType } from "$lib/Cell";
+    import * as Table from "$lib/components/ui/table/index.js";
+    import { dataDir } from "@tauri-apps/api/path";
 
     type Props = {
         qcaSimulation: QCASimulation | undefined;
@@ -24,10 +27,12 @@
 
     let clockRegions: ClockRegion[][];
     let logicalData: (number | undefined)[][];
-    let calculatedLogicalData: (number | undefined)[][];
+    let calculatedLogicalData: (number | undefined)[][] = $state([]);    
 
     let clockTreshold: number = 0.05;
     let logicalThreshold: number = 1e-2;
+
+    let showRowNumbers: boolean = $state(true);
 
     onMount(() => {
     });
@@ -166,7 +171,6 @@
                 .fill(undefined)
         );
         for (let i = 0; i < inputs.length; i++) {
-            const input = inputs[i];
             calculatedLogicalData[i] = clockRegions[0].map((region) => {
                 const values = logicalData[i].slice(region.start, region.end + 1);
                 const counts = new Map<number | undefined, number>();
@@ -184,13 +188,65 @@
                 return mostCommonValue;
             });
         }
-        console.log("calculatedLogicalData", calculatedLogicalData);
+    }
+
+    function isCellInput(input: Input): boolean {
+        if (!qcaSimulation) {
+            throw new Error("QCASimulation is not defined");
+        }
+        if (input.type === InputType.SIGNAL) {
+            return false;
+        }
+        const cell = qcaSimulation.getCell(input.index);
+        return cell && cell.typ === CellType.Input;
+    }
+
+    function getDisplayData() {
+        if (calculatedLogicalData.length === 0) return [];
+        
+        const maxLength = Math.max(...calculatedLogicalData.map(subArray => subArray.length));
+        const result = Array(maxLength).fill(undefined).map(() => Array(calculatedLogicalData.length).fill(undefined));
+        
+        for (let i = 0; i < calculatedLogicalData.length; i++) {
+            for (let j = 0; j < calculatedLogicalData[i].length; j++) {
+            result[j][i] = calculatedLogicalData[i][j];
+            }
+        }
+        
+        return result;
     }
 
 </script>
 
 <BaseDataVis {qcaSimulation} {title} {inputs} {beforeLoadData} {loadInputData} {afterLoadData} {getNeededInputs}>
-    <div bind:this={rootDivElement}>
-
+    <div class="my-4 overflow-x-auto">
+        <Table.Root>
+            <Table.Header>
+                <Table.Row>
+                    {#if showRowNumbers}
+                        <Table.Head>#</Table.Head>
+                    {/if}
+                    {#each calculatedLogicalData as _, i}
+                        <Table.Head>
+                            {inputs[i].index.toString()}
+                        </Table.Head>
+                    {/each}
+                </Table.Row>
+            </Table.Header>
+            <Table.Body>
+                {#each getDisplayData() as row, rowIndex}
+                    <Table.Row>
+                        {#if showRowNumbers}
+                            <Table.Cell>{rowIndex}</Table.Cell>
+                        {/if}
+                        {#each row as cell, i}
+                            <Table.Cell>
+                                {cell}
+                            </Table.Cell>
+                        {/each}
+                    </Table.Row>
+                {/each}
+            </Table.Body>
+        </Table.Root>
     </div>
 </BaseDataVis>

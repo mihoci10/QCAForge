@@ -15,7 +15,7 @@
     let { 
         qcaSimulation,
         selectedInputs = $bindable([]),
-        inputType,
+        inputType = InputType.SIGNAL,
      }: Props = $props();
 
      let selectedInputsString: string[] = $derived(

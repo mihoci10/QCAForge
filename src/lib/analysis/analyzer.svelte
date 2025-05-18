@@ -73,7 +73,7 @@
 
     function getInputMode() {
         if (!activeTab) {
-            return;
+            return InputType.SIGNAL;
         }
         const selectedIdx = parseInt(activeTab);
         if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
