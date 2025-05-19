@@ -28,10 +28,12 @@
 	let selected_arch_display = $derived(
 		selected_arch_id ? cell_architectures.get(selected_arch_id)?.name : 'Add a new architecture',
 	);
+	let selected_arch: CellArchitecture | undefined = $state();
 
 	let openModal: boolean = $state(false);
 
 	function openCellArchitectureOptions(){
+		selected_arch = cell_architectures.get(selected_arch_id!);
 		openModal = true;
 	}
 
@@ -124,9 +126,10 @@
 				</Button>
 				<CellArchitectureOptions 
 					bind:isOpen={openModal} 
-					cell_architecture={cell_architectures.get(selected_arch_id!)!}
+					cell_architecture={selected_arch!}
 					architecture_changed_callback={(cell_architecture) => {
 						cell_architectures.set(cell_architecture.id, cell_architecture);
+						cell_architectures = cell_architectures;
 						selected_arch_id = cell_architecture.id;
 					}}/>
 			</div>
