@@ -30,7 +30,7 @@
     "mode-watcher": "^1.0.7",
     "paneforge": "^1.0.0-next.2",
     "postcss": "8.5.3",
-    "svelte": "^5.0.0",
+    "svelte": "^5.31.0",
     "svelte-check": "^4.0.0",
     "svelte-sonner": "^0.3.28",
     "sveltekit-superforms": "^2.23.0",
