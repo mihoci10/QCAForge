@@ -22,7 +22,7 @@
     "@tauri-apps/cli": "^2.1.0",
     "@types/node": "22.15.19",
     "@types/three": "^0.176.0",
-    "autoprefixer": "10.4.16",
+    "autoprefixer": "10.4.21",
     "bits-ui": "^1.5.0",
     "clsx": "^2.1.1",
     "formsnap": "^1.0.1",
