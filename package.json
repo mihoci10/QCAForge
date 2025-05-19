@@ -51,7 +51,7 @@
     "@tauri-apps/plugin-clipboard-manager": "^2.2.2",
     "@tauri-apps/plugin-dialog": "^2.2.1",
     "@tauri-apps/plugin-fs": "^2.2.1",
-    "@three.ez/instanced-mesh": "^0.3.0-alpha.9",
+    "@three.ez/instanced-mesh": "^0.3.4",
     "@types/d3": "^7.4.3",
     "class-variance-authority": "^0.7.1",
     "d3": "^7.9.0",
