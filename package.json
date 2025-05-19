@@ -41,7 +41,7 @@
     "troika-three-text": "^0.52.3",
     "tslib": "^2.4.1",
     "typescript": "^5.5.0",
-    "vite": "^6.0.0",
+    "vite": "^6.3.5",
     "vite-plugin-tailwind-purgecss": "0.3.5",
     "zod": "^3.25.3"
   },
