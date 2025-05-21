@@ -47,12 +47,22 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "fullscreen": false,
         "maximized": true,
         "height": 720,
         "resizable": true,
         "title": "QCA Forge",
-        "width": 1280
+        "width": 1280,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "url": "/splashscreen",
+        "height": 300,
+        "width": 620,
+        "decorations": false
+
       }
     ],
     "security": {

@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::collections::HashMap;
+use std::sync::Mutex;
 use qca_core::{
     objects::{architecture::QCACellArchitecture, layer::QCALayer},
     simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList},
@@ -9,6 +10,7 @@ use qca_core::{
 use serde::Serialize;
 use tauri::http::{header, Response, StatusCode};
 use tauri::{Emitter, Manager, Url};
+use tauri::async_runtime::spawn;
 
 #[derive(Serialize)]
 struct SimulationModelDescriptor {
@@ -27,6 +29,9 @@ mod analysis;
 use simulation::*;
 use analysis::*;
 
+mod startup;
+use startup::*;
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
@@ -43,15 +48,17 @@ fn main() {
                 .set_shadow(true);
             let menu = create_menu_bar(app);
             let _ = app.set_menu(menu);
+            spawn(backend_startup(app.handle().clone()));
             Ok(())
         })
+        .manage(Mutex::new(StartupState::new()))
         .invoke_handler(tauri::generate_handler![
             get_sim_version,
             get_sim_models,
             get_sim_model_options_list,
             run_sim_model,
             get_sim_model_default_options,
-            load_simulation_file
+            load_simulation_file,
         ])
         .register_uri_scheme_protocol("load-sim", |_, req| {
             match handle_load_sim(req) {

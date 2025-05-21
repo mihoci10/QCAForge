@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.css';
+	import '../../app.css';
 	import { Toaster } from "$lib/components/ui/sonner";
 
 	import { page } from '$app/state';
