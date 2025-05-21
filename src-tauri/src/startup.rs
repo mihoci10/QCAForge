@@ -35,11 +35,13 @@ pub fn update_splashscreen(app: AppHandle, status: SplashStatus) {
 
 async fn load_simulation_models(app: AppHandle) -> Result<(), String> {
     update_splashscreen(app.clone(), Status("Loading simulation models".to_string()));
+    sleep(Duration::from_secs(1)).await;
     Ok(())
 }
 
 async fn analyze_system(app: AppHandle) -> Result<(), String> {
     update_splashscreen(app.clone(), Status("Analyzing system".to_string()));
+    sleep(Duration::from_secs(1)).await;
     Ok(())
 }
 
@@ -58,10 +60,12 @@ pub async fn backend_startup(app: AppHandle, ) -> Result<(), String> {
         startup_func.await?;
     }
 
-    let  startup_state = app.state::<Mutex<StartupState>>();
-    let mut startup_state_lock = startup_state.lock().unwrap();
-    startup_state_lock.backend_ready = true;
-    startup_state_lock.frontend_ready = true;
+    {
+        let  startup_state = app.state::<Mutex<StartupState>>();
+        let mut startup_state_lock = startup_state.lock().unwrap();
+        startup_state_lock.backend_ready = true;
+        startup_state_lock.frontend_ready = true;  
+    }
 
     update_splashscreen(app.clone(), SplashStatus::Done);
     Ok(())

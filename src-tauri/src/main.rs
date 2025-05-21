@@ -47,7 +47,11 @@ fn main() {
                 .unwrap()
                 .set_shadow(true);
             let menu = create_menu_bar(app);
-            let _ = app.set_menu(menu);
+            let _ = app
+                .handle()
+                .get_webview_window("main")
+                .unwrap()
+                .set_menu(menu);
             spawn(backend_startup(app.handle().clone()));
             Ok(())
         })
