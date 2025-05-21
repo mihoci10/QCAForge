@@ -11,7 +11,6 @@ use crate::startup::SplashStatus::{Progress, Status};
 pub enum SplashStatus {
     Progress(f32),
     Status(String),
-    Done,
 }
 
 pub struct StartupState{
@@ -19,10 +18,19 @@ pub struct StartupState{
     frontend_ready: bool,
 }
 
-pub fn update_splashscreen(app: AppHandle, status: SplashStatus) {
-    let window = app.get_webview_window("splashscreen").unwrap();
+#[tauri::command]
+pub fn startup_frontend_ready(app: AppHandle) {
+    {
+        let startup_state = app.state::<Mutex<StartupState>>();
+        let mut startup_state_lock = startup_state.lock().unwrap();
+        startup_state_lock.frontend_ready = true;
+    }
 
-    app.emit_to(EventTarget::WebviewWindow { label: "splashscreen".to_owned() }, "splashscreenUpdate", status.clone()).unwrap();
+    update_splashscreen(app.clone(), None);
+}
+
+pub fn update_splashscreen(app: AppHandle, status: Option<SplashStatus>) {
+    let window = app.get_webview_window("splashscreen").unwrap();
 
     let startup_state = app.state::<Mutex<StartupState>>();
     let startup_state_lock = startup_state.lock().unwrap();
@@ -30,18 +38,20 @@ pub fn update_splashscreen(app: AppHandle, status: SplashStatus) {
     if startup_state_lock.is_ready() {
         window.close().unwrap();
         app.get_webview_window("main").unwrap().show().unwrap();
+    } else {
+        app.emit_to(EventTarget::WebviewWindow { label: "splashscreen".to_owned() }, "splashscreenUpdate", status.clone()).unwrap();
     }
 }
 
 async fn load_simulation_models(app: AppHandle) -> Result<(), String> {
-    update_splashscreen(app.clone(), Status("Loading simulation models".to_string()));
-    sleep(Duration::from_secs(1)).await;
+    update_splashscreen(app.clone(), Some(Status("Loading simulation models".to_string())));
+    //sleep(Duration::from_secs(1)).await;
     Ok(())
 }
 
 async fn analyze_system(app: AppHandle) -> Result<(), String> {
-    update_splashscreen(app.clone(), Status("Analyzing system".to_string()));
-    sleep(Duration::from_secs(1)).await;
+    update_splashscreen(app.clone(), Some(Status("Analyzing system".to_string())));
+    //sleep(Duration::from_secs(1)).await;
     Ok(())
 }
 
@@ -56,7 +66,7 @@ pub async fn backend_startup(app: AppHandle, ) -> Result<(), String> {
 
     for (i, startup_func) in startup_tasks.into_iter().enumerate() {
         let progress = (i as f32 / total_tasks as f32) * 100.0;
-        update_splashscreen(app.clone(), Progress(progress));
+        update_splashscreen(app.clone(), Some(Progress(progress)));
         startup_func.await?;
     }
 
@@ -64,10 +74,9 @@ pub async fn backend_startup(app: AppHandle, ) -> Result<(), String> {
         let  startup_state = app.state::<Mutex<StartupState>>();
         let mut startup_state_lock = startup_state.lock().unwrap();
         startup_state_lock.backend_ready = true;
-        startup_state_lock.frontend_ready = true;  
     }
 
-    update_splashscreen(app.clone(), SplashStatus::Done);
+    update_splashscreen(app.clone(), Some(Status("Drawing the frontend".to_string())));
     Ok(())
 }
 
