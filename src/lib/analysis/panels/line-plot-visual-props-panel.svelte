@@ -1,0 +1,52 @@
+<script lang="ts">
+    import { Label } from "$lib/components/ui/label";
+    import { Input } from "$lib/components/ui/input";
+    import * as Switch from "$lib/components/ui/switch";
+
+    export interface LinePlotProps {
+        numTicksX: number;
+        numTicksY: number;
+        showDots: boolean;
+    }
+
+    interface Props {
+        props: LinePlotProps;
+    }
+    
+    let { 
+        props = $bindable(),
+    }: Props = $props();
+
+</script>
+
+<div class="flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+        <Label for="show-dots" class="text-sm font-medium">Show Data Points</Label>
+        <Switch.Root id="show-dots" bind:checked={props.showDots}>
+        </Switch.Root>
+    </div>
+    
+    <div class="flex flex-col gap-2">
+        <Label for="ticks-x" class="text-sm font-medium">X-Axis Ticks</Label>
+        <Input 
+            id="ticks-x"
+            type="number" 
+            min={2}
+            max={20}
+            step={1}
+            bind:value={props.numTicksX}
+        />
+    </div>
+    
+    <div class="flex flex-col gap-2">
+        <Label for="ticks-y" class="text-sm font-medium">Y-Axis Ticks</Label>
+        <Input 
+            id="ticks-y"
+            type="number" 
+            min={2}
+            max={20}
+            step={1}
+            bind:value={props.numTicksY}
+        />
+    </div>
+</div>

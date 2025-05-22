@@ -1,24 +1,24 @@
 <script lang='ts'>
     import { onDestroy, onMount } from "svelte";
     import * as d3 from 'd3';
-    import type { Input, QCASimulation, SignalIndex } from "$lib/qca-simulation";
+    import type { Input, QCASimulation, } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
-    import { COLORS } from "$lib/utils/visual-colors";
-
+    import { COLORS } from "$lib/utils/visual-colors";    
+    import type { LinePlotProps } from "./panels/line-plot-visual-props-panel.svelte";
+    
     type Props = {
         qcaSimulation: QCASimulation | undefined;
 		title: string;
 		inputs: Input[];
+        props: LinePlotProps,
 	};
  
-	let {
+	let {        
         qcaSimulation,
 		title,
 		inputs,
+        props,
 	}: Props = $props();
-
-    let numTicksX = 5;
-    let numTicksY = 5;
     
     let svgElement: SVGSVGElement;
     let svg: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -169,10 +169,10 @@
     function drawAxes() {
         xAxisElement
             .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(xAxis).ticks(numTicksX));
+            .call(d3.axisBottom(xAxis).ticks(props.numTicksX));
 
         yAxisElement
-            .call(d3.axisLeft(yAxis).ticks(numTicksY));
+            .call(d3.axisLeft(yAxis).ticks(props.numTicksY));
 
         xGridElement
             .selectAll("line")
@@ -221,9 +221,9 @@
                 .attr("d", lineGenerator(data))
                 .attr("fill", "none")
                 .attr("stroke", COLORS[i])
-                .attr("stroke-width", 1.5);
-
-            if (data.length <= width / 10){
+                .attr("stroke-width", 1.5);            
+            
+                if (data.length <= width / 10 && props.showDots){
                 signalSvgs[i].dots
                     .selectAll("circle")
                     .data(data)

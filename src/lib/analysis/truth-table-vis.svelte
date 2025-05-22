@@ -3,34 +3,31 @@
     import { InputType, SignalType, type Input, type QCASimulation, type SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { CellType } from "$lib/Cell";
-    import * as Table from "$lib/components/ui/table/index.js";
-    import { dataDir } from "@tauri-apps/api/path";
-
+    import * as Table from "$lib/components/ui/table/index.js"; 
+    import type { TruthTableProps } from "./panels/truth-table-visual-props-panel.svelte";
+    
     type Props = {
         qcaSimulation: QCASimulation | undefined;
 		title: string;
 		inputs: Input[];
+        props: TruthTableProps,
 	};
  
 	let {
         qcaSimulation,
 		title,
 		inputs,
+        props,
 	}: Props = $props();
 
     type ClockRegion = {
         start: number;
-        end: number;
-    };
+        end: number;    
+    };    
 
     let clockRegions: ClockRegion[][];
     let logicalData: (number | undefined)[][];
-    let calculatedLogicalData: (number | undefined)[][] = $state([]);    
-
-    let clockTreshold: number = 0.05;
-    let logicalThreshold: number = 1e-2;
-
-    let showRowNumbers: boolean = $state(true);
+    let calculatedLogicalData: (number | undefined)[][] = $state([]);
 
     onMount(() => {
     });
@@ -70,7 +67,7 @@
         const clockData = data[0];
         const clockHigh = Math.max(...clockData);
         const clockLow = Math.min(...clockData);
-        const clockHighThreshold = clockHigh - (clockHigh - clockLow) * clockTreshold;
+        const clockHighThreshold = clockHigh - (clockHigh - clockLow) * props.clockTreshold;
 
         const currentClockRegions: ClockRegion[] = [];
         let currentRegion: ClockRegion | null = null;
@@ -93,8 +90,8 @@
     }
 
     function generateBinaryLogicalData(input: Input, data: Float64Array): (number | undefined)[] {
-        const polarHighThreshold = 1 - (2 * logicalThreshold);
-        const polarLowThreshold = -1 + (2 * logicalThreshold);
+        const polarHighThreshold = 1 - (2 * props.logicalThreshold);
+        const polarLowThreshold = -1 + (2 * props.logicalThreshold);
 
         const logicalData = new Array(data.length).fill(undefined);
         for (let i = 0; i < data.length; i++) {
@@ -109,8 +106,8 @@
     }
 
     function generateTernaryLogicalData(input: Input, data1: Float64Array, data2: Float64Array): (number | undefined)[] {
-        const polarHighThreshold = 1 - (2 * logicalThreshold);
-        const polarLowThreshold = -1 + (2 * logicalThreshold);
+        const polarHighThreshold = 1 - (2 * props.logicalThreshold);
+        const polarLowThreshold = -1 + (2 * props.logicalThreshold);
 
         const logicalData = new Array(data1.length).fill(undefined);
         for (let i = 0; i < data1.length; i++) {
@@ -222,7 +219,7 @@
         <Table.Root>
             <Table.Header>
                 <Table.Row>
-                    {#if showRowNumbers}
+                    {#if props.showRowNumbers}
                         <Table.Head>#</Table.Head>
                     {/if}
                     {#each inputs as input}
@@ -235,7 +232,7 @@
             <Table.Body>
                 {#each getDisplayData() as row, rowIndex}
                     <Table.Row>
-                        {#if showRowNumbers}
+                        {#if props.showRowNumbers}
                             <Table.Cell>{rowIndex}</Table.Cell>
                         {/if}
                         {#each row as cell, i}
