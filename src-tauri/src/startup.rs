@@ -19,7 +19,7 @@ pub struct StartupState{
 }
 
 #[tauri::command]
-pub fn startup_frontend_ready(app: AppHandle) {
+pub async fn startup_frontend_ready(app: AppHandle) {
     {
         let startup_state = app.state::<Mutex<StartupState>>();
         let mut startup_state_lock = startup_state.lock().unwrap();
@@ -77,6 +77,7 @@ pub async fn backend_startup(app: AppHandle, ) -> Result<(), String> {
     }
 
     update_splashscreen(app.clone(), Some(Status("Drawing the frontend".to_string())));
+    update_splashscreen(app.clone(), Some(Progress(95.0)));
     Ok(())
 }
 

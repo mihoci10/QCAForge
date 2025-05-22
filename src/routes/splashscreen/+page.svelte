@@ -10,10 +10,10 @@
   let mounted: boolean = $state(false);
 
   onMount(() => {
+    const appWebview = getCurrentWebviewWindow();
     // Trigger fade-in animation
     setTimeout(() => mounted = true, 100);
 
-    const appWebview = getCurrentWebviewWindow();
     const unlistenStartup = appWebview.listen(EVENT_STARTUP_PROGRESS, (event) => {
       const obj = event.payload as any;
       if (obj.Status) {
@@ -22,8 +22,6 @@
         progress = obj.Progress as number;
       }
     });
-
-    invoke("startup_frontend_ready");
 
     return () => {
       unlistenStartup.then(f => f());
@@ -73,7 +71,7 @@
     <!-- Subtitle -->
 
     <!-- Status and progress container -->
-    <div class="w-80 max-w-sm">
+    <div class="w-96 max-w-sm">
       <!-- Status text -->
       <div class="mb-4 text-center">
         <p class="text-gray-300 text-sm font-medium transition-all duration-300 min-h-[1.25rem]">

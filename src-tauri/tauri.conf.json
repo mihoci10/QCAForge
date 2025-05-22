@@ -49,11 +49,9 @@
       {
         "label": "main",
         "fullscreen": false,
-        "maximized": true,
-        "height": 720,
+        "maximized": true,  
         "resizable": true,
         "title": "QCA Forge",
-        "width": 1280,
         "visible": false
       },
       {
@@ -63,7 +61,8 @@
         "width": 620,
         "decorations": false,
         "center": true,
-        "resizable": false
+        "resizable": false,
+        "visible": true
       }
     ],
     "security": {
