@@ -62,7 +62,8 @@
         "height": 300,
         "width": 620,
         "decorations": false,
-        "center": true
+        "center": true,
+        "resizable": false
       }
     ],
     "security": {

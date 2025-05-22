@@ -71,7 +71,6 @@
     </h1>
     
     <!-- Subtitle -->
-    <p class="text-gray-300 text-lg mb-8 font-light">Quantum Cellular Automata</p>
 
     <!-- Status and progress container -->
     <div class="w-80 max-w-sm">
@@ -95,18 +94,11 @@
             <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-shimmer"></div>
           </div>
         </div>
-        
-        <!-- Progress percentage -->
-        <div class="flex justify-center mt-3">
-          <span class="text-xs text-gray-400 font-mono bg-gray-800/30 px-2 py-1 rounded backdrop-blur-sm">
-            {Math.round(progress)}%
-          </span>
-        </div>
       </div>
     </div>
 
     <!-- Loading spinner -->
-    <div class="mt-8">
+    <div class="mt-2">
       <div class="w-6 h-6 border-2 border-gray-600 border-t-purple-500 rounded-full animate-spin"></div>
     </div>
   </div>
