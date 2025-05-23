@@ -55,6 +55,9 @@
 
     let drawData: [number, number][][];
     let filteredDrawData: [number, number][][];
+    let display_range: [number, number] | undefined = $state();
+
+    $inspect(display_range)
 
     onMount(() => {
         svg = d3.select(svgElement)
@@ -126,13 +129,11 @@
                 signalData.push([i+1, signal[i]]);
             }
             drawData.push(signalData);
-            filteredDrawData.push(signalData);
         });
     }
 
     function afterLoadData() {
-        calculateAxesExtent();
-        draw();
+        filterData();
     }
 
     function windowResize() {
@@ -176,7 +177,7 @@
 
         xGridElement
             .selectAll("line")
-            .data(xAxis.ticks())
+            .data(xAxis.ticks(props.numTicksX))
             .join("line")
             .attr("x1", (d: number) => xAxis(d))
             .attr("x2", (d: number) => xAxis(d))
@@ -185,7 +186,7 @@
 
         yGridElement
             .selectAll("line")
-            .data(yAxis.ticks())
+            .data(yAxis.ticks(props.numTicksY))
             .join("line")
             .attr("x1", 0)
             .attr("x2", width)
@@ -287,16 +288,25 @@
             .style("opacity", 0.7);
     }
 
-    function onDisplayRangeChange(displayRange: [number, number]) {
-        const [min, max] = displayRange;
-        
-        filteredDrawData = drawData.map((data) => {
-            return data.filter((point) => {
-                return point[0] >= min && point[0] <= max;
-            });
-        });
+    $effect(() => {
+        filterData();
+    });
 
+    function filterData(){
+        if (display_range === undefined){
+            filteredDrawData = drawData;
+        }
+        else{
+            const [min, max] = display_range;
+            filteredDrawData = drawData.map((data) => {
+                return data.filter((point) => {
+                    return point[0] >= min && point[0] <= max;
+                });
+            });
+        }
+        
         calculateAxesExtent();
+        draw();
     }
 
     function onWheel(event: WheelEvent) {
@@ -315,8 +325,7 @@
             Math.ceil(currentRange[1] - (delta * rangeExtent * 0.1 * (1 - xRatio)))
         ] as [number, number];
         
-        onDisplayRangeChange(newDisplayRange);
-        draw();
+        display_range = newDisplayRange;
     }
 
     function onMouseLeave() {

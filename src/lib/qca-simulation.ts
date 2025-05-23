@@ -1,6 +1,7 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { CellIndex, type Cell } from "./Cell";
 import { deserializeDesign, type CommonSimulationModelSettings, type QCADesign } from "./qca-design";
+import {v4 as uuidv4} from 'uuid';
 
 export interface TimeDelta{
     seconds: number,
@@ -57,6 +58,7 @@ function deserializeMetadata(str: string): QCASimulationMetadata{
 }
 
 export class QCASimulation {
+    private _session_id: string;
     private _filename: string;
     private _design: QCADesign;
     private _metadata: QCASimulationMetadata;
@@ -65,6 +67,7 @@ export class QCASimulation {
     private _cellData: Map<string, Float64Array[]>;
 
     constructor(filename: string, design: QCADesign, metadata: QCASimulationMetadata){
+        this._session_id = uuidv4();
         this._filename = filename;
         this._design = design;
         this._metadata = metadata;
@@ -73,6 +76,9 @@ export class QCASimulation {
         this._cellData = new Map<string, Float64Array[]>();
     }
 
+    public get session_id(): string {
+        return this._session_id;
+    }
     public get filename(): string {
         return this._filename;
     }
