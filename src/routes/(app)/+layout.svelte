@@ -18,7 +18,6 @@
     import { Button } from '$lib/components/ui/button';
     import Icon from '@iconify/svelte';
     import { loadSimulationFromFile } from '$lib/qca-simulation';
-    import { invoke } from '@tauri-apps/api/core';
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow()
