@@ -215,14 +215,13 @@
                 dots: svg.append("g")
             });
         }
-        
-        filteredDrawData.forEach((data, i) => {
+          filteredDrawData.forEach((data, i) => {
             signalSvgs[i].line
                 .attr('clip-path', 'url(#clip)')
                 .attr("d", lineGenerator(data))
                 .attr("fill", "none")
                 .attr("stroke", COLORS[i])
-                .attr("stroke-width", 1.5);            
+                .attr("stroke-width", props.lineWidth);
             
                 if (data.length <= width / 10 && props.showDots){
                 signalSvgs[i].dots
@@ -231,7 +230,7 @@
                     .join("circle")
                     .attr("cx", (d: [number, number]) => xAxis(d[0]))
                     .attr("cy", (d: [number, number]) => yAxis(d[1]))
-                    .attr("r", 3)
+                    .attr("r", props.lineWidth + 1.5)
                     .attr("fill", COLORS[i])
                     .attr("clip-path", "url(#clip)");
             } else {

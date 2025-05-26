@@ -1,12 +1,13 @@
 <script lang="ts">
     import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
-    import * as Switch from "$lib/components/ui/switch";
-
+    import * as Switch from "$lib/components/ui/switch";    
+    
     export interface LinePlotProps {
         numTicksX: number;
         numTicksY: number;
         showDots: boolean;
+        lineWidth: number;
     }
 
     interface Props {
@@ -37,8 +38,7 @@
             bind:value={props.numTicksX}
         />
     </div>
-    
-    <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2">
         <Label for="ticks-y" class="text-sm font-medium">Y-Axis Ticks</Label>
         <Input 
             id="ticks-y"
@@ -47,6 +47,18 @@
             max={20}
             step={1}
             bind:value={props.numTicksY}
+        />
+    </div>
+    
+    <div class="flex flex-col gap-2">
+        <Label for="line-width" class="text-sm font-medium">Line Width</Label>
+        <Input 
+            id="line-width"
+            type="number" 
+            min={0.5}
+            max={10}
+            step={0.5}
+            bind:value={props.lineWidth}
         />
     </div>
 </div>
