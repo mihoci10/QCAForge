@@ -7,6 +7,7 @@
         showRowNumbers: boolean;
         clockTreshold: number;
         logicalThreshold: number;
+        inputPhaseShift: Map<string, number>;
     }
 
     interface Props {

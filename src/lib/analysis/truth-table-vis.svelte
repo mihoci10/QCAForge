@@ -2,9 +2,10 @@
     import { onDestroy, onMount } from "svelte";
     import { InputType, SignalType, type Input, type QCASimulation, type SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
-    import { CellType } from "$lib/Cell";
+    import { default as InputUI } from "$lib/components/ui/input/input.svelte";
     import * as Table from "$lib/components/ui/table/index.js"; 
     import type { TruthTableProps } from "./panels/truth-table-visual-props-panel.svelte";
+    import type { ChangeEvent } from "sveltekit-superforms";
     
     type Props = {
         qcaSimulation: QCASimulation | undefined;
@@ -167,34 +168,28 @@
                 .fill(undefined)
         );
         for (let i = 0; i < inputs.length; i++) {
-            calculatedLogicalData[i] = clockRegions[0].map((region) => {
-                const values = logicalData[i].slice(region.start, region.end + 1);
-                const counts = new Map<number | undefined, number>();
-                for (const value of values) {
-                    counts.set(value, (counts.get(value) || 0) + 1);
-                }
-                let mostCommonValue: number | undefined = undefined;
-                let mostCommonCount = 0;
-                for (const [value, count] of counts.entries()) {
-                    if (count > mostCommonCount) {
-                        mostCommonValue = value;
-                        mostCommonCount = count;
+            const inputPhaseShift = props.inputPhaseShift.get(inputs[i].index.toString()) || 0;
+            const clockInd = Math.floor((inputPhaseShift % 360) / 90);
+            const skipRegions = Math.floor(inputPhaseShift / 360);
+            calculatedLogicalData[i] = new Array(skipRegions).fill(undefined).concat(
+                clockRegions[clockInd].slice(skipRegions).map((region) => {
+                    const values = logicalData[i].slice(region.start, region.end + 1);
+                    const counts = new Map<number | undefined, number>();
+                    for (const value of values) {
+                        counts.set(value, (counts.get(value) || 0) + 1);
                     }
-                }
-                return mostCommonValue;
-            });
+                    let mostCommonValue: number | undefined = undefined;
+                    let mostCommonCount = 0;
+                    for (const [value, count] of counts.entries()) {
+                        if (count > mostCommonCount) {
+                            mostCommonValue = value;
+                            mostCommonCount = count;
+                        }
+                    }
+                    return mostCommonValue;
+                })
+            );
         }
-    }
-
-    function isCellInput(input: Input): boolean {
-        if (!qcaSimulation) {
-            throw new Error("QCASimulation is not defined");
-        }
-        if (input.type === InputType.SIGNAL) {
-            return false;
-        }
-        const cell = qcaSimulation.getCell(input.index);
-        return cell && cell.typ === CellType.Input;
     }
 
     function getDisplayData() {
@@ -212,6 +207,15 @@
         return result;
     }
 
+    function onCellPhaseChanged(event: Event) {
+        if (!event.target) return;
+        const inputIndex = (event.target as HTMLInputElement).id.split("-").slice(1).join("-");
+        const inputPhaseShift = parseFloat((event.target as HTMLInputElement).value);
+        console.log(`Phase shift for input ${inputIndex} changed to ${inputPhaseShift}`);
+        props.inputPhaseShift.set(inputIndex, inputPhaseShift);
+        calculate();
+    }
+
 </script>
 
 <BaseDataVis {qcaSimulation} {title} {inputs} {beforeLoadData} {loadInputData} {afterLoadData} {getNeededInputs}>
@@ -224,7 +228,26 @@
                     {/if}
                     {#each inputs as input}
                         <Table.Head>
-                            {input.index.toString()}
+                            <div class="flex flex-col gap-2">
+                                <div class="text-center font-semibold">
+                                    {input.index.toString()}
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <label for="phase-{input.index.toString()}" class="text-xs text-gray-600">
+                                        Phase:
+                                    </label>
+                                    <InputUI
+                                        id="phase-{input.index.toString()}"
+                                        type="number"
+                                        min="0"
+                                        step="90"
+                                        class="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded"
+                                        value={props.inputPhaseShift.get(input.index.toString()) || 0}
+                                        onchange={onCellPhaseChanged}
+                                    />
+                                    <span class="text-xs text-gray-500">°</span>
+                                </div>
+                            </div>
                         </Table.Head>
                     {/each}
                 </Table.Row>

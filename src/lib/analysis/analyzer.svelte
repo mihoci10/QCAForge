@@ -41,7 +41,7 @@
         const visualProps = panelId === 'linePlot' 
             ? { numTicksX: 5, numTicksY: 5, showDots: true, lineWidth: 3 }
             : panelId === 'truthTable'
-            ? { showRowNumbers: true, clockTreshold: 0.05, logicalThreshold: 0.01 }
+            ? { showRowNumbers: true, clockTreshold: 0.05, logicalThreshold: 0.01, inputPhaseShift: new Map<string, number>() }
             : {};
         
         visuals.push({
