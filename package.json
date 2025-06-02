@@ -29,7 +29,7 @@
     "lucide-svelte": "^0.511.0",
     "mode-watcher": "^1.0.7",
     "paneforge": "^1.0.0-next.5",
-    "postcss": "8.5.3",
+    "postcss": "8.5.4",
     "svelte": "^5.33.2",
     "svelte-check": "^4.2.1",
     "svelte-sonner": "^1.0.3",
