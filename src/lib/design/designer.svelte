@@ -605,6 +605,13 @@
         drawCurrentLayer();
     }
 
+    $effect(() => {
+        const cellArch = get_current_cell_architecture();
+        const size = cellArch.side_length;
+        (infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize1.value = size;
+        (infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize2.value = size * 5;
+    })
+
 </script>
 
 <Resizable.PaneGroup direction="horizontal">
