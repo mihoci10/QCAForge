@@ -41,6 +41,21 @@ export type SignalInput = {
 
 export type Input = CellInput | SignalInput;
 
+export function getInputLabel(qcaSimulation: QCASimulation, input: Input): string {
+    switch (input.type) {
+        case InputType.CELL:
+            const cellIndex = input.index as CellIndex;
+            const cell = qcaSimulation.getCell(cellIndex);
+            return cell.label || `Cell ${cellIndex.toString()}`;
+        case InputType.SIGNAL:
+            const signalIndex = input.index as SignalIndex;
+            const signal = qcaSimulation.getSignal(signalIndex);
+            return signal.name;
+        default:
+            throw new Error('Invalid input type');
+    }
+}
+
 export interface QCASimulationMetadata{
     qca_core_version: string,
     start_time: Date,

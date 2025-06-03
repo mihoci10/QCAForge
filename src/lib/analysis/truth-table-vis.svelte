@@ -1,6 +1,6 @@
 <script lang='ts'>
     import { onDestroy, onMount } from "svelte";
-    import { InputType, SignalType, type Input, type QCASimulation, type SignalIndex } from "$lib/qca-simulation";
+    import { getInputLabel, InputType, SignalType, type Input, type QCASimulation, type SignalIndex } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { default as InputUI } from "$lib/components/ui/input/input.svelte";
     import * as Table from "$lib/components/ui/table/index.js"; 
@@ -230,7 +230,7 @@
                         <Table.Head>
                             <div class="flex flex-col gap-2">
                                 <div class="text-center font-semibold">
-                                    {input.index.toString()}
+                                    {getInputLabel(qcaSimulation!, input)}
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <label for="phase-{input.index.toString()}" class="text-xs text-gray-600">
