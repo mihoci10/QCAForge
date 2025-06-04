@@ -341,17 +341,17 @@
         let positionStyle = '';
 
         if (legendPosition.includes('upper')) {
-            positionStyle += `top: ${margin.top}px; `;
+            positionStyle += `top: ${margin.top + LEGEND_PADDING}px; `;
         } else if (legendPosition.includes('lower')) {
-            positionStyle += `bottom: ${margin.bottom}px; `;
+            positionStyle += `bottom: ${margin.bottom + LEGEND_PADDING}px; `;
         } else if (legendPosition.includes('center')) {
             positionStyle += `top: 50%; transform: translateY(-50%); `;
         }
 
         if (legendPosition.includes('left')) {
-            positionStyle += `left: ${margin.left}px; `;
+            positionStyle += `left: ${margin.left + LEGEND_PADDING}px; `;
         } else if (legendPosition.includes('right')) {
-            positionStyle += `right: ${margin.right}px; `;
+            positionStyle += `right: ${margin.right + LEGEND_PADDING}px; `;
         } else if (legendPosition.includes('center')) {
             positionStyle += `left: 50%; `;
         }
@@ -385,13 +385,13 @@
         class='bg-background w-full h-full'>
     </svg>
     {#if props.showLegend}
-        <div class={`absolute z-10 p-2 bg-background/80 backdrop-blur-sm rounded border`}
+        <div class={`absolute z-10 p-2 backdrop-blur-lg rounded border`}
             style={getLegendPosition(props.legendPosition)}>
             <div class="flex flex-col gap-2">
             {#each inputs as input, i}
                 <div class ="flex gap-2">
                     <div class="w-3 h-0.5 rounded" style="background-color: {COLORS[i]}"></div>
-                    <Label>{getInputLabel(qcaSimulation!, input)}</Label>
+                    <Label class='text-lg'>{getInputLabel(qcaSimulation!, input)}</Label>
                 </div>
             {/each}
             </div>

@@ -60,7 +60,7 @@
 </script>
 
 <div class='h-full flex flex-col items-center relative' {...restProps}>
-    <Label class="text-lg font-semibold">{title}</Label>
+    <!-- <Label class="text-lg font-semibold">{title}</Label> -->
 	{@render children?.()}
 	{#if status !== 'success'}
 	<div class="absolute flex flex-col items-center justify-center w-full h-full">
