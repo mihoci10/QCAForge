@@ -1,5 +1,5 @@
 [package]
-name = "qca-forge"
+name = "app"
 version = "0.2.0"
 description = "QCA designer and simulator"
 authors = ["Miha Krajnc"]

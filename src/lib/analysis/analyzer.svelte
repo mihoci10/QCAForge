@@ -36,10 +36,9 @@
         while (visuals.some((visual: any) => visual.props.title == componentTitle)) {
             componentTitle = `${title} ${titleIdx}`;
             titleIdx++;
-        }
-          // Initialize visual properties based on panel type
+        }          // Initialize visual properties based on panel type
         const visualProps = panelId === 'linePlot' 
-            ? { numTicksX: 5, numTicksY: 5, showDots: true, lineWidth: 3 }
+            ? { numTicksX: 5, numTicksY: 5, showDots: true, lineWidth: 3, showLegend: true, legendPosition: 'upper right' as const }
             : panelId === 'truthTable'
             ? { showRowNumbers: true, clockTreshold: 0.05, logicalThreshold: 0.01, inputPhaseShift: new Map<string, number>() }
             : {};

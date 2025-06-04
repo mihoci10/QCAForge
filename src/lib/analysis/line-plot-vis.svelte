@@ -1,10 +1,11 @@
-<script lang='ts'>
-    import { onDestroy, onMount } from "svelte";
+<script lang='ts'>    import { onDestroy, onMount } from "svelte";
     import * as d3 from 'd3';
     import type { Input, QCASimulation, } from "$lib/qca-simulation";
+    import { getInputLabel } from "$lib/qca-simulation";
     import BaseDataVis from "./base-data-vis.svelte";
     import { COLORS } from "$lib/utils/visual-colors";    
     import type { LinePlotProps } from "./panels/line-plot-visual-props-panel.svelte";
+    import Label from "$lib/components/ui/label/label.svelte";
     
     type Props = {
         qcaSimulation: QCASimulation | undefined;
@@ -26,8 +27,7 @@
     let interactionRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
 
     let xAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;
-    let yAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;
-
+    let yAxisElement: d3.Selection<SVGGElement, unknown, null, undefined>;    
     let xGridElement: d3.Selection<SVGGElement, unknown, null, undefined>;
     let yGridElement: d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -93,9 +93,7 @@
 
         xAxisElement = svg.append("g")
             .attr("transform", `translate(0,${height})`)
-        yAxisElement = svg.append("g");
-
-        xGridElement = svg.append("g")
+        yAxisElement = svg.append("g");        xGridElement = svg.append("g")
             .attr("class", "grid-lines");
         yGridElement = svg.append("g")
             .attr("class", "grid-lines");
@@ -192,12 +190,38 @@
             .attr("x2", width)
             .attr("y1", (d: number) => yAxis(d))
             .attr("y2", (d: number) => yAxis(d));
-    }
+    }    
 
-    function drawTooltip(){
-
-    }
-
+    function calculateLegendPosition(position: string, legendWidth: number, legendHeight: number): [number, number] {
+        const padding = 10;
+        
+        switch (position) {
+            case 'upper left':
+                return [padding, padding];
+            case 'upper center':
+                return [(width - legendWidth) / 2, padding];
+            case 'upper right':
+                return [width - legendWidth - padding, padding];
+            case 'center left':
+                return [padding, (height - legendHeight) / 2];
+            case 'center':
+                return [(width - legendWidth) / 2, (height - legendHeight) / 2];
+            case 'center right':
+                return [width - legendWidth - padding, (height - legendHeight) / 2];
+            case 'lower left':
+                return [padding, height - legendHeight - padding];
+            case 'lower center':
+                return [(width - legendWidth) / 2, height - legendHeight - padding];
+            case 'lower right':
+                return [width - legendWidth - padding, height - legendHeight - padding];
+            case 'best':
+                // Simple implementation: choose upper right if there's space, otherwise lower right
+                return [width - legendWidth - padding, padding];
+            default:
+                return [width - legendWidth - padding, padding];
+        }
+    }    
+    
     function draw(){
         drawAxes();
 
@@ -239,6 +263,8 @@
                     .remove();
             }
         });
+
+        //calculateLegendPosition();
 
         tooltipMarker.forEach((marker) => {
             marker.raise()
@@ -335,7 +361,7 @@
 
 </script>
 
-<style>
+<style>   
     :global(.tooltip-marker) {
         pointer-events: none;
         stroke-width: 2;
@@ -358,4 +384,11 @@
     <svg bind:this={svgElement}
         class='bg-background w-full h-full'>
     </svg>
+    {#if props.showLegend}
+        <div class="absolute top-0 left-0 p-2">
+            {#each inputs as input, i}
+                <div><Label>{getInputLabel(qcaSimulation!, input)}</Label></div>
+            {/each}
+        </div>
+    {/if}
 </BaseDataVis>

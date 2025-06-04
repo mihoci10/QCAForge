@@ -1,13 +1,16 @@
 <script lang="ts">
     import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
+    import * as Select from "$lib/components/ui/select";
     import * as Switch from "$lib/components/ui/switch";    
-    
+      
     export interface LinePlotProps {
         numTicksX: number;
         numTicksY: number;
         showDots: boolean;
         lineWidth: number;
+        showLegend: boolean;
+        legendPosition: 'upper left' | 'upper center' | 'upper right' | 'center left' | 'center' | 'center right' | 'lower left' | 'lower center' | 'lower right' | 'best';
     }
 
     interface Props {
@@ -17,6 +20,19 @@
     let { 
         props = $bindable(),
     }: Props = $props();
+
+    const LEGEND_POSITIONS= {
+        'upper left': 'Upper Left',
+        'upper center': 'Upper Center',
+        'upper right': 'Upper Right',
+        'center left': 'Center Left',
+        'center': 'Center',
+        'center right': 'Center Right',
+        'lower left': 'Lower Left',
+        'lower center': 'Lower Center',
+        'lower right': 'Lower Right',
+        'best': 'Best'
+    }
 
 </script>
 
@@ -49,8 +65,7 @@
             bind:value={props.numTicksY}
         />
     </div>
-    
-    <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2">
         <Label for="line-width" class="text-sm font-medium">Line Width</Label>
         <Input 
             id="line-width"
@@ -60,5 +75,29 @@
             step={0.5}
             bind:value={props.lineWidth}
         />
+    </div>
+    
+    <div class="flex items-center justify-between">
+        <Label for="show-legend" class="text-sm font-medium">Show Legend</Label>
+        <Switch.Root id="show-legend" bind:checked={props.showLegend}>
+        </Switch.Root>
+    </div>
+    
+    <div class="flex flex-col gap-2">
+        <Label for="legend-position" class="text-sm font-medium">Legend Position</Label>
+        <Select.Root type='single' bind:value={props.legendPosition}>
+            <Select.Trigger>
+                {#if props.legendPosition}
+                    {LEGEND_POSITIONS[props.legendPosition] || 'Select Position'}
+                {:else}
+                    Select Position
+                {/if}
+            </Select.Trigger>
+            <Select.Content>
+                {#each Object.entries(LEGEND_POSITIONS) as [value, label]}
+                    <Select.Item value={value} label={label}/>
+                {/each}
+            </Select.Content>
+        </Select.Root>
     </div>
 </div>
