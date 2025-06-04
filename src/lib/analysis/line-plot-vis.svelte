@@ -44,7 +44,7 @@
         d3.Selection<SVGLineElement, unknown, null, undefined>, 
         d3.Selection<SVGLineElement, unknown, null, undefined>];
 
-    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const margin = { top: 20, right: 30, bottom: 40, left: 40 };
     let width = $state(0);
     let height = $state(0);
 
@@ -191,36 +191,6 @@
             .attr("y1", (d: number) => yAxis(d))
             .attr("y2", (d: number) => yAxis(d));
     }    
-
-    function calculateLegendPosition(position: string, legendWidth: number, legendHeight: number): [number, number] {
-        const padding = 10;
-        
-        switch (position) {
-            case 'upper left':
-                return [padding, padding];
-            case 'upper center':
-                return [(width - legendWidth) / 2, padding];
-            case 'upper right':
-                return [width - legendWidth - padding, padding];
-            case 'center left':
-                return [padding, (height - legendHeight) / 2];
-            case 'center':
-                return [(width - legendWidth) / 2, (height - legendHeight) / 2];
-            case 'center right':
-                return [width - legendWidth - padding, (height - legendHeight) / 2];
-            case 'lower left':
-                return [padding, height - legendHeight - padding];
-            case 'lower center':
-                return [(width - legendWidth) / 2, height - legendHeight - padding];
-            case 'lower right':
-                return [width - legendWidth - padding, height - legendHeight - padding];
-            case 'best':
-                // Simple implementation: choose upper right if there's space, otherwise lower right
-                return [width - legendWidth - padding, padding];
-            default:
-                return [width - legendWidth - padding, padding];
-        }
-    }    
     
     function draw(){
         drawAxes();
@@ -263,8 +233,6 @@
                     .remove();
             }
         });
-
-        //calculateLegendPosition();
 
         tooltipMarker.forEach((marker) => {
             marker.raise()
@@ -317,6 +285,12 @@
         filterData();
     });
 
+    // Add legend positioning logic
+    let legendClasses = $derived.by(() => {
+        const baseClasses = "absolute p-2 bg-background/80 backdrop-blur-sm rounded border";
+        
+    });
+
     function filterData(){
         if (display_range === undefined){
             filteredDrawData = drawData;
@@ -359,6 +333,32 @@
         });
     }
 
+    function getLegendPosition(legendPosition: string) {
+        if (legendPosition === 'best')
+            return getLegendPosition('upper right');
+
+        const LEGEND_PADDING = 10;
+        let positionStyle = '';
+
+        if (legendPosition.includes('upper')) {
+            positionStyle += `top: ${margin.top}px; `;
+        } else if (legendPosition.includes('lower')) {
+            positionStyle += `bottom: ${margin.bottom}px; `;
+        } else if (legendPosition.includes('center')) {
+            positionStyle += `top: 50%; transform: translateY(-50%); `;
+        }
+
+        if (legendPosition.includes('left')) {
+            positionStyle += `left: ${margin.left}px; `;
+        } else if (legendPosition.includes('right')) {
+            positionStyle += `right: ${margin.right}px; `;
+        } else if (legendPosition.includes('center')) {
+            positionStyle += `left: 50%; `;
+        }
+
+        return positionStyle.trimEnd();
+    }
+
 </script>
 
 <style>   
@@ -385,10 +385,16 @@
         class='bg-background w-full h-full'>
     </svg>
     {#if props.showLegend}
-        <div class="absolute top-0 left-0 p-2">
+        <div class={`absolute z-10 p-2 bg-background/80 backdrop-blur-sm rounded border`}
+            style={getLegendPosition(props.legendPosition)}>
+            <div class="flex flex-col gap-2">
             {#each inputs as input, i}
-                <div><Label>{getInputLabel(qcaSimulation!, input)}</Label></div>
+                <div class ="flex gap-2">
+                    <div class="w-3 h-0.5 rounded" style="background-color: {COLORS[i]}"></div>
+                    <Label>{getInputLabel(qcaSimulation!, input)}</Label>
+                </div>
             {/each}
+            </div>
         </div>
     {/if}
 </BaseDataVis>
