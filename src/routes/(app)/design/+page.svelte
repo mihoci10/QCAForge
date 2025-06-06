@@ -23,7 +23,6 @@
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
     let cell_architectures: Map<string, CellArchitecture> = $state(new Map<string, CellArchitecture>());
     let designerProps: DesignerProps | undefined = $state(undefined);
-    let designer: Designer;
 
     design.subscribe((cur_design_file) => {
         const cur_design = cur_design_file.design;
@@ -59,7 +58,7 @@
             }).then((filename) => {
                 new Promise(async (resolve: (value: QCADesignFile) => void) => {
                     const design = await createDesign(layers, selected_model_id, simulation_models, cell_architectures);
-                    const designFile = await createQCADesignFile(design, designer.getProperties());
+                    const designFile = await createQCADesignFile(design, designerProps);
                     resolve(designFile);
                 }).then((designFile) => {
                     writeTextFile(filename, serializeQCADesignFile(designFile), {baseDir: BaseDirectory.Desktop})
@@ -78,7 +77,7 @@
 
                 new Promise(async (resolve: (value: QCADesignFile) => void) => {
                     const design = await createDesign(layers, selected_model_id, simulation_models, cell_architectures);
-                    const designFile = await createQCADesignFile(design, designer.getProperties());
+                    const designFile = await createQCADesignFile(design, designerProps);
                     resolve(designFile);
                 }).then((designFile) => {
                     writeTextFile(filename, serializeQCADesignFile(designFile), {baseDir: BaseDirectory.Desktop})
@@ -147,5 +146,5 @@
             </Button>
         </div>
     </div>
-    <Designer bind:this={designer} bind:meta_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
+    <Designer  bind:designer_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
 </div>

@@ -43,8 +43,6 @@
     let statsDrawCall: Stats.Panel;
 
     let inputModeIdx: number = $state(0);
-    let snapEnabled: boolean = $state(true);
-    let snapDivider: number = $state(20);
 
     let mouseStartPos: THREE.Vector2|undefined;
     let current_mouse_pos: THREE.Vector2|undefined;
@@ -60,6 +58,8 @@
 
     export interface DesignerProps{
         camera_position: [number, number, number];
+        cell_snapping: boolean;
+        cell_snap_divider: number;
     }
 
     interface Props {
@@ -67,7 +67,7 @@
         layers: Layer[];
         simulation_models: Map<string, SimulationModel>;
         cell_architectures: Map<string, CellArchitecture>;
-        meta_props: DesignerProps | undefined;
+        designer_props: DesignerProps | undefined;
     }
 
     let { 
@@ -75,13 +75,19 @@
         layers = $bindable(),
         simulation_models = $bindable(),
         cell_architectures = $bindable(),
-        meta_props = $bindable()
+        designer_props = $bindable()
     }: Props = $props();
 
+    const DEFAULT_PROPS: DesignerProps = {
+        camera_position: [0, 0, 20],
+        cell_snapping: true,
+        cell_snap_divider: 20,
+    };
+    let properties = $derived(designer_props || DEFAULT_PROPS);
 
     onMount(() => {
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 3000 );
-        camera.position.z += 20;
+        camera.position.set(...properties.camera_position);
 
         renderer = new THREE.WebGLRenderer({
             canvas: canvas,
@@ -133,8 +139,6 @@
         drawCurrentLayer();
 
         registerKeyboardShortcuts();
-
-        setDefaultDesignerProps();
     });
 
     onDestroy(() => {
@@ -143,12 +147,6 @@
         renderer.dispose();
         ghostGeometry.dispose();
     });
-
-    function setDefaultDesignerProps(){
-        meta_props = {
-            camera_position: [camera.position.x, camera.position.y, camera.position.z],
-        }
-    }
 
     function windowResize(){
         renderer.setSize( container.clientWidth * devicePixelRatio, container.clientHeight * devicePixelRatio, false);
@@ -167,6 +165,13 @@
         stats.end();
 
         statsDrawCall.update(renderer.info.render.calls, 10);
+
+        if (properties.camera_position[0] != camera.position.x ||
+            properties.camera_position[1] != camera.position.y ||
+            properties.camera_position[2] != camera.position.z)
+        {
+            properties.camera_position = [camera.position.x, camera.position.y, camera.position.z];
+        }
     }   
 
     function get_current_cell_architecture(){
@@ -400,7 +405,7 @@
     }
 
     function applySnapping(pos: THREE.Vector2){
-        const localSnapDivider = snapEnabled ? snapDivider : 1;
+        const localSnapDivider = properties.cell_snapping ? properties.cell_snap_divider : 1;
         return new THREE.Vector2(
             Math.floor((pos.x + localSnapDivider / 2) / localSnapDivider) * localSnapDivider,
             Math.floor((pos.y + localSnapDivider / 2) / localSnapDivider) * localSnapDivider
@@ -633,17 +638,9 @@
     })
 
     $effect(() => {
-        if (meta_props){
-            camera.position.set(...meta_props.camera_position);
-            camera.updateProjectionMatrix();
-        }
+        camera.position.set(...properties.camera_position);
+        console.log('Camera position updated:', properties.camera_position, camera.position, camera.rotation);
     });
-
-    export function getProperties(): DesignerProps {
-        return {
-            camera_position: [camera.position.x, camera.position.y, camera.position.z],
-        };
-    };
 
 </script>
 
@@ -660,7 +657,7 @@
     <Resizable.Handle />
     <Resizable.Pane minSize={10}>
         <div class="relative h-full w-full flex items-stretch" bind:this={container}>
-            <DesignerToolbar bind:inputModeIdx={inputModeIdx} bind:snapEnabled={snapEnabled} bind:snapDivider={snapDivider}/>            
+            <DesignerToolbar bind:inputModeIdx={inputModeIdx} bind:snapEnabled={properties.cell_snapping} bind:snapDivider={properties.cell_snap_divider}/>            
             <div bind:this={selection_rect} class='absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50'></div>
             <canvas tabindex="0" bind:this={canvas} class=""></canvas>
         </div>
