@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as Accordion from "$lib/components/ui/accordion";
-    import { onDestroy, onMount, untrack } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import Stats from 'stats.js'
 
     import * as THREE from 'three'
