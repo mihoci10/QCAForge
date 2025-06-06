@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Designer from "$lib/design/designer.svelte";
+	import Designer, { type DesignerProps } from "$lib/design/designer.svelte";
     import { onMount } from "svelte";
     import { startSimulation } from "$lib/Simulation";
     import { loadSimulationModels, type SimulationModel } from "$lib/SimulationModel";
@@ -22,10 +22,12 @@
 
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
     let cell_architectures: Map<string, CellArchitecture> = $state(new Map<string, CellArchitecture>());
-    let designerProps = $state(undefined);
+    let designerProps: DesignerProps | undefined = $state(undefined);
+    let designer: Designer;
 
     design.subscribe((cur_design_file) => {
         const cur_design = cur_design_file.design;
+        designerProps = cur_design_file.designer_properties;
         layers = cur_design.layers;
         cell_architectures = cur_design.cell_architectures;
         setSimulationModels().then(() => {
@@ -57,7 +59,7 @@
             }).then((filename) => {
                 new Promise(async (resolve: (value: QCADesignFile) => void) => {
                     const design = await createDesign(layers, selected_model_id, simulation_models, cell_architectures);
-                    const designFile = await createQCADesignFile(design, designerProps);
+                    const designFile = await createQCADesignFile(design, designer.getProperties());
                     resolve(designFile);
                 }).then((designFile) => {
                     writeTextFile(filename, serializeQCADesignFile(designFile), {baseDir: BaseDirectory.Desktop})
@@ -76,7 +78,7 @@
 
                 new Promise(async (resolve: (value: QCADesignFile) => void) => {
                     const design = await createDesign(layers, selected_model_id, simulation_models, cell_architectures);
-                    const designFile = await createQCADesignFile(design, designerProps);
+                    const designFile = await createQCADesignFile(design, designer.getProperties());
                     resolve(designFile);
                 }).then((designFile) => {
                     writeTextFile(filename, serializeQCADesignFile(designFile), {baseDir: BaseDirectory.Desktop})
@@ -140,10 +142,10 @@
 <div class="w-full flex flex-col">
     <div class='my-1'>
         <div class="flex flex-row float-right">
-            <Button disabled={!selected_model_id} onclick={(e) => executeSimulation()}>
+            <Button disabled={!selected_model_id} onclick={() => executeSimulation()}>
                 Run
             </Button>
         </div>
     </div>
-    <Designer bind:meta_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
+    <Designer bind:this={designer} bind:meta_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
 </div>
