@@ -639,13 +639,11 @@
         }
     });
 
-    $effect(() => {
-        untrack(() => {
-            if (meta_props){
-                meta_props.camera_position = [camera.position.x, camera.position.y, camera.position.z];
-            }
-        });
-    });
+    export function getProperties(): DesignerProps {
+        return {
+            camera_position: [camera.position.x, camera.position.y, camera.position.z],
+        };
+    };
 
 </script>
 
