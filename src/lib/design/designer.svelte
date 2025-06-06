@@ -126,6 +126,7 @@
         controls.enableRotate = false;
         controls.minDistance = 10;
         controls.maxDistance = 1000;
+        controls.target.set(camera.position.x, camera.position.y, 0);
 
         infinite_grid = new InfiniteGrid(20, 100, new THREE.Color('white'), 8000, 'xyz');
 
@@ -639,7 +640,7 @@
 
     $effect(() => {
         camera.position.set(...properties.camera_position);
-        console.log('Camera position updated:', properties.camera_position, camera.position, camera.rotation);
+        controls.target.set(camera.position.x, camera.position.y, 0);
     });
 
 </script>

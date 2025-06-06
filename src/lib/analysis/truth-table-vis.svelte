@@ -211,7 +211,6 @@
         if (!event.target) return;
         const inputIndex = (event.target as HTMLInputElement).id.split("-").slice(1).join("-");
         const inputPhaseShift = parseFloat((event.target as HTMLInputElement).value);
-        console.log(`Phase shift for input ${inputIndex} changed to ${inputPhaseShift}`);
         props.inputPhaseShift.set(inputIndex, inputPhaseShift);
         calculate();
     }

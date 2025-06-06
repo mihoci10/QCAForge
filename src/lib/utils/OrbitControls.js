@@ -242,7 +242,7 @@ class OrbitControls extends EventDispatcher {
 
 				position.copy( scope.target ).add( offset );
 
-				//scope.object.lookAt( scope.target );
+				scope.object.lookAt( scope.target );
 
 				if ( scope.enableDamping === true ) {
 
