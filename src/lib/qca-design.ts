@@ -43,13 +43,18 @@ function deserializeDesign(str: string): QCADesign{
 
 export function serializeQCADesignFile(qcaDesignFile: QCADesignFile): string {
     const obj: any = {...qcaDesignFile};
-    obj.design = serializeDesign(obj.design);
+    obj.design = {
+        ...qcaDesignFile.design,
+        simulation_model_settings: Object.fromEntries(qcaDesignFile.design.simulation_model_settings),
+        cell_architectures: Object.fromEntries(qcaDesignFile.design.cell_architectures),
+    };
     return JSON.stringify(obj, null, 2);
 }
 
 export function deserializeQCADesignFile(str: string): QCADesignFile {
     const obj = JSON.parse(str);
-    obj.design = deserializeDesign(obj.design);
+    obj.design.simulation_model_settings = new Map(Object.entries(obj.design.simulation_model_settings));
+    obj.design.cell_architectures = new Map(Object.entries(obj.design.cell_architectures));
     return obj as QCADesignFile;
 }
 
