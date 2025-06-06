@@ -8,7 +8,7 @@
     import { goto } from '$app/navigation';
     import { open } from '@tauri-apps/plugin-dialog';
     import { design, design_filename, simulation, simulation_filename } from '$lib/globals';
-    import { createDesign, deserializeDesign } from '$lib/qca-design';
+    import { createDefaultQCADesignFile, deserializeQCADesignFile } from '$lib/qca-design';
     import { readTextFile } from '@tauri-apps/plugin-fs';
     import { onMount } from 'svelte';
     import { basename } from '@tauri-apps/api/path';
@@ -22,23 +22,11 @@
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow()
 
-	onMount(() => {
-
-		createDesign([{
-			name: "Main Layer", 
-			visible: true, 
-			cell_architecture_id: get_default_cell_architecture_id(), 
-			cells: [
-				{position: [0, 0], typ: 0, clock_phase_shift: 0, dot_probability_distribution: generateDotDistribution([0]), rotation: 0},
-			], 
-			z_position: 0}], 
-			undefined, 
-			new Map(),
-			generate_default_cell_architectures()
-		).then((des) => { 
-			design.set(des); 
-		});
-	});
+	onMount(() => 
+		createDefaultQCADesignFile().then((qcaDesignFile) => { 
+			design.set(qcaDesignFile); 
+		})
+	);
 
 	design_filename.subscribe((value) => {
         const DESIGN_MODE = page.url.pathname.startsWith('/design');
@@ -57,17 +45,13 @@
 	})
 
 	listen(EVENT_NEW_FILE, () => {
-		createDesign(
-			[{name: "Main Layer", visible: true, cell_architecture_id: get_default_cell_architecture_id(), cells: [], z_position: 0}],
-			undefined,
-			new Map(),
-			generate_default_cell_architectures()
-		).then((d) => {
-			design.set(d);
-		})
+		createDefaultQCADesignFile().then((qcaDesignFile) => { 
+			design.set(qcaDesignFile); 
+		});
 		design_filename.set(undefined);
 		goto(`/design`);
 	});
+
 	listen(EVENT_OPEN_DESIGN, () => {
 		open({
 			title: 'Load design',
@@ -78,7 +62,7 @@
 
 			readTextFile(filename as string).then((contents) => {
 				design_filename.set(filename as string);
-				design.set(deserializeDesign(contents));
+				design.set(deserializeQCADesignFile(contents));
 				goto(`/design`);
 			})
 		});

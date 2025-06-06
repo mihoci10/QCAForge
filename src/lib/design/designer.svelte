@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as Accordion from "$lib/components/ui/accordion";
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount, untrack } from 'svelte';
     import Stats from 'stats.js'
 
     import * as THREE from 'three'
@@ -58,14 +58,26 @@
     let selectedLayer: number = $state(0);
     let cellPropsPanel: CellPropsPanel;
 
+    export interface DesignerProps{
+        camera_position: [number, number, number];
+    }
+
     interface Props {
         selected_model_id: string|undefined,
         layers: Layer[];
         simulation_models: Map<string, SimulationModel>;
         cell_architectures: Map<string, CellArchitecture>;
+        meta_props: DesignerProps | undefined;
     }
 
-    let { selected_model_id = $bindable(), layers = $bindable(), simulation_models = $bindable(), cell_architectures = $bindable() }: Props = $props();
+    let { 
+        selected_model_id = $bindable(),
+        layers = $bindable(),
+        simulation_models = $bindable(),
+        cell_architectures = $bindable(),
+        meta_props = $bindable()
+    }: Props = $props();
+
 
     onMount(() => {
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 3000 );
@@ -121,6 +133,8 @@
         drawCurrentLayer();
 
         registerKeyboardShortcuts();
+
+        setDefaultDesignerProps();
     });
 
     onDestroy(() => {
@@ -129,6 +143,12 @@
         renderer.dispose();
         ghostGeometry.dispose();
     });
+
+    function setDefaultDesignerProps(){
+        meta_props = {
+            camera_position: [camera.position.x, camera.position.y, camera.position.z],
+        }
+    }
 
     function windowResize(){
         renderer.setSize( container.clientWidth * devicePixelRatio, container.clientHeight * devicePixelRatio, false);
@@ -611,6 +631,21 @@
         (infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize1.value = size;
         (infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize2.value = size * 5;
     })
+
+    $effect(() => {
+        if (meta_props){
+            camera.position.set(...meta_props.camera_position);
+            camera.updateProjectionMatrix();
+        }
+    });
+
+    $effect(() => {
+        untrack(() => {
+            if (meta_props){
+                meta_props.camera_position = [camera.position.x, camera.position.y, camera.position.z];
+            }
+        });
+    });
 
 </script>
 

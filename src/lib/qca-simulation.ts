@@ -1,6 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { CellIndex, type Cell } from "./Cell";
-import { deserializeDesign, type CommonSimulationModelSettings, type QCADesign } from "./qca-design";
+import { deserializeQCADesignFile, type CommonSimulationModelSettings, type QCADesign } from "./qca-design";
 import {v4 as uuidv4} from 'uuid';
 
 export interface TimeDelta{
@@ -286,7 +286,8 @@ export function loadSimulationFromFile(filename: string): Promise<QCASimulation>
         .then((result: unknown) => {
             const resultPair = result as [QCADesign, QCASimulationMetadata];
             const metadata = deserializeMetadata(JSON.stringify(resultPair[1]));
-            const design = deserializeDesign(JSON.stringify(resultPair[0]));
+            const designFile = deserializeQCADesignFile(JSON.stringify(resultPair[0]));
+            const design = designFile.design;
             resolve(new QCASimulation(filename, design, metadata));
         }).catch((error: any) => {
             console.error("Error loading simulation file:", error);
