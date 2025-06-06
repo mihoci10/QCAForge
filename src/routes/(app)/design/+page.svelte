@@ -6,16 +6,15 @@
     import { invoke } from "@tauri-apps/api/core";
     import { toast } from "svelte-sonner";
     import { listen } from "@tauri-apps/api/event";
-    import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS, EVENT_SIMULATION_PROGRESS } from "$lib/utils/events";
-    import { createDesign, serializeDesign, type QCADesign } from "$lib/qca-design";
+    import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
+    import { createDesign, createQCADesignFile, serializeQCADesignFile, type QCADesignFile } from "$lib/qca-design";
     import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs";
     import { save } from "@tauri-apps/plugin-dialog";
     import { design, design_filename } from "$lib/globals";
     import { get } from "svelte/store";
     import { type Layer } from "$lib/Layer.js";
-    import { generate_default_cell_architectures, type CellArchitecture } from "$lib/CellArchitecture";
+    import { type CellArchitecture } from "$lib/CellArchitecture";
     import Button from "$lib/components/ui/button/button.svelte";
-    import DialogOverlay from "$lib/components/ui/dialog/dialog-overlay.svelte";
     import SimulationProgressToast from "$lib/toasts/simulation-progress-toast.svelte";
 
     let selected_model_id: string|undefined = $state();
@@ -23,8 +22,10 @@
 
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
     let cell_architectures: Map<string, CellArchitecture> = $state(new Map<string, CellArchitecture>());
+    let designerProps = $state(undefined);
 
-    design.subscribe((cur_design) => {
+    design.subscribe((cur_design_file) => {
+        const cur_design = cur_design_file.design;
         layers = cur_design.layers;
         cell_architectures = cur_design.cell_architectures;
         setSimulationModels().then(() => {
@@ -54,10 +55,14 @@
                     resolve(filename);
                     
             }).then((filename) => {
-                createDesign(layers, selected_model_id, simulation_models, cell_architectures).then((design) => {
-                    writeTextFile(filename, serializeDesign(design), {baseDir: BaseDirectory.Desktop})
+                new Promise(async (resolve: (value: QCADesignFile) => void) => {
+                    const design = await createDesign(layers, selected_model_id, simulation_models, cell_architectures);
+                    const designFile = await createQCADesignFile(design, designerProps);
+                    resolve(designFile);
+                }).then((designFile) => {
+                    writeTextFile(filename, serializeQCADesignFile(designFile), {baseDir: BaseDirectory.Desktop})
                     design_filename.set(filename);
-                })
+                });
             })
         });
         const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, () => {
@@ -69,10 +74,14 @@
                 if (!filename)
                     return;
 
-                createDesign(layers, selected_model_id, simulation_models, cell_architectures).then((design) => {
-                    writeTextFile(filename, serializeDesign(design))
+                new Promise(async (resolve: (value: QCADesignFile) => void) => {
+                    const design = await createDesign(layers, selected_model_id, simulation_models, cell_architectures);
+                    const designFile = await createQCADesignFile(design, designerProps);
+                    resolve(designFile);
+                }).then((designFile) => {
+                    writeTextFile(filename, serializeQCADesignFile(designFile), {baseDir: BaseDirectory.Desktop})
                     design_filename.set(filename);
-                })
+                });
             })
         });
 
@@ -136,5 +145,5 @@
             </Button>
         </div>
     </div>
-    <Designer bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
+    <Designer bind:meta_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
 </div>
