@@ -24,7 +24,7 @@ export interface QCADesign{
 export interface QCADesignFile{
     qca_forge_version: string,
     design: QCADesign,
-    designer_properties: undefined | DesignerProps, // Placeholder for editor state
+    designer_properties: undefined | DesignerProps, 
 }
 
 export function serializeQCADesignFile(qcaDesignFile: QCADesignFile): string {

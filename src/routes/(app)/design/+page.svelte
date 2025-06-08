@@ -146,5 +146,5 @@
             </Button>
         </div>
     </div>
-    <Designer  bind:designer_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
+    <Designer bind:designer_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
 </div>
