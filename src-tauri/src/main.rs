@@ -59,6 +59,7 @@ fn main() {
             run_sim_model,
             get_sim_model_default_options,
             load_simulation_file,
+            calculate_truth_table,
             startup_frontend_ready,
         ])
         .register_uri_scheme_protocol("load-sim", |_, req| {

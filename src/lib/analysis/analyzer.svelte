@@ -40,7 +40,7 @@
         const visualProps = panelId === 'linePlot' 
             ? { numTicksX: 5, numTicksY: 5, showDots: true, lineWidth: 3, showLegend: true, legendPosition: 'upper right' as const }
             : panelId === 'truthTable'
-            ? { showRowNumbers: true, clockTreshold: 0.05, logicalThreshold: 0.01, inputPhaseShift: new Map<string, number>() }
+            ? { showRowNumbers: true, clockTreshold: 0.05, logicalThreshold: 0.01, cellClockDelay: new Map<string, number>() }
             : {};
         
         visuals.push({

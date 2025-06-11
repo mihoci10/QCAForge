@@ -57,8 +57,6 @@
     let filteredDrawData: [number, number][][];
     let display_range: [number, number] | undefined = $state();
 
-    $inspect(display_range)
-
     onMount(() => {
         svg = d3.select(svgElement)
             .append("g")
@@ -380,7 +378,7 @@
     }
 </style>
 
-<BaseDataVis {qcaSimulation} {title} {inputs} {beforeLoadData} {loadInputData} {afterLoadData}>
+<BaseDataVis {qcaSimulation} {title} {inputs} needDataLoad={true} {beforeLoadData} {loadInputData} {afterLoadData}>
     <svg bind:this={svgElement}
         class='bg-background w-full h-full'>
     </svg>

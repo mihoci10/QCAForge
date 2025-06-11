@@ -2,12 +2,13 @@
     import { Label } from "$lib/components/ui/label";
     import * as Switch from "$lib/components/ui/switch";
     import { Slider } from "$lib/components/ui/slider";
+    import type { CellIndex } from "$lib/Cell";
 
     export interface TruthTableProps {
         showRowNumbers: boolean;
         clockTreshold: number;
         logicalThreshold: number;
-        inputPhaseShift: Map<string, number>;
+        cellClockDelay: Map<string, number>;
     }
 
     interface Props {

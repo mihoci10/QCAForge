@@ -44,6 +44,13 @@ export function deserializeQCADesignFile(str: string): QCADesignFile {
     return obj as QCADesignFile;
 }
 
+export function deserializeQCADesign(str: string): QCADesign {
+    const obj = JSON.parse(str);
+    obj.simulation_model_settings = new Map(Object.entries(obj.simulation_model_settings));
+    obj.cell_architectures = new Map(Object.entries(obj.cell_architectures));
+    return obj as QCADesign;
+}
+
 export async function createDesign(
     layers: Layer[],
     selected_simulation_model_id: string|undefined, 

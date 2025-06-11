@@ -1,8 +1,10 @@
 use std::collections::HashMap;
-use std::fs::{metadata, File};
+use std::fs::{File};
+use std::str::FromStr;
+use qca_core::analysis::truth_table::{generate_truth_table, TruthTable};
 use qca_core::design::file::QCADesign;
-use qca_core::simulation::file::{read_from_file, QCASimulationData, QCASimulationMetadata};
-use tauri::AppHandle;
+use qca_core::objects::cell::QCACellIndex;
+use qca_core::simulation::file::{read_from_file, QCASimulationMetadata};
 use tauri::http::Request;
 use urlencoding::decode;
 
@@ -86,4 +88,26 @@ pub fn load_simulation_file(filename: String) -> Result<(QCADesign, QCASimulatio
     let (design, data) = read_from_file(file)?;
 
     Ok((design, data.metadata))
+}
+
+#[tauri::command]
+pub fn calculate_truth_table(filename: String, cells: Vec<QCACellIndex>, 
+    cell_clock_delay: HashMap<String, usize>, 
+    clock_threshold: f64, logical_threshold: f64) -> Result<TruthTable, String> 
+{
+    let file = File::open(filename)
+        .map_err(|err| "File cannot be opened")?;
+    let (design, simulation) = read_from_file(file)?;
+
+    let cell_clock_delay = cell_clock_delay.into_iter()
+        .map(|(k, v)| {
+            let cell_index = QCACellIndex::from_str(&k).unwrap();
+            (cell_index, v)
+        })
+        .collect::<HashMap<QCACellIndex, usize>>();
+
+    let truth_table = generate_truth_table(
+        &design, &simulation, &cells, cell_clock_delay, clock_threshold, logical_threshold);
+
+    Ok(truth_table)
 }

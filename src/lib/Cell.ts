@@ -1,14 +1,11 @@
 export class CellIndex{
-    private _layer: number;
-    private _cell: number;
+    public layer: number;
+    public cell: number;
 
     constructor(layer: number, cell: number){
-        this._layer = layer;
-        this._cell = cell;
+        this.layer = layer;
+        this.cell = cell;
     }
-
-    public get layer(): number {return this._layer;}
-    public get cell(): number {return this._cell;}
 
     public toString(): string{
         return `${this.layer}-${this.cell}`;

@@ -9,6 +9,7 @@
 		title: string;
         children: Snippet | undefined;
 		inputs: Input[];
+		needDataLoad: boolean;
 		beforeLoadData?: () => void;
 		loadInputData?: (input: Input, data: Float64Array[]) => void;
 		afterLoadData?: () => void;
@@ -20,6 +21,7 @@
 		title,
         children,
 		inputs,
+		needDataLoad,
 		beforeLoadData,
 		loadInputData,
 		afterLoadData,
@@ -36,6 +38,11 @@
 	});
 
 	function loadData() {
+		if (!needDataLoad) {
+			status = 'success';
+			return;
+		}
+
 		if (!qcaSimulation) {
 			status = 'empty';
 			return;
