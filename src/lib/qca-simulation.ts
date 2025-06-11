@@ -41,6 +41,24 @@ export type SignalInput = {
 
 export type Input = CellInput | SignalInput;
 
+export function inputsEqual(input1: Input, input2: Input): boolean {
+    if (input1.type !== input2.type) {
+        return false;
+    }
+    switch (input1.type) {
+        case InputType.CELL:
+            return (input1.index as CellIndex).toString() === (input2.index as CellIndex).toString();
+        case InputType.SIGNAL:
+            const signalIndex1 = input1.index as SignalIndex;
+            const signalIndex2 = input2.index as SignalIndex;
+            return signalIndex1.type === signalIndex2.type && 
+                   signalIndex1.index === signalIndex2.index &&
+                   signalIndex1.subindex === signalIndex2.subindex;
+        default:
+            throw new Error('Invalid input type');
+    }
+}
+
 export function getInputLabel(qcaSimulation: QCASimulation, input: Input): string {
     switch (input.type) {
         case InputType.CELL:

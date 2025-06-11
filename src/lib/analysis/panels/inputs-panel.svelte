@@ -1,6 +1,6 @@
 <script lang="ts">
     import Label from "$lib/components/ui/label/label.svelte";
-    import { InputType, type Input, type QCASimulation, type Signal } from "$lib/qca-simulation";
+    import { inputsEqual, InputType, type Input, type QCASimulation, type Signal } from "$lib/qca-simulation";
     import { onMount } from "svelte";
     
     let inputs: Input[] = $state([]);
@@ -41,7 +41,7 @@
     
     function toggleInputSelection(input: Input) {
         if (selectedInputsString.includes(getInputName(input))) {
-            selectedInputs = selectedInputs.filter(_input => _input !== input);
+            selectedInputs = selectedInputs.filter(_input => !inputsEqual(_input, input));
         } else {
             selectedInputs = [...selectedInputs, input];
         }
