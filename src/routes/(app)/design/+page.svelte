@@ -37,7 +37,7 @@
                     model.settings = val;
             });
         });
-        
+
         if (designer)
             designer.drawCurrentLayer();
     });

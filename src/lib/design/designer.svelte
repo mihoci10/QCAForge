@@ -85,6 +85,10 @@
     };
     let properties = $derived(designer_props || DEFAULT_PROPS);
 
+    $effect(() => {
+        designer_props = properties;
+    });
+
     onMount(() => {
         camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 3000 );
         camera.position.set(...properties.camera_position);
