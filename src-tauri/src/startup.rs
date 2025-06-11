@@ -30,13 +30,16 @@ pub async fn startup_frontend_ready(app: AppHandle) {
 }
 
 pub fn update_splashscreen(app: AppHandle, status: Option<SplashStatus>) {
-    let window = app.get_webview_window("splashscreen").unwrap();
+    let window = app.get_webview_window("splashscreen");
+    if window.is_none() {
+        return;
+    }
 
     let startup_state = app.state::<Mutex<StartupState>>();
     let startup_state_lock = startup_state.lock().unwrap();
 
     if startup_state_lock.is_ready() {
-        window.close().unwrap();
+        window.unwrap().close().unwrap();
         app.get_webview_window("main").unwrap().show().unwrap();
     } else {
         app.emit_to(EventTarget::WebviewWindow { label: "splashscreen".to_owned() }, "splashscreenUpdate", status.clone()).unwrap();

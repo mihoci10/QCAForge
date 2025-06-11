@@ -3,7 +3,6 @@
     import { onMount } from "svelte";
     import { startSimulation } from "$lib/Simulation";
     import { loadSimulationModels, type SimulationModel } from "$lib/SimulationModel";
-    import { invoke } from "@tauri-apps/api/core";
     import { toast } from "svelte-sonner";
     import { listen } from "@tauri-apps/api/event";
     import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
@@ -23,6 +22,7 @@
     let simulation_models: Map<string, SimulationModel> = $state(new Map<string, SimulationModel>());
     let cell_architectures: Map<string, CellArchitecture> = $state(new Map<string, CellArchitecture>());
     let designerProps: DesignerProps | undefined = $state(undefined);
+    let designer: Designer | undefined = $state();
 
     design.subscribe((cur_design_file) => {
         const cur_design = cur_design_file.design;
@@ -37,6 +37,9 @@
                     model.settings = val;
             });
         });
+        
+        if (designer)
+            designer.drawCurrentLayer();
     });
 
     onMount(() => {
@@ -146,5 +149,5 @@
             </Button>
         </div>
     </div>
-    <Designer bind:designer_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
+    <Designer bind:this={designer} bind:designer_props={designerProps} bind:selected_model_id={selected_model_id} bind:layers={layers} bind:simulation_models={simulation_models} bind:cell_architectures={cell_architectures}/>
 </div>

@@ -360,7 +360,7 @@
         cellPropsPanel.selectedCellsUpdated();
     }
 
-    function drawCurrentLayer(){
+    export function drawCurrentLayer(){
         cellScene.getLayer(selectedLayer).update_geometry(layers[selectedLayer], selectedCells, get_current_cell_architecture());
     }
 
