@@ -1,11 +1,11 @@
+use crate::startup::SplashStatus::{Progress, Status};
+use serde::{Deserialize, Serialize};
 use std::future::Future;
 use std::ops::Deref;
 use std::pin::Pin;
 use std::sync::Mutex;
-use tokio::time::{sleep, Duration};
-use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, EventTarget, Manager};
-use crate::startup::SplashStatus::{Progress, Status};
+use tokio::time::{sleep, Duration};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum SplashStatus {
@@ -13,7 +13,7 @@ pub enum SplashStatus {
     Status(String),
 }
 
-pub struct StartupState{
+pub struct StartupState {
     backend_ready: bool,
     frontend_ready: bool,
 }
@@ -42,12 +42,22 @@ pub fn update_splashscreen(app: AppHandle, status: Option<SplashStatus>) {
         window.unwrap().close().unwrap();
         app.get_webview_window("main").unwrap().show().unwrap();
     } else {
-        app.emit_to(EventTarget::WebviewWindow { label: "splashscreen".to_owned() }, "splashscreenUpdate", status.clone()).unwrap();
+        app.emit_to(
+            EventTarget::WebviewWindow {
+                label: "splashscreen".to_owned(),
+            },
+            "splashscreenUpdate",
+            status.clone(),
+        )
+        .unwrap();
     }
 }
 
 async fn load_simulation_models(app: AppHandle) -> Result<(), String> {
-    update_splashscreen(app.clone(), Some(Status("Loading simulation models".to_string())));
+    update_splashscreen(
+        app.clone(),
+        Some(Status("Loading simulation models".to_string())),
+    );
     //sleep(Duration::from_secs(1)).await;
     Ok(())
 }
@@ -60,8 +70,8 @@ async fn analyze_system(app: AppHandle) -> Result<(), String> {
 
 type BoxFuture = Pin<Box<dyn Future<Output = Result<(), String>> + Send>>;
 
-pub async fn backend_startup(app: AppHandle, ) -> Result<(), String> {
-    let startup_tasks: Vec<BoxFuture>  = vec![
+pub async fn backend_startup(app: AppHandle) -> Result<(), String> {
+    let startup_tasks: Vec<BoxFuture> = vec![
         Box::pin(load_simulation_models(app.clone())),
         Box::pin(analyze_system(app.clone())),
     ];
@@ -74,19 +84,25 @@ pub async fn backend_startup(app: AppHandle, ) -> Result<(), String> {
     }
 
     {
-        let  startup_state = app.state::<Mutex<StartupState>>();
+        let startup_state = app.state::<Mutex<StartupState>>();
         let mut startup_state_lock = startup_state.lock().unwrap();
         startup_state_lock.backend_ready = true;
     }
 
-    update_splashscreen(app.clone(), Some(Status("Drawing the frontend".to_string())));
+    update_splashscreen(
+        app.clone(),
+        Some(Status("Drawing the frontend".to_string())),
+    );
     update_splashscreen(app.clone(), Some(Progress(95.0)));
     Ok(())
 }
 
-impl StartupState{
-    pub fn new() -> StartupState{
-        StartupState {backend_ready: false, frontend_ready: false}
+impl StartupState {
+    pub fn new() -> StartupState {
+        StartupState {
+            backend_ready: false,
+            frontend_ready: false,
+        }
     }
 
     pub fn is_ready(&self) -> bool {

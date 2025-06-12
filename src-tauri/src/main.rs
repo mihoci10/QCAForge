@@ -1,16 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::collections::HashMap;
-use std::sync::Mutex;
 use qca_core::{
     objects::{architecture::QCACellArchitecture, layer::QCALayer},
     simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList},
 };
 use serde::Serialize;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use tauri::async_runtime::spawn;
 use tauri::http::{header, Response, StatusCode};
 use tauri::{Emitter, Manager, Url};
-use tauri::async_runtime::spawn;
 
 #[derive(Serialize)]
 struct SimulationModelDescriptor {
@@ -23,11 +23,11 @@ struct SimulationModelDescriptor {
 mod window_menu;
 use window_menu::create_menu_bar;
 
-mod simulation;
 mod analysis;
+mod simulation;
 
-use simulation::*;
 use analysis::*;
+use simulation::*;
 
 mod startup;
 use startup::*;
@@ -62,23 +62,24 @@ fn main() {
             calculate_truth_table,
             startup_frontend_ready,
         ])
-        .register_uri_scheme_protocol("load-sim", |_, req| {
-            match handle_load_sim(req) {
-                Ok(bin_data) => Response::builder()
-                    .status(StatusCode::OK)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "GET")
-                    .header(header::CONTENT_TYPE, mime::APPLICATION_OCTET_STREAM.essence_str())
-                    .body(bin_data)
-                    .unwrap(),
-                Err(error) => Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "GET")
-                    .header(header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
-                    .body(error.as_bytes().to_vec())
-                    .unwrap()
-            }
+        .register_uri_scheme_protocol("load-sim", |_, req| match handle_load_sim(req) {
+            Ok(bin_data) => Response::builder()
+                .status(StatusCode::OK)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "GET")
+                .header(
+                    header::CONTENT_TYPE,
+                    mime::APPLICATION_OCTET_STREAM.essence_str(),
+                )
+                .body(bin_data)
+                .unwrap(),
+            Err(error) => Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "GET")
+                .header(header::CONTENT_TYPE, mime::TEXT_PLAIN.essence_str())
+                .body(error.as_bytes().to_vec())
+                .unwrap(),
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
