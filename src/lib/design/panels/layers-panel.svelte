@@ -1,156 +1,179 @@
 <!-- @migration-task Error while migrating Svelte code: Cannot use `export let` in runes mode — use `$props()` instead -->
 <script lang="ts">
-    import { get_default_cell_architecture_id, type CellArchitecture } from "$lib/CellArchitecture";
-    import type { Layer } from "$lib/Layer";
-    import Icon from "@iconify/svelte";
-    import * as Accordion from "$lib/components/ui/accordion";
-    import {ScrollArea} from "$lib/components/ui/scroll-area";
-    import { Button } from "$lib/components/ui/button";
-    import LayerOptions from "$lib/modals/layer-options.svelte";
+	import {
+		get_default_cell_architecture_id,
+		type CellArchitecture,
+	} from "$lib/CellArchitecture";
+	import type { Layer } from "$lib/Layer";
+	import Icon from "@iconify/svelte";
+	import * as Accordion from "$lib/components/ui/accordion";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
+	import { Button } from "$lib/components/ui/button";
+	import LayerOptions from "$lib/modals/layer-options.svelte";
 
-    interface Props {
-        layers: Layer[];
-        selectedLayer: number;
-        cell_architectures: Map<string, CellArchitecture>;
-        layerAddedCallback: (layerIndex: number) => void;
-        layerRemovedCallback: (layerIndex: number) => void;
-        layerMovedCallback: (fromIndex: number, toIndex: number) => void;
-        layerChangedCallback: (layerIndex: number) => void;
-    }
+	interface Props {
+		layers: Layer[];
+		selectedLayer: number;
+		cell_architectures: Map<string, CellArchitecture>;
+		layerAddedCallback: (layerIndex: number) => void;
+		layerRemovedCallback: (layerIndex: number) => void;
+		layerMovedCallback: (fromIndex: number, toIndex: number) => void;
+		layerChangedCallback: (layerIndex: number) => void;
+	}
 
-    let { 
-        layers = $bindable(), 
-        selectedLayer = $bindable(), 
-        cell_architectures = $bindable(), 
-        layerAddedCallback, 
-        layerMovedCallback, 
-        layerRemovedCallback, 
-        layerChangedCallback
-    }: Props = $props();
+	let {
+		layers = $bindable(),
+		selectedLayer = $bindable(),
+		cell_architectures = $bindable(),
+		layerAddedCallback,
+		layerMovedCallback,
+		layerRemovedCallback,
+		layerChangedCallback,
+	}: Props = $props();
 
-    let settings_layer_id: number|undefined = $state();
-    let openModal: boolean = $state(false);
-    
-    function openLayerOptions(layerIdx: number){
-        settings_layer_id = layerIdx;
-        openModal = true;
-    }
+	let settings_layer_id: number | undefined = $state();
+	let openModal: boolean = $state(false);
 
-    function getIndexOfLayer(layerName: string): number{
-        for (let i = 0; i < layers.length; i++) {
-            if (layers[i].name == layerName)
-                return i;            
-        }
-        return NaN;
-    }
+	function openLayerOptions(layerIdx: number) {
+		settings_layer_id = layerIdx;
+		openModal = true;
+	}
 
-    function layerNameExists(layerName: string): boolean{
-        return !isNaN(getIndexOfLayer(layerName));
-    }
+	function getIndexOfLayer(layerName: string): number {
+		for (let i = 0; i < layers.length; i++) {
+			if (layers[i].name == layerName) return i;
+		}
+		return NaN;
+	}
 
-    function addLayer(){
-        let newLayerName = 'New Layer';
-        let layerCnt = 0;
-        while (layerNameExists(newLayerName)){
-            layerCnt++;
-            newLayerName = `New Layer ${layerCnt}`;
-        }
+	function layerNameExists(layerName: string): boolean {
+		return !isNaN(getIndexOfLayer(layerName));
+	}
 
-        const i = selectedLayer;
-        const newLayerId = i + 1;
+	function addLayer() {
+		let newLayerName = "New Layer";
+		let layerCnt = 0;
+		while (layerNameExists(newLayerName)) {
+			layerCnt++;
+			newLayerName = `New Layer ${layerCnt}`;
+		}
 
-        layers.splice(newLayerId, 0, {name: newLayerName, visible: true, cell_architecture_id: get_default_cell_architecture_id(), cells: [], z_position: 0})
-        layerAddedCallback(newLayerId);
+		const i = selectedLayer;
+		const newLayerId = i + 1;
 
-        selectedLayer = newLayerId;
-        layers = layers;
-    }
+		layers.splice(newLayerId, 0, {
+			name: newLayerName,
+			visible: true,
+			cell_architecture_id: get_default_cell_architecture_id(),
+			cells: [],
+			z_position: 0,
+		});
+		layerAddedCallback(newLayerId);
 
-    function removeLayer(){
-        if (layers.length == 1)
-            return;
+		selectedLayer = newLayerId;
+		layers = layers;
+	}
 
-        const i = selectedLayer;
-        layers.splice(i, 1);
-        layerRemovedCallback(i);
+	function removeLayer() {
+		if (layers.length == 1) return;
 
-        selectedLayer = Math.max(selectedLayer - 1, 0);
-        layers = layers;
-    }
+		const i = selectedLayer;
+		layers.splice(i, 1);
+		layerRemovedCallback(i);
 
-    function moveLayerDown(){
-        if (selectedLayer == layers.length - 1)
-            return;
+		selectedLayer = Math.max(selectedLayer - 1, 0);
+		layers = layers;
+	}
 
-        layers[selectedLayer] = layers.splice(selectedLayer + 1, 1, layers[selectedLayer])[0];
-        layerMovedCallback(selectedLayer, selectedLayer + 1);
+	function moveLayerDown() {
+		if (selectedLayer == layers.length - 1) return;
 
-        selectedLayer++;
-        layers = layers;
-    }
+		layers[selectedLayer] = layers.splice(
+			selectedLayer + 1,
+			1,
+			layers[selectedLayer],
+		)[0];
+		layerMovedCallback(selectedLayer, selectedLayer + 1);
 
-    function moveLayerUp(){
-        if (selectedLayer == 0)
-            return;
+		selectedLayer++;
+		layers = layers;
+	}
 
-        layers[selectedLayer] = layers.splice(selectedLayer - 1, 1, layers[selectedLayer])[0];
-        layerMovedCallback(selectedLayer, selectedLayer - 1);
+	function moveLayerUp() {
+		if (selectedLayer == 0) return;
 
-        selectedLayer--;
-        layers = layers;
-    }
+		layers[selectedLayer] = layers.splice(
+			selectedLayer - 1,
+			1,
+			layers[selectedLayer],
+		)[0];
+		layerMovedCallback(selectedLayer, selectedLayer - 1);
 
-    function applyCallback(){
-        if (settings_layer_id !== undefined)
-            layerChangedCallback(settings_layer_id);
-    }
+		selectedLayer--;
+		layers = layers;
+	}
 
+	function applyCallback() {
+		if (settings_layer_id !== undefined)
+			layerChangedCallback(settings_layer_id);
+	}
 </script>
 
 <Accordion.Item value="layers">
-    <Accordion.Trigger>
-        <div class="flex items-center gap-1.5">
-            Layers
-            <Icon icon="material-symbols:layers"/>
-        </div>
-    </Accordion.Trigger>
-    <Accordion.Content>
-        <div>
-            <Button variant='outline' size='icon'
-                onclick={addLayer}>
-                <Icon icon="mdi:plus"/>
-            </Button>
-            <Button variant='outline' size='icon'
-                onclick={removeLayer}>
-                <Icon icon="mdi:minus"/>
-            </Button>
-            <Button variant='outline' size='icon'
-                onclick={moveLayerUp}>
-                <Icon icon="mdi:arrow-up"/>
-            </Button>
-            <Button variant='outline' size='icon'
-                onclick={moveLayerDown}>
-                <Icon icon="mdi:arrow-down"/>
-            </Button>
-        </div>
+	<Accordion.Trigger>
+		<div class="flex items-center gap-1.5">
+			Layers
+			<Icon icon="material-symbols:layers" />
+		</div>
+	</Accordion.Trigger>
+	<Accordion.Content>
+		<div>
+			<Button variant="outline" size="icon" onclick={addLayer}>
+				<Icon icon="mdi:plus" />
+			</Button>
+			<Button variant="outline" size="icon" onclick={removeLayer}>
+				<Icon icon="mdi:minus" />
+			</Button>
+			<Button variant="outline" size="icon" onclick={moveLayerUp}>
+				<Icon icon="mdi:arrow-up" />
+			</Button>
+			<Button variant="outline" size="icon" onclick={moveLayerDown}>
+				<Icon icon="mdi:arrow-down" />
+			</Button>
+		</div>
 
-        <ScrollArea class="overflow-y-auto h-32 resize-y rounded-md border">
-            {#each layers as layer, index}
-            <div
-                class="flex items-center justify-between px-2 py-1 border-b w-full data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
-                onclick={() => selectedLayer = index}
-                data-state={selectedLayer === index ? "on" : "off"}
-            >
-                <Button variant='ghost' size='icon'onclick={(e) => layer.visible = !layer.visible}>
-                    <Icon icon="{layer.visible ? "mdi:eye" : "mdi:eye-closed"}"/>
-                </Button>
-                <span class="select-none cursor-default">{layer.name}</span>
-                <Button variant='ghost' size='icon' onclick={(e) => openLayerOptions(index)}> 
-                    <Icon icon="material-symbols:settings"/>
-                </Button>
-            </div>
-            {/each}
-        </ScrollArea>
-        <LayerOptions bind:isOpen={openModal} bind:layer={layers[settings_layer_id!]} bind:cell_architectures={cell_architectures} {applyCallback}/>
-    </Accordion.Content>
-</Accordion.Item> 
+		<ScrollArea class="overflow-y-auto h-32 resize-y rounded-md border">
+			{#each layers as layer, index}
+				<div
+					class="flex items-center justify-between px-2 py-1 border-b w-full data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+					onclick={() => (selectedLayer = index)}
+					data-state={selectedLayer === index ? "on" : "off"}
+				>
+					<Button
+						variant="ghost"
+						size="icon"
+						onclick={(e) => (layer.visible = !layer.visible)}
+					>
+						<Icon
+							icon={layer.visible ? "mdi:eye" : "mdi:eye-closed"}
+						/>
+					</Button>
+					<span class="select-none cursor-default">{layer.name}</span>
+					<Button
+						variant="ghost"
+						size="icon"
+						onclick={(e) => openLayerOptions(index)}
+					>
+						<Icon icon="material-symbols:settings" />
+					</Button>
+				</div>
+			{/each}
+		</ScrollArea>
+		<LayerOptions
+			bind:isOpen={openModal}
+			bind:layer={layers[settings_layer_id!]}
+			bind:cell_architectures
+			{applyCallback}
+		/>
+	</Accordion.Content>
+</Accordion.Item>

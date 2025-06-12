@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Progress as ProgressPrimitive, type WithoutChildrenOrChild } from "bits-ui";
+	import {
+		Progress as ProgressPrimitive,
+		type WithoutChildrenOrChild,
+	} from "bits-ui";
 	import { cn } from "$lib/components/utils.js";
 
 	let {
@@ -13,7 +16,10 @@
 
 <ProgressPrimitive.Root
 	bind:ref
-	class={cn("bg-secondary relative h-4 w-full overflow-hidden rounded-full", className)}
+	class={cn(
+		"bg-secondary relative h-4 w-full overflow-hidden rounded-full",
+		className,
+	)}
 	{value}
 	{max}
 	{...restProps}

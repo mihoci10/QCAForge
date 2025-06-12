@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Slider as SliderPrimitive, type WithoutChildrenOrChild } from "bits-ui";
+	import {
+		Slider as SliderPrimitive,
+		type WithoutChildrenOrChild,
+	} from "bits-ui";
 	import { cn } from "$lib/components/utils.js";
 
 	let {
@@ -21,7 +24,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 	{orientation}
 	class={cn(
 		"relative flex touch-none select-none items-center data-[orientation='vertical']:h-full data-[orientation='vertical']:min-h-44 data-[orientation='horizontal']:w-full data-[orientation='vertical']:w-auto data-[orientation='vertical']:flex-col",
-		className
+		className,
 	)}
 	{...restProps}
 >

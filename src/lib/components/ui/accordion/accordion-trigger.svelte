@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Accordion as AccordionPrimitive, type WithoutChild } from "bits-ui";
+	import {
+		Accordion as AccordionPrimitive,
+		type WithoutChild,
+	} from "bits-ui";
 	import ChevronDown from "lucide-svelte/icons/chevron-down";
 	import { cn } from "$lib/components/utils.js";
 
@@ -19,11 +22,13 @@
 		bind:ref
 		class={cn(
 			"flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline",
-			className
+			className,
 		)}
 		{...restProps}
 	>
 		{@render children?.()}
-		<ChevronDown class="size-4 shrink-0 transition-transform duration-200" />
+		<ChevronDown
+			class="size-4 shrink-0 transition-transform duration-200"
+		/>
 	</AccordionPrimitive.Trigger>
 </AccordionPrimitive.Header>

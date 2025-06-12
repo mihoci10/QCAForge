@@ -4,7 +4,10 @@
 	type U = _FormPath<T>;
 </script>
 
-<script lang="ts" generics="T extends Record<string, unknown>, U extends _FormPath<T>">
+<script
+	lang="ts"
+	generics="T extends Record<string, unknown>, U extends _FormPath<T>"
+>
 	import * as FormPrimitive from "formsnap";
 	import type { WithoutChildren, WithElementRef } from "bits-ui";
 	import { cn } from "$lib/components/utils.js";
@@ -18,13 +21,20 @@
 		children: childrenProp,
 		...restProps
 	}: FormPrimitive.FieldProps<T, U> &
-		WithoutChildren<WithElementRef<HTMLAttributes<HTMLDivElement>>> = $props();
+		WithoutChildren<
+			WithElementRef<HTMLAttributes<HTMLDivElement>>
+		> = $props();
 </script>
 
 <FormPrimitive.Field {form} {name}>
 	{#snippet children({ constraints, errors, tainted, value })}
 		<div bind:this={ref} class={cn("space-y-2", className)} {...restProps}>
-			{@render childrenProp?.({ constraints, errors, tainted, value: value as T[U] })}
+			{@render childrenProp?.({
+				constraints,
+				errors,
+				tainted,
+				value: value as T[U],
+			})}
 		</div>
 	{/snippet}
 </FormPrimitive.Field>

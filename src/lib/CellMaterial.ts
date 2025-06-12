@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
 const commonVertexSrc = `
 #include <instanced_pars_vertex>
@@ -8,7 +8,7 @@ void main() {
     #include <instanced_vertex>
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
-}`
+}`;
 
 const drawableFragmentSrc = `
 uniform vec2 polarization;
@@ -84,7 +84,7 @@ void main() {
 
     outColor = vec4(mask * color, 1);
 }
-`
+`;
 
 const pickableFragmentSrc = `
 uniform vec2 polarization;
@@ -98,26 +98,26 @@ void main() {
     int metadata_int = int(metadata);
     out_id = metadata_int >> 16;
 }
-`
+`;
 
-export class DrawableCellMaterial extends THREE.ShaderMaterial{
-    public override vertexShader: string = commonVertexSrc;
-    public override fragmentShader: string = drawableFragmentSrc;
-    public override glslVersion = THREE.GLSL3;
-    public override transparent = false;
+export class DrawableCellMaterial extends THREE.ShaderMaterial {
+	public override vertexShader: string = commonVertexSrc;
+	public override fragmentShader: string = drawableFragmentSrc;
+	public override glslVersion = THREE.GLSL3;
+	public override transparent = false;
 
-    constructor(parameters?: THREE.ShaderMaterialParameters){
-        super(parameters);
-    }
+	constructor(parameters?: THREE.ShaderMaterialParameters) {
+		super(parameters);
+	}
 }
 
-export class PickableCellMaterial extends THREE.ShaderMaterial{
-    public override vertexShader: string = commonVertexSrc;
-    public override fragmentShader: string = pickableFragmentSrc;
-    public override glslVersion = THREE.GLSL3;
-    public override transparent = false;
+export class PickableCellMaterial extends THREE.ShaderMaterial {
+	public override vertexShader: string = commonVertexSrc;
+	public override fragmentShader: string = pickableFragmentSrc;
+	public override glslVersion = THREE.GLSL3;
+	public override transparent = false;
 
-    constructor(parameters?: THREE.ShaderMaterialParameters){
-        super(parameters);
-    }
+	constructor(parameters?: THREE.ShaderMaterialParameters) {
+		super(parameters);
+	}
 }

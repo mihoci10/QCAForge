@@ -12,7 +12,11 @@
 </script>
 
 <div class="relative w-full overflow-auto">
-	<table bind:this={ref} class={cn("w-full caption-bottom text-sm", className)} {...restProps}>
+	<table
+		bind:this={ref}
+		class={cn("w-full caption-bottom text-sm", className)}
+		{...restProps}
+	>
 		{@render children?.()}
 	</table>
 </div>

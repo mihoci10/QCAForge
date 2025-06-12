@@ -1,37 +1,42 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
 export default class InfiniteGrid extends THREE.Mesh {
-    constructor ( size1: number, size2: number, color: THREE.Color, distance: number, axes = 'xzy' ) {
-        color = color || new THREE.Color( 'white' );
-        size1 = size1 || 10;
-        size2 = size2 || 100;
+	constructor(
+		size1: number,
+		size2: number,
+		color: THREE.Color,
+		distance: number,
+		axes = "xzy",
+	) {
+		color = color || new THREE.Color("white");
+		size1 = size1 || 10;
+		size2 = size2 || 100;
 
-        distance = distance || 8000;
+		distance = distance || 8000;
 
-        const planeAxes = axes.substr( 0, 2 );
+		const planeAxes = axes.substr(0, 2);
 
-        const geometry = new THREE.PlaneGeometry( 2, 2, 1, 1 );
+		const geometry = new THREE.PlaneGeometry(2, 2, 1, 1);
 
-        const material = new THREE.ShaderMaterial( {
+		const material = new THREE.ShaderMaterial({
+			side: THREE.DoubleSide,
 
-            side: THREE.DoubleSide,
-
-            uniforms: {
-                uSize1: {
-                    value: size1
-                },
-                uSize2: {
-                    value: size2
-                },
-                uColor: {
-                    value: color
-                },
-                uDistance: {
-                    value: distance
-                }
-            },
-            transparent: true,
-            vertexShader: `
+			uniforms: {
+				uSize1: {
+					value: size1,
+				},
+				uSize2: {
+					value: size2,
+				},
+				uColor: {
+					value: color,
+				},
+				uDistance: {
+					value: distance,
+				},
+			},
+			transparent: true,
+			vertexShader: `
        
        varying vec3 worldPosition;
        
@@ -48,7 +53,7 @@ export default class InfiniteGrid extends THREE.Mesh {
        
        }
        `,
-            fragmentShader: `
+			fragmentShader: `
        
        varying vec3 worldPosition;
        
@@ -81,14 +86,13 @@ export default class InfiniteGrid extends THREE.Mesh {
        
        `,
 
-            extensions: {
-                derivatives: true,
-            }
+			extensions: {
+				derivatives: true,
+			},
+		});
 
-        } );
+		super(geometry, material);
 
-        super( geometry, material );
-
-        this.frustumCulled = false;
-    }
+		this.frustumCulled = false;
+	}
 }

@@ -11,6 +11,10 @@
 	}: WithElementRef<HTMLAttributes<HTMLTableSectionElement>> = $props();
 </script>
 
-<tfoot bind:this={ref} class={cn("bg-muted/50 font-medium", className)} {...restProps}>
+<tfoot
+	bind:this={ref}
+	class={cn("bg-muted/50 font-medium", className)}
+	{...restProps}
+>
 	{@render children?.()}
 </tfoot>

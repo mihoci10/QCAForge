@@ -1,10 +1,10 @@
-<script lang='ts'>
-    import { invoke } from "@tauri-apps/api/core";
-    import { onMount } from "svelte";
+<script lang="ts">
+	import { invoke } from "@tauri-apps/api/core";
+	import { onMount } from "svelte";
 
-    onMount(() => {
-        invoke("startup_frontend_ready");
-    });
+	onMount(() => {
+		invoke("startup_frontend_ready");
+	});
 </script>
 
 <div>Main page</div>

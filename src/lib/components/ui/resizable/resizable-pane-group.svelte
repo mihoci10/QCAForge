@@ -15,7 +15,10 @@
 	bind:el
 	bind:paneGroup
 	{direction}
-	class={cn("flex h-full w-full data-[direction=vertical]:flex-col", className)}
+	class={cn(
+		"flex h-full w-full data-[direction=vertical]:flex-col",
+		className,
+	)}
 	{...$$restProps}
 >
 	<slot />
