@@ -9,7 +9,8 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
-    "test": "vitest"
+    "test": "vitest",
+    "format": "prettier --write src"
   },
   "devDependencies": {
     "@iconify/icons-material-symbols": "^1.2.58",
