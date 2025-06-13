@@ -2,12 +2,12 @@
 	import { Label } from "$lib/components/ui/label";
 	import * as Switch from "$lib/components/ui/switch";
 	import { Slider } from "$lib/components/ui/slider";
-	import type { CellIndex } from "$lib/Cell";
 
 	export interface TruthTableProps {
 		showRowNumbers: boolean;
 		clockTreshold: number;
 		logicalThreshold: number;
+		valueThreshold: number;
 		cellClockDelay: Map<string, number>;
 	}
 
@@ -34,7 +34,7 @@
 			type="single"
 			id="clock-threshold"
 			min={0}
-			max={0.5}
+			max={1}
 			step={0.01}
 			bind:value={props.clockTreshold}
 		/>
@@ -50,9 +50,23 @@
 			type="single"
 			id="logical-threshold"
 			min={0}
-			max={0.5}
+			max={1}
 			step={0.01}
 			bind:value={props.logicalThreshold}
+		/>
+	</div>
+
+	<div class="flex flex-col gap-2">
+		<Label for="value-threshold" class="text-sm font-medium"
+			>Value Threshold: {(props.valueThreshold * 100).toFixed(0)}%</Label
+		>
+		<Slider
+			type="single"
+			id="value-threshold"
+			min={0}
+			max={1}
+			step={0.01}
+			bind:value={props.valueThreshold}
 		/>
 	</div>
 </div>

@@ -66,6 +66,7 @@
 							showRowNumbers: true,
 							clockTreshold: 0.05,
 							logicalThreshold: 0.01,
+							valueThreshold: 0.8,
 							cellClockDelay: new Map<string, number>(),
 						}
 					: {};

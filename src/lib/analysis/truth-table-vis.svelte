@@ -63,7 +63,8 @@
 				...props.cellClockDelay.entries(),
 			]),
 			clockThreshold: props.clockTreshold,
-			logicalThreshold: 0.05,
+			logicalThreshold: props.logicalThreshold,
+			valueThreshold: props.valueThreshold,
 		};
 
 		invoke("calculate_truth_table", params)

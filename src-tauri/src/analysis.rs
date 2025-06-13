@@ -107,6 +107,7 @@ pub fn calculate_truth_table(
     cell_clock_delay: HashMap<String, usize>,
     clock_threshold: f64,
     logical_threshold: f64,
+    value_threshold: f64,
 ) -> Result<TruthTable, String> {
     let file = File::open(filename).map_err(|err| "File cannot be opened")?;
     let (design, simulation) = read_from_file(file)?;
@@ -126,6 +127,7 @@ pub fn calculate_truth_table(
         cell_clock_delay,
         clock_threshold,
         logical_threshold,
+        value_threshold,
     );
 
     Ok(truth_table)
