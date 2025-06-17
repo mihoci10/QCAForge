@@ -17,7 +17,7 @@
 	}: Props = $props();
 
 	function applyModelChanges(data: any) {
-		model.option_list.forEach((option) => {
+		model.option_list.forEach((option: any) => {
 			if (option.type !== "Input") return;
 
 			if (option.descriptor.type === "NumberInput") {

@@ -45,15 +45,17 @@
 			selected_model_id = cur_design.selected_simulation_model_id;
 			cur_design.simulation_model_settings.forEach((val, key, map) => {
 				const model = simulation_models.get(key);
-				if (model) model.settings = val;
+				if (model) {
+					model.settings = val;
+					simulation_models.set(key, model);
+				}
 			});
+			simulation_models = new Map(simulation_models);
 		});
-
 		if (designer) designer.drawCurrentLayer();
 	});
 
 	onMount(() => {
-		setSimulationModels();
 		const unlistenSave = listen(EVENT_SAVE_FILE, () => {
 			new Promise((resolve: (value: string) => void, reject) => {
 				let filename = get(design_filename);
@@ -138,7 +140,7 @@
 						settings: model.settings,
 					});
 				});
-				simulation_models = simulation_models;
+				simulation_models = new Map(simulation_models);
 				resolve();
 			});
 		});

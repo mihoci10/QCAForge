@@ -734,7 +734,7 @@
 	<Resizable.Pane defaultSize={15} minSize={10}>
 		<div class="h-full bg-surface-500 overflow-y-auto pr-2">
 			<Accordion.Root type="multiple">
-				<SimSettingsPanel bind:selected_model_id {simulation_models} />
+				<SimSettingsPanel bind:selected_model_id bind:simulation_models />
 				<LayersPanel
 					bind:layers
 					bind:selectedLayer
