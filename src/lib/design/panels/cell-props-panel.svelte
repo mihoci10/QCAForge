@@ -244,7 +244,7 @@
 					onValueChange={selectedClockModeChanged}
 					type="single"
 					disabled={!selectedCellType ||
-						!["0", "2"].includes(selectedCellType)}
+						!["0", "2", "multiple"].includes(selectedCellType)}
 				>
 					<Select.Trigger>
 						{selected_clock_display}
