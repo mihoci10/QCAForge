@@ -87,6 +87,7 @@
 	function labelInputChanged() {
 		if (!labelInput) return;
 
+		labelInput = labelInput.trim();
 		if (labelInput.length == 0) labelInput = undefined;
 
 		selectedCells.forEach((id) => {
@@ -155,6 +156,7 @@
 
 		if (cellLabels.size() == 1) labelInput = cellLabels.toArray()[0];
 		else if (cellLabels.size() > 1) labelInput = "multiple";
+		else labelInput = undefined;
 
 		for (let i = 0; i < 2; i++) {
 			if (cellPositions[i].size() > 1) positionInput[i] = NaN;
