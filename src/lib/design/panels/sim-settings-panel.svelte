@@ -23,8 +23,10 @@
 		simulation_models: Map<string, SimulationModel>;
 	}
 
-	let { selected_model_id = $bindable(), simulation_models = $bindable() }: Props =
-		$props();
+	let {
+		selected_model_id = $bindable(),
+		simulation_models = $bindable(),
+	}: Props = $props();
 	const selected_model_display = $derived(
 		selected_model_id
 			? simulation_models.get(selected_model_id)?.name
@@ -41,7 +43,9 @@
 
 	function applyCallback() {
 		if (!selectedModel) throw new Error("Invalid simulation model!");
-		simulation_models = new Map(simulation_models.set(selectedModel.id, selectedModel));
+		simulation_models = new Map(
+			simulation_models.set(selectedModel.id, selectedModel),
+		);
 	}
 </script>
 
