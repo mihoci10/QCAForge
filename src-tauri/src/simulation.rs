@@ -26,32 +26,35 @@ pub fn run_sim_model(app: AppHandle, qca_design: QCADesign) -> Result<String, St
     let architectures = qca_design.cell_architectures.clone();
 
     match create_sim_model(sim_model_id) {
-        Some(mut model) => match model.set_serialized_settings(&sim_model_settings.to_string()) {
-            Ok(()) => {
-                let file = File::create("output.qcs").unwrap();
+        Some(mut model) => {
+            match model.deserialize_model_settings(&sim_model_settings.to_string()) {
+                Ok(()) => {
+                    let file = File::create("output.qcs").unwrap();
 
-                let (sim_handle, progress_rx, _) =
-                    run_simulation_async(model, layers, architectures);
+                    let (sim_handle, progress_rx, _) =
+                        run_simulation_async(model, layers, architectures);
 
-                for progress in progress_rx {
-                    match progress {
-                        SimulationProgress::Running {
-                            current_sample,
-                            total_samples,
-                        } => {
-                            let percent = (current_sample as f32 / total_samples as f32) * 100.0;
-                            app.emit("simulationProgress", percent).unwrap();
+                    for progress in progress_rx {
+                        match progress {
+                            SimulationProgress::Running {
+                                current_sample,
+                                total_samples,
+                            } => {
+                                let percent =
+                                    (current_sample as f32 / total_samples as f32) * 100.0;
+                                app.emit("simulationProgress", percent).unwrap();
+                            }
+                            _ => {}
                         }
-                        _ => {}
                     }
-                }
 
-                let simulation_data = sim_handle.join().unwrap();
-                write_to_file(file, &qca_design, &simulation_data);
-                Ok("".into())
+                    let simulation_data = sim_handle.join().unwrap();
+                    write_to_file(file, &qca_design, &simulation_data);
+                    Ok("".into())
+                }
+                Err(err) => Err(format!("Parsing settings error: {}", err.to_string())),
             }
-            Err(err) => Err(format!("Parsing settings error: {}", err.to_string())),
-        },
+        }
         None => Err("No model with such id exists".into()),
     }
 }

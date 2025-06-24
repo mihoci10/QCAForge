@@ -73,7 +73,7 @@ export async function createDesign(
 ): Promise<QCADesign> {
 	let simulation_model_settings: Map<string, string> = new Map();
 	simulation_models.forEach((val, key, _) => {
-		simulation_model_settings.set(key, val.settings);
+		simulation_model_settings.set(key, val.model_settings);
 	});
 
 	const qca_core_ver = (await invoke("get_sim_version")) as string;

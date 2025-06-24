@@ -17,13 +17,13 @@
 	}: Props = $props();
 
 	function applyModelChanges(data: any) {
-		model.option_list.forEach((option: any) => {
+		model.model_option_list.forEach((option: any) => {
 			if (option.type !== "Input") return;
 
 			if (option.descriptor.type === "NumberInput") {
 				const value = parseFloat(data[option.unique_id]);
 				if (!isNaN(value)) {
-					model.settings[option.unique_id] = value;
+					model.model_settings[option.unique_id] = value;
 				}
 			}
 		});
@@ -39,7 +39,7 @@
 		Configure parameters for the selected model.
 	{/snippet}
 	<div class="flex flex-col gap-2">
-		{#each model.option_list as option}
+		{#each model.model_option_list as option}
 			{#if option.type === "Header"}
 				<p class="text-lg font-bold">{option.label}</p>
 			{:else if option.type === "Break"}
@@ -51,7 +51,7 @@
 						<div class="flex items-center gap-2">
 							<Input
 								type="number"
-								value={model.settings[option.unique_id]}
+								value={model.model_settings[option.unique_id]}
 								name={option.unique_id}
 								min={option.descriptor.min}
 								max={option.descriptor.max}

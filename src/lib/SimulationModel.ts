@@ -3,8 +3,10 @@ import { invoke } from "@tauri-apps/api/core";
 export interface SimulationModel {
 	id: string;
 	name: string;
-	option_list: any | undefined;
-	settings: any | undefined;
+	model_option_list: any | undefined;
+	model_settings: any | undefined;
+	clock_generator_option_list: any | undefined;
+	clock_generator_settings: any | undefined;
 }
 
 export function loadSimulationModels(): Promise<SimulationModel[]> {
@@ -15,8 +17,13 @@ export function loadSimulationModels(): Promise<SimulationModel[]> {
 			models.push({
 				id: model["model_id"],
 				name: model["model_name"],
-				option_list: model["model_option_list"],
-				settings: JSON.parse(model["model_settings"]),
+				model_option_list: model["model_option_list"],
+				model_settings: JSON.parse(model["model_settings"]),
+				clock_generator_option_list:
+					model["clock_generator_option_list"],
+				clock_generator_settings: JSON.parse(
+					model["clock_generator_settings"],
+				),
 			});
 		});
 		return models;

@@ -46,7 +46,7 @@
 			cur_design.simulation_model_settings.forEach((val, key, map) => {
 				const model = simulation_models.get(key);
 				if (model) {
-					model.settings = val;
+					model.model_settings = val;
 					simulation_models.set(key, model);
 				}
 			});
@@ -136,8 +136,8 @@
 					simulation_models.set(model.id, {
 						id: model.id,
 						name: model.name,
-						option_list: model.option_list,
-						settings: model.settings,
+						model_option_list: model.model_option_list,
+						model_settings: model.model_settings,
 					});
 				});
 				simulation_models = new Map(simulation_models);
