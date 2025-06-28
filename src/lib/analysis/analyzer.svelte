@@ -11,6 +11,7 @@
 	import TruthTableVis from "./truth-table-vis.svelte";
 	import LinePlotVisualPropsPanel from "./panels/line-plot-visual-props-panel.svelte";
 	import TruthTableVisualPropsPanel from "./panels/truth-table-visual-props-panel.svelte";
+	import TimelineControl from "./timeline-control.svelte";
 
 	interface Props {
 		qcaSimulation: QCASimulation | undefined;
@@ -20,6 +21,7 @@
 	let activeTab: string | undefined = $state("0");
 	let selectedInputs: Input[] = $state([]);
 	let currentProps: any = $state({});
+	let currentSample: number = $state(0);
 
 	const VIS_PANELS = [
 		{
@@ -161,7 +163,7 @@
 	</Resizable.Pane>
 	<Resizable.Handle />
 	<Resizable.Pane minSize={10} class="">
-		<div class="h-full">
+		<div class="h-full flex flex-col">
 			<Tabs.Root
 				class="h-full w-full flex flex-col"
 				value={activeTab}
@@ -208,12 +210,14 @@
 								title={props.title}
 								inputs={props.inputs}
 								{qcaSimulation}
+								{currentSample}
 								props={props.visualProps}
 							/>
 						</Tabs.Content>
 					{/each}
 				</div>
 			</Tabs.Root>
+			<TimelineControl {qcaSimulation} bind:currentSample></TimelineControl>
 		</div>
 	</Resizable.Pane>
 	<Resizable.Handle />
