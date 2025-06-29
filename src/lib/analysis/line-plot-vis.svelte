@@ -16,7 +16,13 @@
 		props: LinePlotProps;
 	};
 
-	let { qcaSimulation, currentSample = $bindable(), title, inputs, props }: Props = $props();
+	let {
+		qcaSimulation,
+		currentSample = $bindable(),
+		title,
+		inputs,
+		props,
+	}: Props = $props();
 
 	let svgElement: SVGSVGElement;
 	let svg: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -42,7 +48,12 @@
 		d3.Selection<SVGLineElement, unknown, null, undefined>,
 	];
 
-	let currentSampleLine: d3.Selection<SVGLineElement, unknown, null, undefined>;
+	let currentSampleLine: d3.Selection<
+		SVGLineElement,
+		unknown,
+		null,
+		undefined
+	>;
 
 	const margin = { top: 20, right: 30, bottom: 40, left: 40 };
 	let width = $state(0);
@@ -250,10 +261,12 @@
 
 	function updateCurrentSampleLine() {
 		if (!currentSampleLine || !qcaSimulation) return;
-		
+
 		const sampleX = xAxis(currentSample);
-		const isInRange = currentSample >= xAxis.domain()[0] && currentSample <= xAxis.domain()[1];
-		
+		const isInRange =
+			currentSample >= xAxis.domain()[0] &&
+			currentSample <= xAxis.domain()[1];
+
 		if (isInRange) {
 			currentSampleLine
 				.attr("x1", sampleX)
@@ -440,7 +453,7 @@
 		cursor: col-resize;
 		stroke: #ffffff;
 		stroke-width: 4;
-		stroke-dasharray: 10,2;
+		stroke-dasharray: 10, 2;
 		opacity: 0;
 	}
 	:global(rect) {

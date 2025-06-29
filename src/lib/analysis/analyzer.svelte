@@ -217,7 +217,8 @@
 					{/each}
 				</div>
 			</Tabs.Root>
-			<TimelineControl {qcaSimulation} bind:currentSample></TimelineControl>
+			<TimelineControl {qcaSimulation} bind:currentSample
+			></TimelineControl>
 		</div>
 	</Resizable.Pane>
 	<Resizable.Handle />

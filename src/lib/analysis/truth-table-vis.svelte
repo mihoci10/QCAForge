@@ -24,7 +24,8 @@
 		props: TruthTableProps;
 	};
 
-	let { qcaSimulation, currentSample, title, inputs, props }: Props = $props();
+	let { qcaSimulation, currentSample, title, inputs, props }: Props =
+		$props();
 
 	let displayData: string[][] = $state([]);
 
