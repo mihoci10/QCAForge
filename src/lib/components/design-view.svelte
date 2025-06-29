@@ -69,6 +69,7 @@
 		cell_architectures: Map<string, CellArchitecture>;
 		properties: DesignViewProps;
 		onGetNewCellProps?: () => Cell;
+		onSelectedCellsUpdated?: (selectedCells: Set<CellIndex>) => void;
 	}
 
 	let {
@@ -78,6 +79,7 @@
 		cell_architectures = $bindable(),
 		properties = $bindable(),
 		onGetNewCellProps,
+		onSelectedCellsUpdated,
 	}: Props = $props();
 
 	onMount(() => {
@@ -158,7 +160,7 @@
 
 	onDestroy(() => {
 		resizeObserver.disconnect();
-		unregisterKeyboardShortcuts();
+		deinitKeyboardShortcuts();
 		renderer.dispose();
 
 		if (ghostGeometry) ghostGeometry.dispose();
@@ -397,7 +399,7 @@
 	}
 
 	function selectedCellsUpdated() {
-		cellPropsPanel.selectedCellsUpdated();
+		onSelectedCellsUpdated?.(selectedCells);
 	}
 
 	export function drawCurrentLayer() {
@@ -454,8 +456,8 @@
 	}
 
 	function applySnapping(pos: THREE.Vector2) {
-		const localSnapDivider = properties.cell_snapping
-			? properties.cell_snap_divider
+		const localSnapDivider = properties.cell_snapping_enabled || false
+			? properties.cell_snapping_divider || get_current_cell_architecture().side_length
 			: 1;
 		return new THREE.Vector2(
 			Math.floor((pos.x + localSnapDivider / 2) / localSnapDivider) *
@@ -687,7 +689,7 @@
 		]);
 	}
 
-	function unregisterKeyboardShortcuts() {
+	function deinitKeyboardShortcuts() {
 		hotkeyHandler.dispose();
 	}
 
@@ -730,18 +732,13 @@
 		(infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize2.value =
 			size * 5;
 	});
-
-	$effect(() => {
-		camera.position.set(...properties.camera_position);
-		controls.target.set(camera.position.x, camera.position.y, 0);
-	});
 </script>
 
 <div class="relative h-full w-full flex items-stretch" bind:this={container}>
 	<DesignToolbar
 		bind:inputModeIdx
-		bind:snapEnabled={properties.cell_snapping}
-		bind:snapDivider={properties.cell_snap_divider}
+		bind:snapEnabled={properties.cell_snapping_enabled}
+		bind:snapDivider={properties.cell_snapping_divider}
 	/>
 	<div
 		bind:this={selection_rect}
