@@ -43,7 +43,6 @@
 	let mouseDragging: boolean = false;
 	let hotkeyHandler: HotkeyHandler;
 
-	let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
 	let cachedCellsPos: { [id: string]: [pos_x: number, pos_y: number] } = {};
 
 	let selectedLayer: number = $state(0);
@@ -63,24 +62,35 @@
 	}
 
 	interface Props {
-		selected_model_id: string | undefined;
 		layers: Layer[];
-		simulation_models: Map<string, SimulationModel>;
 		cell_architectures: Map<string, CellArchitecture>;
+		selectedCells: Set<CellIndex>;
 		properties: DesignViewProps;
 		onGetNewCellProps?: () => Cell;
 		onSelectedCellsUpdated?: (selectedCells: Set<CellIndex>) => void;
 	}
 
 	let {
-		selected_model_id = $bindable(),
-		layers = $bindable(),
-		simulation_models = $bindable(),
-		cell_architectures = $bindable(),
+		layers,
+		cell_architectures,
+		selectedCells = $bindable(),
 		properties = $bindable(),
 		onGetNewCellProps,
 		onSelectedCellsUpdated,
 	}: Props = $props();
+
+	let cellSnappingEnabled: boolean = $derived(
+		properties.cell_snapping_enabled ?? false,
+	);
+	let cellSnappingDivider: number = $derived(
+		properties.cell_snapping_divider ??
+			get_current_cell_architecture().side_length,
+	);
+
+	$effect(() => {
+		properties.cell_snapping_enabled = cellSnappingEnabled;
+		properties.cell_snapping_divider = cellSnappingDivider;
+	});
 
 	onMount(() => {
 		initThreeJS();
@@ -104,7 +114,7 @@
 		globalScene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera(75, 1, 0.1, 3000);
 
-		const cameraPosition = properties.camera_position || [0, 0, 20];
+		const cameraPosition = properties.camera_position ?? [0, 0, 20];
 		camera.position.set(
 			cameraPosition[0],
 			cameraPosition[1],
@@ -456,9 +466,11 @@
 	}
 
 	function applySnapping(pos: THREE.Vector2) {
-		const localSnapDivider = properties.cell_snapping_enabled || false
-			? properties.cell_snapping_divider || get_current_cell_architecture().side_length
-			: 1;
+		const localSnapDivider =
+			(properties.cell_snapping_enabled ?? false)
+				? (properties.cell_snapping_divider ??
+					get_current_cell_architecture().side_length)
+				: 1;
 		return new THREE.Vector2(
 			Math.floor((pos.x + localSnapDivider / 2) / localSnapDivider) *
 				localSnapDivider,
@@ -737,8 +749,8 @@
 <div class="relative h-full w-full flex items-stretch" bind:this={container}>
 	<DesignToolbar
 		bind:inputModeIdx
-		bind:snapEnabled={properties.cell_snapping_enabled}
-		bind:snapDivider={properties.cell_snapping_divider}
+		bind:snapEnabled={cellSnappingEnabled}
+		bind:snapDivider={cellSnappingDivider}
 	/>
 	<div
 		bind:this={selection_rect}
