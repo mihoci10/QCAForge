@@ -12,6 +12,9 @@
 	import LinePlotVisualPropsPanel from "./panels/line-plot-visual-props-panel.svelte";
 	import TruthTableVisualPropsPanel from "./panels/truth-table-visual-props-panel.svelte";
 	import TimelineControl from "./timeline-control.svelte";
+	import DesignView from "$lib/components/design-view.svelte";
+	import { id } from "zod/v4/locales";
+	import DesignVisualProps from "./panels/design-visual-props.svelte";
 
 	interface Props {
 		qcaSimulation: QCASimulation | undefined;
@@ -38,6 +41,13 @@
 			inputMode: InputType.CELL,
 			propsPanel: TruthTableVisualPropsPanel,
 		},
+		{
+			id: "designView",
+			component: DesignView,
+			title: "Design View",
+			inputMode: InputType.CELL,
+			propsPanel: DesignVisualProps,
+		}
 	];
 
 	function addPanel(panelId: string) {
@@ -70,6 +80,10 @@
 							logicalThreshold: 0.01,
 							valueThreshold: 0.8,
 							cellClockDelay: new Map<string, number>(),
+						}
+				: panelId === "designView"
+					? {
+						selectedLayer: 0,
 						}
 					: {};
 

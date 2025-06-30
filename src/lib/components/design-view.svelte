@@ -738,11 +738,13 @@
 </script>
 
 <div class="relative h-full w-full flex items-stretch" bind:this={container}>
-	<DesignToolbar
-		bind:inputModeIdx
-		bind:snapEnabled={cellSnappingEnabled}
-		bind:snapDivider={cellSnappingDivider}
-	/>
+	{#if properties.cell_edit_enabled}
+		<DesignToolbar
+			bind:inputModeIdx
+			bind:snapEnabled={cellSnappingEnabled}
+			bind:snapDivider={cellSnappingDivider}
+		/>
+	{/if}
 	<div
 		bind:this={selection_rect}
 		class="absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50"
