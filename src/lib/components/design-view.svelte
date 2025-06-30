@@ -7,7 +7,6 @@
 	import { CellScene } from "../CellScene";
 	import { OrbitControls } from "../utils/OrbitControls";
 	import type { Layer } from "../Layer";
-	import type { SimulationModel } from "../SimulationModel";
 
 	import { Set } from "typescript-collections";
 	import { Menu } from "@tauri-apps/api/menu";
@@ -45,8 +44,6 @@
 
 	let cachedCellsPos: { [id: string]: [pos_x: number, pos_y: number] } = {};
 
-	let selectedLayer: number = $state(0);
-
 	export interface DesignViewProps {
 		camera_position?: [number, number, number];
 		camera_rotation?: [number, number, number];
@@ -63,6 +60,7 @@
 
 	interface Props {
 		layers: Layer[];
+		selectedLayer: number;
 		cell_architectures: Map<string, CellArchitecture>;
 		selectedCells: Set<CellIndex>;
 		properties: DesignViewProps;
@@ -72,6 +70,7 @@
 
 	let {
 		layers,
+		selectedLayer,
 		cell_architectures,
 		selectedCells = $bindable(),
 		properties = $bindable(),
@@ -709,32 +708,21 @@
 	// svelte-ignore state_referenced_locally
 	let oldInputMode = inputModeIdx;
 
-	function layerAddedCallback(layerId: number) {
-		cellScene.addLayer(layerId);
-	}
-
-	function layerRemovedCallback(layerId: number) {
-		cellScene.removeLayer(layerId);
-	}
-
-	function layerMovedCallback(oldLayerId: number, newLayerId: number) {
-		cellScene.moveLayer(oldLayerId, newLayerId);
-	}
-
-	function layerChangedCallback(layerId: number) {
-		selectedCellsUpdated();
-		cellScene
-			.getLayer(layerId)
-			.update_geometry(
-				layers[layerId],
-				selectedCells,
-				cell_architectures.get(layers[layerId].cell_architecture_id)!,
-			);
-	}
-
-	function propertyChangedCallback() {
+	$effect(() => {
+		while (cellScene.getLayersCount() < layers.length) {
+			cellScene.addLayer(layers.length);
+		}
+		while (cellScene.getLayersCount() > layers.length) {
+			cellScene.removeLayer(cellScene.getLayersCount() - 1);
+		}
 		drawCurrentLayer();
-	}
+	});
+
+	$effect(() => {
+		selectedLayer;
+		selectedCells.clear();
+		drawCurrentLayer();
+	})
 
 	$effect(() => {
 		const cellArch = get_current_cell_architecture();

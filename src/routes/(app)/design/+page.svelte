@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Designer, { type DesignerProps } from "$lib/design/designer.svelte";
+	import Designer from "$lib/design/designer.svelte";
 	import { onMount } from "svelte";
 	import { startSimulation } from "$lib/Simulation";
 	import {
@@ -10,6 +10,7 @@
 	import { listen } from "@tauri-apps/api/event";
 	import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
 	import {
+	createDefaultDesignViewProps,
 		createDesign,
 		createQCADesignFile,
 		serializeQCADesignFile,
@@ -23,6 +24,7 @@
 	import { type CellArchitecture } from "$lib/CellArchitecture";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import SimulationProgressToast from "$lib/toasts/simulation-progress-toast.svelte";
+	import type { DesignViewProps } from "$lib/components/design-view.svelte";
 
 	let selected_model_id: string | undefined = $state();
 	let layers: Layer[] = $state([]);
@@ -33,12 +35,12 @@
 	let cell_architectures: Map<string, CellArchitecture> = $state(
 		new Map<string, CellArchitecture>(),
 	);
-	let designerProps: DesignerProps | undefined = $state(undefined);
+	let designViewProps: DesignViewProps = $state(createDefaultDesignViewProps());
 	let designer: Designer | undefined = $state();
 
 	design.subscribe((cur_design_file) => {
 		const cur_design = cur_design_file.design;
-		designerProps = cur_design_file.designer_properties;
+		designViewProps = cur_design_file.designer_properties;
 		layers = cur_design.layers;
 		cell_architectures = cur_design.cell_architectures;
 		setSimulationModels().then(() => {
@@ -52,7 +54,7 @@
 			});
 			simulation_models = new Map(simulation_models);
 		});
-		if (designer) designer.drawCurrentLayer();
+		if (designer) designer.redraw();
 	});
 
 	onMount(() => {
@@ -78,7 +80,7 @@
 					);
 					const designFile = await createQCADesignFile(
 						design,
-						designerProps,
+						designViewProps,
 					);
 					resolve(designFile);
 				}).then((designFile) => {
@@ -108,7 +110,7 @@
 					);
 					const designFile = await createQCADesignFile(
 						design,
-						designerProps,
+						designViewProps,
 					);
 					resolve(designFile);
 				}).then((designFile) => {
@@ -138,6 +140,8 @@
 						name: model.name,
 						model_option_list: model.model_option_list,
 						model_settings: model.model_settings,
+						clock_generator_option_list: [],
+						clock_generator_settings: {},
 					});
 				});
 				simulation_models = new Map(simulation_models);
@@ -205,7 +209,7 @@
 	</div>
 	<Designer
 		bind:this={designer}
-		bind:designer_props={designerProps}
+		bind:designViewProps
 		bind:selected_model_id
 		bind:layers
 		bind:simulation_models

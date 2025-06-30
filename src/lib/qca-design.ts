@@ -7,14 +7,11 @@ import {
 	type CellArchitecture,
 } from "./CellArchitecture";
 import { getVersion } from "@tauri-apps/api/app";
-import type { DesignerProps } from "./design/designer.svelte";
+import type { DesignViewProps } from "./components/design-view.svelte";
 
 export interface CommonSimulationModelSettings {
-	num_samples: number;
-	max_iter: number;
-	ampl_min: number;
-	ampl_max: number;
-	ampl_fac: number;
+	max_iterations: number;
+	convergence_tolerance: number;
 }
 
 export interface QCADesign {
@@ -28,7 +25,7 @@ export interface QCADesign {
 export interface QCADesignFile {
 	qca_forge_version: string;
 	design: QCADesign;
-	designer_properties: undefined | DesignerProps;
+	designer_properties: DesignViewProps;
 }
 
 export function serializeQCADesignFile(qcaDesignFile: QCADesignFile): string {
@@ -87,15 +84,28 @@ export async function createDesign(
 	};
 }
 
+export function createDefaultDesignViewProps(): DesignViewProps {
+	return {
+		camera_position: [0, 0, 20],
+		camera_rotation: [0, 0, 0],
+		camera_rotate_enabled: false,
+		camera_zoom_enabled: true,
+		camera_zoom_range: [1, 100],
+		cell_edit_enabled: true,
+		cell_snapping_enabled: true,
+	};
+}
+
 export async function createQCADesignFile(
 	design: QCADesign,
-	designerProps: DesignerProps | undefined,
+	designerProps: DesignViewProps | undefined,
 ): Promise<QCADesignFile> {
 	const qca_forge_ver = await getVersion();
+	const qca_design_view_props = designerProps ?? createDefaultDesignViewProps();
 	return {
 		qca_forge_version: qca_forge_ver,
 		design: design,
-		designer_properties: designerProps,
+		designer_properties: qca_design_view_props,
 	};
 }
 

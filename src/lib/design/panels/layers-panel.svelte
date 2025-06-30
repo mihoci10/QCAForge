@@ -15,20 +15,12 @@
 		layers: Layer[];
 		selectedLayer: number;
 		cell_architectures: Map<string, CellArchitecture>;
-		layerAddedCallback: (layerIndex: number) => void;
-		layerRemovedCallback: (layerIndex: number) => void;
-		layerMovedCallback: (fromIndex: number, toIndex: number) => void;
-		layerChangedCallback: (layerIndex: number) => void;
 	}
 
 	let {
 		layers = $bindable(),
 		selectedLayer = $bindable(),
 		cell_architectures = $bindable(),
-		layerAddedCallback,
-		layerMovedCallback,
-		layerRemovedCallback,
-		layerChangedCallback,
 	}: Props = $props();
 
 	let settings_layer_id: number | undefined = $state();
@@ -68,7 +60,6 @@
 			cells: [],
 			z_position: 0,
 		});
-		layerAddedCallback(newLayerId);
 
 		selectedLayer = newLayerId;
 		layers = layers;
@@ -79,7 +70,6 @@
 
 		const i = selectedLayer;
 		layers.splice(i, 1);
-		layerRemovedCallback(i);
 
 		selectedLayer = Math.max(selectedLayer - 1, 0);
 		layers = layers;
@@ -93,7 +83,6 @@
 			1,
 			layers[selectedLayer],
 		)[0];
-		layerMovedCallback(selectedLayer, selectedLayer + 1);
 
 		selectedLayer++;
 		layers = layers;
@@ -107,15 +96,12 @@
 			1,
 			layers[selectedLayer],
 		)[0];
-		layerMovedCallback(selectedLayer, selectedLayer - 1);
 
 		selectedLayer--;
 		layers = layers;
 	}
 
 	function applyCallback() {
-		if (settings_layer_id !== undefined)
-			layerChangedCallback(settings_layer_id);
 	}
 </script>
 

@@ -98,6 +98,10 @@ export class CellScene {
 		this.layers = [];
 	}
 
+	getLayersCount() {
+		return this.layers.length;
+	}
+
 	getLayer(layerInd: number) {
 		return this.layers[layerInd];
 	}

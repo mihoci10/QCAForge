@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Label } from "$lib/components/ui/label";
-	import type {
-		Input,
-		QCASimulation,
-		SignalIndex,
+	import {
+	InputType,
+		type Input,
+		type QCASimulation,
+		type SignalIndex,
 	} from "$lib/qca-simulation";
 	import type { Snippet } from "svelte";
 	import type { DOMAttributes } from "svelte/elements";
@@ -12,7 +13,7 @@
 		qcaSimulation: QCASimulation | undefined;
 		title: string;
 		children: Snippet | undefined;
-		inputs: Input[];
+		inputs: Input[] | undefined;
 		needDataLoad: boolean;
 		beforeLoadData?: () => void;
 		loadInputData?: (input: Input, data: Float64Array[]) => void;
@@ -53,7 +54,7 @@
 		}
 		status = "loading";
 		const neededInputs = getNeededInputs ? getNeededInputs() : [];
-		const loadInputs = [...new Set([...inputs, ...neededInputs])];
+		const loadInputs = [...new Set([...(inputs ?? qcaSimulation.getInputs(InputType.CELL)), ...neededInputs])];
 		beforeLoadData?.();
 		const allSignals = loadInputs.map((input) =>
 			qcaSimulation.getInputData(input),

@@ -9,8 +9,8 @@
 	import LayersPanel from "./panels/layers-panel.svelte";
 
 	import type { CellArchitecture } from "../CellArchitecture";
-	import DesignView from "$lib/components/design-view.svelte";
-	import type { CellIndex } from "$lib/Cell";
+	import DesignView, { type DesignViewProps } from "$lib/components/design-view.svelte";
+	import type { Cell, CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
 
 	interface Props {
@@ -18,6 +18,7 @@
 		layers: Layer[];
 		simulation_models: Map<string, SimulationModel>;
 		cell_architectures: Map<string, CellArchitecture>;
+		designViewProps: DesignViewProps;
 	}
 
 	let {
@@ -25,9 +26,25 @@
 		layers = $bindable(),
 		simulation_models = $bindable(),
 		cell_architectures = $bindable(),
+		designViewProps = $bindable(),
 	}: Props = $props();
 
+	let designView: DesignView | undefined = $state();
 	let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
+	let selectedLayer: number = $state(0);
+	let cellPropsPanel: CellPropsPanel | undefined = $state();
+
+	export function redraw() {
+		designView!.drawCurrentLayer();
+	}
+
+	function propertyChangedCallback() {
+		
+	}
+
+	function onGetNewCellProps(): Cell {
+		return cellPropsPanel!.getCellProps();
+	}
 </script>
 
 <Resizable.PaneGroup direction="horizontal">
@@ -42,10 +59,6 @@
 					bind:layers
 					bind:selectedLayer
 					bind:cell_architectures
-					{layerAddedCallback}
-					{layerRemovedCallback}
-					{layerMovedCallback}
-					{layerChangedCallback}
 				/>
 				<CellPropsPanel
 					bind:layers
@@ -58,6 +71,6 @@
 	</Resizable.Pane>
 	<Resizable.Handle />
 	<Resizable.Pane minSize={10}>
-		<DesignView {cell_architectures} {layers} bind:selectedCells />
+		<DesignView bind:this={designView} {cell_architectures} {layers} {selectedLayer} bind:selectedCells bind:properties={designViewProps} {onGetNewCellProps}/>
 	</Resizable.Pane>
 </Resizable.PaneGroup>
