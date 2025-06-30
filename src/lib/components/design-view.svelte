@@ -721,6 +721,9 @@
 	$effect(() => {
 		selectedLayer;
 		selectedCells.clear();
+	});
+
+	$effect(() => {
 		drawCurrentLayer();
 	})
 
