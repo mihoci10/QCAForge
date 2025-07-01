@@ -65,11 +65,11 @@
 		selectedCells: Set<CellIndex>;
 		properties: DesignViewProps;
 		onGetNewCellProps?: () => Cell;
-		onSelectedCellsUpdated?: (selectedCells: Set<CellIndex>) => void;
+		onSelectedCellsUpdated?: () => void;
 	}
 
 	let {
-		layers,
+		layers = $bindable(),
 		selectedLayer,
 		cell_architectures,
 		selectedCells = $bindable(),
@@ -408,7 +408,7 @@
 	}
 
 	function selectedCellsUpdated() {
-		onSelectedCellsUpdated?.(selectedCells);
+		onSelectedCellsUpdated?.();
 	}
 
 	export function drawCurrentLayer() {

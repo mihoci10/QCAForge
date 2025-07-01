@@ -45,6 +45,10 @@
 	function onGetNewCellProps(): Cell {
 		return cellPropsPanel!.getCellProps();
 	}
+
+	function onSelectedCellsUpdated() {
+		cellPropsPanel!.selectedCellsUpdated();
+	}
 </script>
 
 <Resizable.PaneGroup direction="horizontal">
@@ -71,6 +75,6 @@
 	</Resizable.Pane>
 	<Resizable.Handle />
 	<Resizable.Pane minSize={10}>
-		<DesignView bind:this={designView} {cell_architectures} {layers} {selectedLayer} bind:selectedCells bind:properties={designViewProps} {onGetNewCellProps}/>
+		<DesignView bind:this={designView} {cell_architectures} bind:layers {selectedLayer} bind:selectedCells bind:properties={designViewProps} {onGetNewCellProps} {onSelectedCellsUpdated}/>
 	</Resizable.Pane>
 </Resizable.PaneGroup>
