@@ -34,6 +34,7 @@
         qcaSimulation ? qcaSimulation.design.layers : [],
     );
     let cellsData: Map<CellIndex, Float64Array[]>;
+    let designView: DesignView | undefined = $state();
 
     onMount(() => {
     });
@@ -56,6 +57,7 @@
     }
 
     $effect(() => {
+        currentSample;
         applyCellData();
     });
 
@@ -68,6 +70,9 @@
             const cell_distribution = generateDotDistribution(cell_polarization);
             cell.dot_probability_distribution = cell_distribution;
         }
+        if (designView) {
+            designView.drawCurrentLayer();
+        }
     }
 	
 </script>
@@ -78,6 +83,7 @@
 	{loadInputData}
 	{afterLoadData}>
 	<DesignView
+        bind:this={designView}
         {cell_architectures}
         {layers}
         selectedLayer={props.selectedLayer}

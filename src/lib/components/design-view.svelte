@@ -176,6 +176,7 @@
 	});
 
 	function windowResize() {
+		console.log(container.clientWidth, container.clientHeight);
 		renderer.setSize(
 			container.clientWidth * devicePixelRatio,
 			container.clientHeight * devicePixelRatio,
@@ -737,7 +738,7 @@
 	});
 </script>
 
-<div class="relative h-full w-full flex items-stretch" bind:this={container}>
+<div class="relative w-full flex h-full items-stretch" bind:this={container}>
 	{#if properties.cell_edit_enabled}
 		<DesignToolbar
 			bind:inputModeIdx
