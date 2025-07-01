@@ -135,7 +135,7 @@ export class QCASimulation {
 		return this._filename;
 	}
 	public get design(): QCADesign {
-		return this.design;
+		return this._design;
 	}
 	public get metadata(): QCASimulationMetadata {
 		return this._metadata;

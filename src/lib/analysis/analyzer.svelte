@@ -12,9 +12,8 @@
 	import LinePlotVisualPropsPanel from "./panels/line-plot-visual-props-panel.svelte";
 	import TruthTableVisualPropsPanel from "./panels/truth-table-visual-props-panel.svelte";
 	import TimelineControl from "./timeline-control.svelte";
-	import DesignView from "$lib/components/design-view.svelte";
-	import { id } from "zod/v4/locales";
 	import DesignVisualProps from "./panels/design-visual-props.svelte";
+	import DesignVis from "./design-vis.svelte";
 
 	interface Props {
 		qcaSimulation: QCASimulation | undefined;
@@ -43,7 +42,7 @@
 		},
 		{
 			id: "designView",
-			component: DesignView,
+			component: DesignVis,
 			title: "Design View",
 			inputMode: InputType.CELL,
 			propsPanel: DesignVisualProps,

@@ -36,12 +36,11 @@
     let cellsData: Map<CellIndex, Float64Array[]>;
 
     onMount(() => {
-        cellsData = new Map<CellIndex, Float64Array[]>();
     });
 
 
     function beforeLoadData() {
-        cellsData.clear();
+        cellsData = new Map<CellIndex, Float64Array[]>();
     }
 
     function loadInputData(input: Input, data: Float64Array[]) {
