@@ -176,7 +176,6 @@
 	});
 
 	function windowResize() {
-		console.log(container.clientWidth, container.clientHeight);
 		renderer.setSize(
 			container.clientWidth * devicePixelRatio,
 			container.clientHeight * devicePixelRatio,
