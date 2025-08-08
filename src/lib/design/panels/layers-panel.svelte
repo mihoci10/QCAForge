@@ -101,8 +101,7 @@
 		layers = layers;
 	}
 
-	function applyCallback() {
-	}
+	function applyCallback() {}
 </script>
 
 <Accordion.Item value="layers">

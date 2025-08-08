@@ -101,7 +101,8 @@ export async function createQCADesignFile(
 	designerProps: DesignViewProps | undefined,
 ): Promise<QCADesignFile> {
 	const qca_forge_ver = await getVersion();
-	const qca_design_view_props = designerProps ?? createDefaultDesignViewProps();
+	const qca_design_view_props =
+		designerProps ?? createDefaultDesignViewProps();
 	return {
 		qca_forge_version: qca_forge_ver,
 		design: design,

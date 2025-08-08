@@ -10,7 +10,7 @@
 	import { listen } from "@tauri-apps/api/event";
 	import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
 	import {
-	createDefaultDesignViewProps,
+		createDefaultDesignViewProps,
 		createDesign,
 		createQCADesignFile,
 		serializeQCADesignFile,
@@ -35,7 +35,9 @@
 	let cell_architectures: Map<string, CellArchitecture> = $state(
 		new Map<string, CellArchitecture>(),
 	);
-	let designViewProps: DesignViewProps = $state(createDefaultDesignViewProps());
+	let designViewProps: DesignViewProps = $state(
+		createDefaultDesignViewProps(),
+	);
 	let designer: Designer | undefined = $state();
 
 	design.subscribe((cur_design_file) => {

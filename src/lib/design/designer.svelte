@@ -9,7 +9,9 @@
 	import LayersPanel from "./panels/layers-panel.svelte";
 
 	import type { CellArchitecture } from "../CellArchitecture";
-	import DesignView, { type DesignViewProps } from "$lib/components/design-view.svelte";
+	import DesignView, {
+		type DesignViewProps,
+	} from "$lib/components/design-view.svelte";
 	import type { Cell, CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
 
@@ -38,9 +40,7 @@
 		designView!.drawCurrentLayer();
 	}
 
-	function propertyChangedCallback() {
-		
-	}
+	function propertyChangedCallback() {}
 
 	function onGetNewCellProps(): Cell {
 		return cellPropsPanel!.getCellProps();
@@ -75,6 +75,15 @@
 	</Resizable.Pane>
 	<Resizable.Handle />
 	<Resizable.Pane minSize={10}>
-		<DesignView bind:this={designView} {cell_architectures} bind:layers {selectedLayer} bind:selectedCells bind:properties={designViewProps} {onGetNewCellProps} {onSelectedCellsUpdated}/>
+		<DesignView
+			bind:this={designView}
+			{cell_architectures}
+			bind:layers
+			{selectedLayer}
+			bind:selectedCells
+			bind:properties={designViewProps}
+			{onGetNewCellProps}
+			{onSelectedCellsUpdated}
+		/>
 	</Resizable.Pane>
 </Resizable.PaneGroup>

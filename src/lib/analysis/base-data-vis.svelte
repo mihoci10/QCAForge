@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Label } from "$lib/components/ui/label";
 	import {
-	InputType,
+		InputType,
 		type Input,
 		type QCASimulation,
 		type SignalIndex,
@@ -54,7 +54,12 @@
 		}
 		status = "loading";
 		const neededInputs = getNeededInputs ? getNeededInputs() : [];
-		const loadInputs = [...new Set([...(inputs ?? qcaSimulation.getInputs(InputType.CELL)), ...neededInputs])];
+		const loadInputs = [
+			...new Set([
+				...(inputs ?? qcaSimulation.getInputs(InputType.CELL)),
+				...neededInputs,
+			]),
+		];
 		beforeLoadData?.();
 		const allSignals = loadInputs.map((input) =>
 			qcaSimulation.getInputData(input),
