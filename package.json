@@ -26,6 +26,7 @@
     "autoprefixer": "10.4.21",
     "bits-ui": "^1.8.0",
     "clsx": "^2.1.1",
+    "dockview-core": "^4.6.2",
     "formsnap": "^2.0.1",
     "lucide-svelte": "^0.516.0",
     "mode-watcher": "^1.0.8",
