@@ -1,7 +1,6 @@
 <script lang="ts">
-
 	export interface AnalysisDesignProps {
-        selectedLayer: number;
+		selectedLayer: number | undefined;
 	}
 
 	interface Props {
@@ -11,6 +10,4 @@
 	let { props = $bindable() }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-4">
-	
-</div>
+<div class="flex flex-col gap-4"></div>

@@ -52,7 +52,7 @@
 			title: "Design View",
 			inputMode: InputType.CELL,
 			propsPanel: DesignVisualProps,
-		}
+		},
 	];
 
 	// Dockview setup
@@ -93,7 +93,7 @@
 			};
 		}
 		if (typeId === "designView") {
-			return { selectedLayer: 0 };
+			return { selectedLayer: undefined };
 		}
 		return {};
 	}
@@ -105,7 +105,7 @@
 		// Generate a unique, human-friendly title
 		let baseTitle = def.title;
 		const existingTitles = new Set(
-			Array.from(panels.values()).map((p) => p.title)
+			Array.from(panels.values()).map((p) => p.title),
 		);
 		let title = baseTitle;
 		let i = 1;
@@ -130,7 +130,6 @@
 			title,
 			component: "visual",
 			params: { typeId },
-			position: { direction: 'right' },
 		});
 
 		// select newly added panel
@@ -231,19 +230,26 @@
 						});
 						state.instance = instance;
 						panelRef = containerApi.getPanel(api.id);
-						root.addEventListener("mousedown", () => focusPanel(api.id));
+						root.addEventListener("mousedown", () =>
+							focusPanel(api.id),
+						);
 					},
 					update: () => {
-						const s = panelRef ? panels.get(panelRef.id) : undefined;
+						const s = panelRef
+							? panels.get(panelRef.id)
+							: undefined;
 						if (s && instance) {
 							instance.title = s.title;
 						}
 					},
 					dispose: () => {
-						try { instance?.$destroy?.(); } catch {}
+						try {
+							instance?.$destroy?.();
+						} catch {}
 						if (panelRef) {
 							panels.delete(panelRef.id);
-							if (activePanelId === panelRef.id) activePanelId = undefined;
+							if (activePanelId === panelRef.id)
+								activePanelId = undefined;
 						}
 						instance = undefined;
 						panelRef = undefined;
@@ -271,7 +277,9 @@
 	});
 
 	onDestroy(() => {
-		try { dockview?.dispose?.(); } catch {}
+		try {
+			dockview?.dispose?.();
+		} catch {}
 	});
 </script>
 
@@ -293,10 +301,14 @@
 								{@const PropsComponent = active.PropsPanel}
 								<PropsComponent bind:props={currentProps} />
 							{:else}
-								<div class="text-muted-foreground text-sm">No properties available</div>
+								<div class="text-muted-foreground text-sm">
+									No properties available
+								</div>
 							{/if}
 						{:else}
-							<div class="text-muted-foreground text-sm">No panel selected</div>
+							<div class="text-muted-foreground text-sm">
+								No panel selected
+							</div>
 						{/if}
 					</Accordion.Content>
 				</Accordion.Item>
@@ -314,7 +326,10 @@
 						<div
 							class="flex items-center gap-2 text-sm text-muted-foreground hover:bg-muted rounded-md"
 						>
-							<Icon icon="material-symbols:add-2-rounded" width={16} />
+							<Icon
+								icon="material-symbols:add-2-rounded"
+								width={16}
+							/>
 							Add panel
 						</div>
 					</DropdownMenu.Trigger>
@@ -330,7 +345,8 @@
 			<div class="flex-1 min-h-0">
 				<div bind:this={containerEl} class="w-full h-full"></div>
 			</div>
-			<TimelineControl {qcaSimulation} bind:currentSample></TimelineControl>
+			<TimelineControl {qcaSimulation} bind:currentSample
+			></TimelineControl>
 		</div>
 	</Resizable.Pane>
 	<Resizable.Handle />

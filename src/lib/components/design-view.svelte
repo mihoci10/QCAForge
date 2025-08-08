@@ -60,7 +60,7 @@
 
 	interface Props {
 		layers: Layer[];
-		selectedLayer: number;
+		selectedLayer: number | undefined;
 		cell_architectures: Map<string, CellArchitecture>;
 		selectedCells: Set<CellIndex>;
 		properties: DesignViewProps;
@@ -82,8 +82,7 @@
 		properties.cell_snapping_enabled ?? false,
 	);
 	let cellSnappingDivider: number = $derived(
-		properties.cell_snapping_divider ??
-			get_current_cell_architecture().side_length,
+		properties.cell_snapping_divider ?? get_cell_architecture().side_length,
 	);
 
 	$effect(() => {
@@ -198,10 +197,19 @@
 		statsDrawCall.update(renderer.info.render.calls, 10);
 	}
 
-	function get_current_cell_architecture() {
-		return cell_architectures.get(
-			layers[selectedLayer].cell_architecture_id,
-		)!;
+	function get_cell_architecture(layerIndex: number | undefined = undefined) {
+		console.log(layers, selectedLayer, layerIndex);
+		if (layerIndex !== undefined) {
+			return cell_architectures.get(
+				layers[layerIndex].cell_architecture_id,
+			)!;
+		} else if (selectedLayer !== undefined) {
+			return cell_architectures.get(
+				layers[selectedLayer].cell_architecture_id,
+			)!;
+		}
+
+		throw new Error("Selected layer is not defined");
 	}
 
 	function createGhostMesh() {
@@ -224,7 +232,7 @@
 				},
 			],
 			new Set(),
-			get_current_cell_architecture(),
+			get_cell_architecture(),
 		);
 		globalScene.add(
 			ghostGeometry.getDrawMesh() as unknown as THREE.Object3D,
@@ -235,11 +243,7 @@
 		if (!ghostGeometry)
 			throw new Error("Ghost geometry is not initialized");
 
-		ghostGeometry.update_draw_mesh(
-			[],
-			new Set(),
-			get_current_cell_architecture(),
-		);
+		ghostGeometry.update_draw_mesh([], new Set(), get_cell_architecture());
 		globalScene.remove(
 			ghostGeometry.getDrawMesh() as unknown as THREE.Object3D,
 		);
@@ -412,13 +416,25 @@
 	}
 
 	export function drawCurrentLayer() {
-		cellScene
-			.getLayer(selectedLayer)
-			.update_geometry(
-				layers[selectedLayer],
-				selectedCells,
-				get_current_cell_architecture(),
-			);
+		if (selectedLayer === undefined) {
+			for (let i = 0; i < layers.length; i++) {
+				cellScene
+					.getLayer(i)
+					.update_geometry(
+						layers[i],
+						selectedCells,
+						get_cell_architecture(i),
+					);
+			}
+		} else {
+			cellScene
+				.getLayer(selectedLayer)
+				.update_geometry(
+					layers[selectedLayer],
+					selectedCells,
+					get_cell_architecture(),
+				);
+		}
 	}
 
 	function screenSpaceToWorld(pos: THREE.Vector2): THREE.Vector3 {
@@ -468,7 +484,7 @@
 		const localSnapDivider =
 			(properties.cell_snapping_enabled ?? false)
 				? (properties.cell_snapping_divider ??
-					get_current_cell_architecture().side_length)
+					get_cell_architecture().side_length)
 				: 1;
 		return new THREE.Vector2(
 			Math.floor((pos.x + localSnapDivider / 2) / localSnapDivider) *
@@ -532,7 +548,7 @@
 			new THREE.Vector2(orig_world_pos.x, orig_world_pos.y),
 		);
 
-		const cell_size = get_current_cell_architecture().side_length;
+		const cell_size = get_cell_architecture().side_length;
 		const offset = new THREE.Vector2();
 
 		const diff = world_pos.clone().sub(orig_world_pos);
@@ -562,7 +578,7 @@
 			throw new Error("onGetNewCellProps callback is not defined");
 
 		const cell_positions = calculate_ghost_positions(mouse_pos);
-		const cell_architecture = get_current_cell_architecture();
+		const cell_architecture = get_cell_architecture();
 		const cell_template = onGetNewCellProps();
 		ghostGeometry.update_draw_mesh(
 			cell_positions.map((pos) => {
@@ -725,10 +741,11 @@
 
 	$effect(() => {
 		drawCurrentLayer();
-	})
+	});
 
 	$effect(() => {
-		const cellArch = get_current_cell_architecture();
+		if (selectedLayer === undefined) return;
+		const cellArch = get_cell_architecture();
 		const size = cellArch.side_length;
 		(infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize1.value =
 			size;
