@@ -59,7 +59,7 @@
     "@types/d3": "^7.4.3",
     "class-variance-authority": "^0.7.1",
     "d3": "^7.9.0",
-    "lucide-react": "^0.511.0",
+    "lucide-react": "^0.539.0",
     "stats.js": "^0.17.0",
     "svelte-splitpanes": "^8.0.9",
     "three": "^0.176.0",
