@@ -20,7 +20,7 @@
     "@sveltejs/adapter-static": "^3.0.8",
     "@sveltejs/kit": "^2.27.3",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
-    "@tauri-apps/cli": "^2.5.0",
+    "@tauri-apps/cli": "^2.7.1",
     "@types/node": "24.0.3",
     "@types/three": "^0.176.0",
     "autoprefixer": "10.4.21",
