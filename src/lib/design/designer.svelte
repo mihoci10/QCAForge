@@ -11,7 +11,7 @@
 	import type { CellArchitecture } from "../CellArchitecture";
 	import DesignView, {
 		type DesignViewProps,
-	} from "$lib/components/design-view.svelte";
+	} from "$lib/components/design/design-view.svelte";
 	import type { Cell, CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
 

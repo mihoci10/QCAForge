@@ -1,18 +1,20 @@
+import { CellIndex } from "$lib/Cell";
+import type { CellArchitecture } from "$lib/CellArchitecture";
+import type { Layer } from "$lib/Layer";
 import * as THREE from "three";
 // @ts-ignore
 import { Text } from "troika-three-text";
-import { CellIndex } from "./Cell";
-import { CellGeometry } from "./CellGeometry";
 import { Set } from "typescript-collections";
-import { type Layer } from "./Layer";
-import type { CellArchitecture } from "./CellArchitecture";
+import type { CellGeometryProps, ICellGeometry } from "./theme/theme";
+import { ThemeManager } from "./theme/theme-manager";
+import { LegacyCellTheme } from "./theme/legacy/legacy-theme";
 
 class CellSceneLayer {
 	public visible: boolean;
 	private parent: CellScene;
 	private drawScene: THREE.Scene;
 	private pickScene: THREE.Scene;
-	private cellGeometry: CellGeometry;
+	private geometry: ICellGeometry;
 	private labels: Text[] = [];
 
 	constructor(parent: CellScene, visible: boolean) {
@@ -21,13 +23,21 @@ class CellSceneLayer {
 		this.drawScene = new THREE.Scene();
 		this.pickScene = new THREE.Scene();
 
-		this.cellGeometry = new CellGeometry(false);
-		this.drawScene.add(
-			this.cellGeometry.getDrawMesh() as unknown as THREE.Object3D,
-		);
-		this.pickScene.add(
-			this.cellGeometry.getPickMesh() as unknown as THREE.Object3D,
-		);
+		this.geometry = this.parent.createGeometry({ ghost: false });
+		this.drawScene.add(this.geometry.getDrawObject());
+		this.pickScene.add(this.geometry.getPickObject());
+	}
+
+	// Called when the theme changes to rebuild geometry
+	rebuildGeometry(): void {
+		if (this.geometry) {
+			this.drawScene.remove(this.geometry.getDrawObject());
+			this.pickScene.remove(this.geometry.getPickObject());
+			this.geometry.dispose();
+		}
+		this.geometry = this.parent.createGeometry({ ghost: false });
+		this.drawScene.add(this.geometry.getDrawObject());
+		this.pickScene.add(this.geometry.getPickObject());
 	}
 
 	update_geometry(
@@ -35,22 +45,12 @@ class CellSceneLayer {
 		selectedCells: Set<CellIndex>,
 		cell_architecture: CellArchitecture,
 	): void {
-		const selectedIds: Set<number> = new Set();
-		selectedCells.forEach((id) => {
-			if (id.layer == this.parent.getIndexOfLayer(this))
-				selectedIds.add(id.cell);
-		});
+		// Theme geometry expects selection indices for this layer; pass the full set; it will filter.
+		this.geometry.update(layer.cells, selectedCells, cell_architecture);
 
-		this.cellGeometry.update_draw_mesh(
+		const label_data = this.geometry.getLabels(
 			layer.cells,
-			selectedIds,
-			cell_architecture,
-		);
-		this.cellGeometry.update_pick_mesh(layer.cells, cell_architecture);
-
-		const label_data = this.cellGeometry.update_labels(
-			layer.cells,
-			selectedIds,
+			selectedCells,
 			cell_architecture,
 		);
 
@@ -63,6 +63,7 @@ class CellSceneLayer {
 		while (this.labels.length > label_data.length) {
 			const label = this.labels.pop();
 			this.drawScene.remove(label);
+			label?.dispose?.();
 		}
 
 		for (let i = 0; i < label_data.length; i++) {
@@ -70,7 +71,7 @@ class CellSceneLayer {
 			const data = label_data[i];
 			label.anchorX = "center";
 			label.anchorY = "middle";
-			label.fontSize = cell_architecture.side_length / 5;
+			label.fontSize = data.fontSize ?? cell_architecture.side_length / 5;
 			label.text = data.text;
 			label.position.set(data.position.x, data.position.y, 0);
 			label.color = data.color;
@@ -85,17 +86,34 @@ class CellSceneLayer {
 	getPickScene(): THREE.Scene {
 		return this.pickScene;
 	}
+
+	getGeometry(): ICellGeometry {
+		return this.geometry;
+	}
 }
 
 export class CellScene {
 	private renderer: THREE.WebGLRenderer;
 	private camera: THREE.Camera;
 	private layers: CellSceneLayer[] = [];
+	private themeManager: ThemeManager;
 
-	constructor(renderer: THREE.WebGLRenderer, camera: THREE.Camera) {
+	constructor(
+		renderer: THREE.WebGLRenderer,
+		camera: THREE.Camera,
+		themeManager?: ThemeManager,
+	) {
 		this.renderer = renderer;
 		this.camera = camera;
 		this.layers = [];
+		this.themeManager = themeManager ?? new ThemeManager();
+		// Ensure a default theme exists if none registered
+		if (!themeManager) this.themeManager.register(new LegacyCellTheme());
+
+		// Rebuild layers when theme changes
+		this.themeManager.onChange(() => {
+			for (const layer of this.layers) layer.rebuildGeometry();
+		});
 	}
 
 	getLayersCount() {
@@ -138,8 +156,14 @@ export class CellScene {
 			const layer = this.layers[i];
 			if (layer.visible) {
 				const pickBuffer = this.renderPickBuffer(layer, x1, y1, x2, y2);
+				const geom = layer.getGeometry();
+
 				for (let j = 0; j < pickBuffer.length / 4; j++) {
-					const id = pickBuffer[j * 4];
+					const r = pickBuffer[j * 4 + 0];
+					const g = pickBuffer[j * 4 + 1];
+					const b = pickBuffer[j * 4 + 2];
+					const a = pickBuffer[j * 4 + 3];
+					const id = geom.decodePickPixel(r, g, b, a);
 					if (id >= 0) selectedCells.add(new CellIndex(i, id));
 				}
 			}
@@ -155,21 +179,20 @@ export class CellScene {
 		y2: number,
 	): Int32Array {
 		const scene = layer.getPickScene();
-
 		const width = Math.max(Math.abs(x2 - x1), 1);
 		const height = Math.max(Math.abs(y2 - y1), 1);
+
+		const geom = layer.getGeometry();
+		const targetOptions = geom.getPickRenderTargetOptions(this.renderer);
+
 		const pickingTexture = new THREE.WebGLRenderTarget(
 			this.renderer.domElement.width,
 			this.renderer.domElement.height,
-			{
-				type: THREE.IntType,
-				format: THREE.RGBAIntegerFormat,
-				internalFormat: "RGBA32I",
-			},
+			targetOptions,
 		);
 
 		this.renderer.setRenderTarget(pickingTexture);
-		this.renderer.setClearColor(new THREE.Color(-1, -1, -1));
+		this.renderer.setClearColor(geom.getPickClearColor());
 		this.renderer.clear();
 		this.renderer.render(scene, this.camera);
 
@@ -183,6 +206,14 @@ export class CellScene {
 			pickingBuffer,
 		);
 
+		this.renderer.setRenderTarget(null);
+		pickingTexture.dispose();
+
 		return pickingBuffer;
+	}
+
+	// Theme plumbing
+	createGeometry(props: CellGeometryProps): ICellGeometry {
+		return this.themeManager.getActive().createGeometry(props);
 	}
 }

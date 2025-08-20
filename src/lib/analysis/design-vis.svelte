@@ -9,7 +9,7 @@
 	import { generateDotDistribution, type CellIndex } from "$lib/Cell";
 	import DesignView, {
 		type DesignViewProps,
-	} from "$lib/components/design-view.svelte";
+	} from "$lib/components//design/design-view.svelte";
 	import { Set } from "typescript-collections";
 	import type { CellArchitecture } from "$lib/CellArchitecture";
 	import { type Layer } from "$lib/Layer";

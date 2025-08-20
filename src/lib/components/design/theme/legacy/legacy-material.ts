@@ -100,7 +100,7 @@ void main() {
 }
 `;
 
-export class DrawableCellMaterial extends THREE.ShaderMaterial {
+export class LegacyDrawableCellMaterial extends THREE.ShaderMaterial {
 	public override vertexShader: string = commonVertexSrc;
 	public override fragmentShader: string = drawableFragmentSrc;
 	public override glslVersion = THREE.GLSL3;
@@ -111,7 +111,7 @@ export class DrawableCellMaterial extends THREE.ShaderMaterial {
 	}
 }
 
-export class PickableCellMaterial extends THREE.ShaderMaterial {
+export class LegacyPickableCellMaterial extends THREE.ShaderMaterial {
 	public override vertexShader: string = commonVertexSrc;
 	public override fragmentShader: string = pickableFragmentSrc;
 	public override glslVersion = THREE.GLSL3;

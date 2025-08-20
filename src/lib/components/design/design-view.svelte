@@ -2,20 +2,21 @@
 	import { onDestroy, onMount } from "svelte";
 	import Stats from "stats.js";
 	import * as THREE from "three";
-	import { CellGeometry } from "../CellGeometry";
-	import { CellIndex, parseCellIndex, type Cell } from "../Cell";
-	import { CellScene } from "../CellScene";
-	import { OrbitControls } from "../utils/OrbitControls";
-	import type { Layer } from "../Layer";
 
 	import { Set } from "typescript-collections";
 	import { Menu } from "@tauri-apps/api/menu";
-	import InfiniteGrid from "../utils/infinite-grid";
 	import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
 
-	import type { CellArchitecture } from "../CellArchitecture";
 	import DesignToolbar from "./design-toolbar.svelte";
-	import { HotkeyHandler } from "../utils/hotkey-handler";
+	import { CellIndex, type Cell, parseCellIndex } from "$lib/Cell";
+	import type { CellArchitecture } from "$lib/CellArchitecture";
+	import type { Layer } from "$lib/Layer";
+	import { HotkeyHandler } from "$lib/utils/hotkey-handler";
+	import InfiniteGrid from "$lib/utils/infinite-grid";
+	import { OrbitControls } from "$lib/utils/OrbitControls";
+	import { CellScene } from "./cell-scene";
+	import type { ICellGeometry } from "./theme/theme";
+	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
 
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -29,7 +30,7 @@
 	let cellScene: CellScene;
 
 	let infinite_grid: InfiniteGrid;
-	let ghostGeometry: CellGeometry | undefined;
+	let ghostGeometry: ICellGeometry | undefined;
 
 	let stats: Stats;
 	let statsDrawCall: Stats.Panel;
@@ -132,7 +133,7 @@
 		globalScene.add(infinite_grid);
 
 		if (properties.cell_edit_enabled)
-			ghostGeometry = new CellGeometry(true);
+			ghostGeometry = new LegacyCellGeometry({ ghost: true });
 
 		resizeObserver = new ResizeObserver(() => {
 			windowResize();
@@ -198,7 +199,6 @@
 	}
 
 	function get_cell_architecture(layerIndex: number | undefined = undefined) {
-		console.log(layers, selectedLayer, layerIndex);
 		if (layerIndex !== undefined) {
 			return cell_architectures.get(
 				layers[layerIndex].cell_architecture_id,
@@ -219,7 +219,7 @@
 			throw new Error("onGetNewCellProps callback is not defined");
 
 		const cell_template = onGetNewCellProps();
-		ghostGeometry.update_draw_mesh(
+		ghostGeometry.update(
 			[
 				{
 					position: [0, 0],
@@ -234,19 +234,15 @@
 			new Set(),
 			get_cell_architecture(),
 		);
-		globalScene.add(
-			ghostGeometry.getDrawMesh() as unknown as THREE.Object3D,
-		);
+		globalScene.add(ghostGeometry.getDrawObject());
 	}
 
 	function removeGhostMesh() {
 		if (!ghostGeometry)
 			throw new Error("Ghost geometry is not initialized");
 
-		ghostGeometry.update_draw_mesh([], new Set(), get_cell_architecture());
-		globalScene.remove(
-			ghostGeometry.getDrawMesh() as unknown as THREE.Object3D,
-		);
+		ghostGeometry.update([], new Set(), get_cell_architecture());
+		globalScene.remove(ghostGeometry.getDrawObject());
 	}
 
 	function shouldMouseDrag(mouse_x: number, mouse_y: number): boolean {
@@ -580,7 +576,7 @@
 		const cell_positions = calculate_ghost_positions(mouse_pos);
 		const cell_architecture = get_cell_architecture();
 		const cell_template = onGetNewCellProps();
-		ghostGeometry.update_draw_mesh(
+		ghostGeometry.update(
 			cell_positions.map((pos) => {
 				return {
 					position: [pos.x, pos.y],
