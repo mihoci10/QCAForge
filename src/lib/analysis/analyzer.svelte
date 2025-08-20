@@ -80,6 +80,7 @@
 				showDots: true,
 				lineWidth: 3,
 				showLegend: true,
+				useDashedLines: false,
 				legendPosition: "upper right" as const,
 			};
 		}
