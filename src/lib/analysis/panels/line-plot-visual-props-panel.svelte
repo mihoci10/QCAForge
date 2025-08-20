@@ -10,6 +10,7 @@
 		showDots: boolean;
 		lineWidth: number;
 		showLegend: boolean;
+		useDashedLines: boolean;
 		legendPosition:
 			| "upper left"
 			| "upper center"
@@ -49,6 +50,13 @@
 			>Show Data Points</Label
 		>
 		<Switch.Root id="show-dots" bind:checked={props.showDots}></Switch.Root>
+	</div>
+
+	<div class="flex items-center justify-between">
+		<Label for="use-dashed-lines" class="text-sm font-medium"
+			>Use Dashed Lines</Label
+		>
+		<Switch.Root id="use-dashed-lines" bind:checked={props.useDashedLines}></Switch.Root>
 	</div>
 
 	<div class="flex flex-col gap-2">
