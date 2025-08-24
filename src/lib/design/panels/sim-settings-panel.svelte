@@ -6,7 +6,7 @@
 	import SimModelOptions from "$lib/modals/sim-model-options.svelte";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import { Label } from "$lib/components/ui/label";
-	import { simulation } from "$lib/globals";
+	import ClockGeneratorOptions from "$lib/modals/clock-generator-options.svelte";
 
 	function openModelOptions() {
 		if (!selected_model_id) console.error("invalid simulation model id!");
@@ -15,7 +15,18 @@
 			console.error("invalid simulation model!");
 
 		selectedModel = simulation_models.get(selected_model_id!)!;
-		openModal = true;
+		openSimOptionsModal = true;
+	}
+
+	function openClockGeneratorOptions() {
+		if (!selected_model_id) console.error("invalid simulation model id!");
+
+		if (!simulation_models.has(selected_model_id!))
+			console.error("invalid simulation model!");
+
+		selectedModel = simulation_models.get(selected_model_id!)!;
+		console.log(selectedModel);
+		openClockGeneratorOptionsModal = true;
 	}
 
 	interface Props {
@@ -33,7 +44,8 @@
 			: "Select model",
 	);
 
-	let openModal: boolean = $state(false);
+	let openSimOptionsModal: boolean = $state(false);
+	let openClockGeneratorOptionsModal: boolean = $state(false);
 
 	let selectedModel: SimulationModel | undefined = $derived(
 		selected_model_id
@@ -84,7 +96,26 @@
 						<Icon icon="material-symbols:settings" />
 					</Button>
 					<SimModelOptions
-						bind:isOpen={openModal}
+						bind:isOpen={openSimOptionsModal}
+						model={selectedModel!}
+						{applyCallback}
+					/>
+				</div>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<Label>Clock generator</Label>
+				<div class="flex gap-2">
+					<Button
+						variant="outline"
+						size="lg"
+						disabled={!selected_model_id}
+						onclick={openClockGeneratorOptions}
+					>
+						Settings
+						<Icon icon="material-symbols:settings" />
+					</Button>
+					<ClockGeneratorOptions
+						bind:isOpen={openClockGeneratorOptionsModal}
 						model={selectedModel!}
 						{applyCallback}
 					/>

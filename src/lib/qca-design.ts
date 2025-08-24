@@ -7,19 +7,28 @@ import {
 	type CellArchitecture,
 } from "./CellArchitecture";
 import { getVersion } from "@tauri-apps/api/app";
-import type { DesignViewProps } from "./components/design-view.svelte";
+import type { DesignViewProps } from "./components/design/design-view.svelte";
 
 export interface CommonSimulationModelSettings {
 	max_iterations: number;
 	convergence_tolerance: number;
 }
 
+export interface SimulationModelSettings {
+	model_settings: Object;
+	clock_generator_settings: Object;
+}
+
+export interface SimulationSettings {
+	selected_simulation_model_id: string | undefined;
+	simulation_model_settings: Map<string, SimulationModelSettings>;
+}
+
 export interface QCADesign {
 	qca_core_version: string;
 	layers: Layer[];
-	simulation_model_settings: Map<string, Object>;
-	selected_simulation_model_id: string | undefined;
 	cell_architectures: Map<string, CellArchitecture>;
+	simulation_settings: SimulationSettings;
 }
 
 export interface QCADesignFile {
@@ -32,9 +41,13 @@ export function serializeQCADesignFile(qcaDesignFile: QCADesignFile): string {
 	const obj: any = { ...qcaDesignFile };
 	obj.design = {
 		...qcaDesignFile.design,
-		simulation_model_settings: Object.fromEntries(
-			qcaDesignFile.design.simulation_model_settings,
-		),
+		simulation_settings: {
+			...qcaDesignFile.design.simulation_settings,
+			simulation_model_settings: Object.fromEntries(
+				qcaDesignFile.design.simulation_settings
+					.simulation_model_settings,
+			),
+		},
 		cell_architectures: Object.fromEntries(
 			qcaDesignFile.design.cell_architectures,
 		),
@@ -44,8 +57,10 @@ export function serializeQCADesignFile(qcaDesignFile: QCADesignFile): string {
 
 export function deserializeQCADesignFile(str: string): QCADesignFile {
 	const obj = JSON.parse(str);
-	obj.design.simulation_model_settings = new Map(
-		Object.entries(obj.design.simulation_model_settings),
+	obj.design.simulation_settings.simulation_model_settings = new Map(
+		Object.entries(
+			obj.design.simulation_settings.simulation_model_settings,
+		),
 	);
 	obj.design.cell_architectures = new Map(
 		Object.entries(obj.design.cell_architectures),
@@ -55,8 +70,8 @@ export function deserializeQCADesignFile(str: string): QCADesignFile {
 
 export function deserializeQCADesign(str: string): QCADesign {
 	const obj = JSON.parse(str);
-	obj.simulation_model_settings = new Map(
-		Object.entries(obj.simulation_model_settings),
+	obj.simulation_settings.simulation_model_settings = new Map(
+		Object.entries(obj.simulation_settings.simulation_model_settings),
 	);
 	obj.cell_architectures = new Map(Object.entries(obj.cell_architectures));
 	return obj as QCADesign;
@@ -68,9 +83,13 @@ export async function createDesign(
 	simulation_models: Map<string, SimulationModel>,
 	cell_architectures: Map<string, CellArchitecture>,
 ): Promise<QCADesign> {
-	let simulation_model_settings: Map<string, string> = new Map();
+	let simulation_model_settings: Map<string, SimulationModelSettings> =
+		new Map();
 	simulation_models.forEach((val, key, _) => {
-		simulation_model_settings.set(key, val.model_settings);
+		simulation_model_settings.set(key, {
+			model_settings: val.model_settings,
+			clock_generator_settings: val.clock_generator_settings,
+		});
 	});
 
 	const qca_core_ver = (await invoke("get_sim_version")) as string;
@@ -78,9 +97,11 @@ export async function createDesign(
 	return {
 		qca_core_version: qca_core_ver,
 		layers: layers,
-		selected_simulation_model_id: selected_simulation_model_id,
-		simulation_model_settings: simulation_model_settings,
 		cell_architectures: cell_architectures,
+		simulation_settings: {
+			selected_simulation_model_id: selected_simulation_model_id,
+			simulation_model_settings: simulation_model_settings,
+		},
 	};
 }
 

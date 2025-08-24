@@ -24,7 +24,7 @@
 	import { type CellArchitecture } from "$lib/CellArchitecture";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import SimulationProgressToast from "$lib/toasts/simulation-progress-toast.svelte";
-	import type { DesignViewProps } from "$lib/components/design-view.svelte";
+	import type { DesignViewProps } from "$lib/components/design/design-view.svelte";
 
 	let selected_model_id: string | undefined = $state();
 	let layers: Layer[] = $state([]);
@@ -46,14 +46,19 @@
 		layers = cur_design.layers;
 		cell_architectures = cur_design.cell_architectures;
 		setSimulationModels().then(() => {
-			selected_model_id = cur_design.selected_simulation_model_id;
-			cur_design.simulation_model_settings.forEach((val, key, map) => {
-				const model = simulation_models.get(key);
-				if (model) {
-					model.model_settings = val;
-					simulation_models.set(key, model);
-				}
-			});
+			selected_model_id =
+				cur_design.simulation_settings.selected_simulation_model_id;
+			cur_design.simulation_settings.simulation_model_settings.forEach(
+				(val, key, map) => {
+					const model = simulation_models.get(key);
+					if (model) {
+						model.model_settings = val.model_settings;
+						model.clock_generator_settings =
+							val.clock_generator_settings;
+						simulation_models.set(key, model);
+					}
+				},
+			);
 			simulation_models = new Map(simulation_models);
 		});
 		if (designer) designer.redraw();
@@ -142,8 +147,10 @@
 						name: model.name,
 						model_option_list: model.model_option_list,
 						model_settings: model.model_settings,
-						clock_generator_option_list: [],
-						clock_generator_settings: {},
+						clock_generator_option_list:
+							model.clock_generator_option_list,
+						clock_generator_settings:
+							model.clock_generator_settings,
 					});
 				});
 				simulation_models = new Map(simulation_models);
