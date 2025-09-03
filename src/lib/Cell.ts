@@ -68,8 +68,8 @@ export function getPolarization(
 
 	if (arr.length == 8) {
 		return [
-			(arr[0] + arr[4] - (arr[2] + arr[6])) / sum,
 			(arr[1] + arr[5] - (arr[3] + arr[7])) / sum,
+			(arr[2] + arr[6] - (arr[4] + arr[0])) / sum,
 		];
 	}
 
@@ -98,7 +98,7 @@ export function generateDotDistribution(polarization: number[]): number[] {
 		const p2 = Math.max(0.0, polarization[1]) + offset;
 		const p_neg2 = Math.max(0.0, -polarization[1]) + offset;
 
-		return [p1, p2, p_neg1, p_neg2, p1, p2, p_neg1, p_neg2];
+		return [p_neg2, p1, p2, p_neg1, p_neg2, p1, p2, p_neg1];
 	}
 
 	throw new Error("Polarization invalid array");
