@@ -58,17 +58,13 @@ export class HotkeyHandler {
 		const parts = shortcutString
 			.split("+")
 			.map((part) => part.trim().toLowerCase());
-		const key = parts.pop()!;
 
 		if (parts.length == 0)
 			console.error(
 				`Invalid shortcut: ${shortcutString}. No key specified.`,
 			);
 
-		if (key.length !== 1)
-			console.error(
-				`Invalid key: ${shortcutString}. Only single character keys are allowed.`,
-			);
+		const key = parts.pop()!;
 
 		const isCmdOrCtrl =
 			parts.includes("cmdorctrl") ||

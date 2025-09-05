@@ -14,6 +14,7 @@
 	} from "$lib/components/design/design-view.svelte";
 	import type { Cell, CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
+	import { listen } from "@tauri-apps/api/event";
 
 	interface Props {
 		selected_model_id: string | undefined;
@@ -49,6 +50,26 @@
 	function onSelectedCellsUpdated() {
 		cellPropsPanel!.selectedCellsUpdated();
 	}
+
+	listen("cut", () => {
+		if (!designView) return;
+		designView.cutSelectedCells();
+	});
+
+	listen("copy", () => {
+		if (!designView) return;
+		designView.copySelectedCells();
+	});
+
+	listen("paste", () => {
+		if (!designView) return;
+		designView.pasteCells();
+	});
+
+	listen("delete", () => {
+		if (!designView) return;
+		designView.deleteSelectedCells();
+	});
 </script>
 
 <Resizable.PaneGroup direction="horizontal">

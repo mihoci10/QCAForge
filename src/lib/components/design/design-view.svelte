@@ -17,6 +17,7 @@
 	import { CellScene } from "./cell-scene";
 	import type { ICellGeometry } from "./theme/theme";
 	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
+	import { emit } from "@tauri-apps/api/event";
 
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -666,6 +667,29 @@
 		});
 	}
 
+	export function cutSelectedCells() {
+		saveCellsToClipboard(selectedCells);
+		deleteCells(selectedCells);
+	}
+
+	export function copySelectedCells() {
+		saveCellsToClipboard(selectedCells);
+	}
+
+	export function pasteCells() {
+		pasteCellsFromClipboard();
+	}
+
+	export function deleteSelectedCells() {
+		deleteCells(selectedCells);
+	}
+
+	export function deselectAllCells() {
+		selectedCells.clear();
+		selectedCellsUpdated();
+		drawCurrentLayer();
+	}
+
 	async function showContextMenu() {
 		const menu = await Menu.new({
 			items: [
@@ -673,8 +697,7 @@
 					text: "Cut",
 					accelerator: "CommandOrControl+X",
 					action: () => {
-						saveCellsToClipboard(selectedCells);
-						deleteCells(selectedCells);
+						emit("cut");
 					},
 					enabled: !selectedCells.isEmpty(),
 				},
@@ -682,7 +705,7 @@
 					text: "Copy",
 					accelerator: "CommandOrControl+C",
 					action: () => {
-						saveCellsToClipboard(selectedCells);
+						emit("copy");
 					},
 					enabled: !selectedCells.isEmpty(),
 				},
@@ -690,7 +713,7 @@
 					text: "Paste",
 					accelerator: "CommandOrControl+V",
 					action: () => {
-						pasteCellsFromClipboard();
+						emit("paste");
 					},
 				},
 				{
@@ -700,7 +723,7 @@
 					text: "Delete",
 					accelerator: "Delete",
 					action: () => {
-						deleteCells(selectedCells);
+						emit("delete");
 					},
 					enabled: !selectedCells.isEmpty(),
 				},
@@ -714,20 +737,19 @@
 			{
 				shortcut: "CommandOrControl+X",
 				callback: () => {
-					saveCellsToClipboard(selectedCells);
-					deleteCells(selectedCells);
+					emit("cut");
 				},
 			},
 			{
 				shortcut: "CommandOrControl+C",
 				callback: () => {
-					saveCellsToClipboard(selectedCells);
+					emit("copy");
 				},
 			},
 			{
 				shortcut: "CommandOrControl+V",
 				callback: () => {
-					pasteCellsFromClipboard();
+					emit("paste");
 				},
 			},
 			{
@@ -739,7 +761,7 @@
 			{
 				shortcut: "Delete",
 				callback: () => {
-					deleteCells(selectedCells);
+					emit("delete");
 				},
 			}
 		]);
@@ -781,13 +803,6 @@
 		(infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize2.value =
 			size * 5;
 	});
-
-
-	function deselectAllCells() {
-		selectedCells.clear();
-		selectedCellsUpdated();
-		drawCurrentLayer();
-	}
 
 </script>
 

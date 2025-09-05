@@ -25,11 +25,6 @@
 	import { onMount } from "svelte";
 	import { basename } from "@tauri-apps/api/path";
 	import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-	import {
-		generate_default_cell_architectures,
-		get_default_cell_architecture_id,
-	} from "$lib/CellArchitecture";
-	import { generateDotDistribution } from "$lib/Cell";
 	import { Button } from "$lib/components/ui/button";
 	import Icon from "@iconify/svelte";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
