@@ -350,12 +350,6 @@
 
 	function keyUp(e: KeyboardEvent) {
 		multiselect = false;
-
-		switch (e.code) {
-			case "Delete": {
-				deleteCells(selectedCells);
-			}
-		}
 	}
 
 	function startMouseDrag() {
@@ -676,6 +670,15 @@
 		const menu = await Menu.new({
 			items: [
 				{
+					text: "Cut",
+					accelerator: "CommandOrControl+X",
+					action: () => {
+						saveCellsToClipboard(selectedCells);
+						deleteCells(selectedCells);
+					},
+					enabled: !selectedCells.isEmpty(),
+				},
+				{
 					text: "Copy",
 					accelerator: "CommandOrControl+C",
 					action: () => {
@@ -690,6 +693,17 @@
 						pasteCellsFromClipboard();
 					},
 				},
+				{
+					item: 'Separator'
+				},
+				{
+					text: "Delete",
+					accelerator: "Delete",
+					action: () => {
+						deleteCells(selectedCells);
+					},
+					enabled: !selectedCells.isEmpty(),
+				},
 			],
 		});
 		menu.popup();
@@ -697,6 +711,13 @@
 
 	function initKeyboardShortcuts() {
 		hotkeyHandler = new HotkeyHandler(canvas, [
+			{
+				shortcut: "CommandOrControl+X",
+				callback: () => {
+					saveCellsToClipboard(selectedCells);
+					deleteCells(selectedCells);
+				},
+			},
 			{
 				shortcut: "CommandOrControl+C",
 				callback: () => {
@@ -709,6 +730,18 @@
 					pasteCellsFromClipboard();
 				},
 			},
+			{
+				shortcut: "Escape",
+				callback: () => {
+					deselectAllCells();
+				},
+			},
+			{
+				shortcut: "Delete",
+				callback: () => {
+					deleteCells(selectedCells);
+				},
+			}
 		]);
 	}
 
@@ -748,6 +781,14 @@
 		(infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize2.value =
 			size * 5;
 	});
+
+
+	function deselectAllCells() {
+		selectedCells.clear();
+		selectedCellsUpdated();
+		drawCurrentLayer();
+	}
+
 </script>
 
 <div class="relative w-full flex h-full items-stretch" bind:this={container}>
