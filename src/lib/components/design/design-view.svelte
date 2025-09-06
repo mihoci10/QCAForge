@@ -113,6 +113,14 @@
 
 		globalScene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera(75, 1, 0.1, 3000);
+		// camera = new THREE.OrthographicCamera(
+		// 	container.clientWidth / -2,
+		// 	container.clientWidth / 2,
+		// 	container.clientHeight / 2,
+		// 	container.clientHeight / -2,
+		// 	1,
+		// 	3000,
+		// );
 
 		const cameraPosition = properties.camera_position ?? [0, 0, 20];
 		camera.position.set(
@@ -690,6 +698,84 @@
 		drawCurrentLayer();
 	}
 
+	function getCellsPosExtents(cells: Set<CellIndex>) {
+		if (cells.isEmpty()) return { min: new THREE.Vector2(0, 0), max: new THREE.Vector2(0, 0) };
+
+		let min_x = Infinity;
+		let max_x = -Infinity;
+		let min_y = Infinity;
+		let max_y = -Infinity;
+
+		cells.forEach((id) => {
+			const architecture = get_cell_architecture(id.layer);
+			const cell = layers[id.layer].cells[id.cell];
+			min_x = Math.min(min_x, cell.position[0] - architecture.side_length / 2);
+			max_x = Math.max(max_x, cell.position[0] + architecture.side_length / 2);
+			min_y = Math.min(min_y, cell.position[1] - architecture.side_length / 2);
+			max_y = Math.max(max_y, cell.position[1] + architecture.side_length / 2);
+		});
+
+		return {
+			min: new THREE.Vector2(min_x, min_y),
+			max: new THREE.Vector2(max_x, max_y),
+		};
+	}
+
+	function getCellsZoomToFit(cell_extents: ({ min: THREE.Vector2; max: THREE.Vector2 }), margin: number)
+	{
+		const width = (cell_extents.max.x - cell_extents.min.x) * margin;
+		const height = (cell_extents.max.y - cell_extents.min.y) * margin;
+
+		const vFOV = THREE.MathUtils.degToRad(camera.fov); // vertical FOV in radians
+		const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * camera.aspect);
+
+		const zoom_x = width  > 0 ? (width  / 2) / Math.tan(hFOV / 2) : 0;
+		const zoom_y = height > 0 ? (height / 2) / Math.tan(vFOV / 2) : 0;
+
+		return {
+			zoom_x: zoom_x,
+			zoom_y: zoom_y,
+		}
+	}
+
+	function centerCameraOnPos(pos: THREE.Vector2, zoom: number = 100, interpolate: boolean = false) {
+		camera.position.set(pos.x, pos.y, zoom);
+		camera.updateProjectionMatrix();
+		controls.target.set(camera.position.x, camera.position.y, 0);
+
+		drawCurrentLayer();
+	}
+
+	function centerCameraOnCells(cells: Set<CellIndex>, margin: number = 1.2) {
+		if (cells.isEmpty()) return;
+
+		const cell_extents = getCellsPosExtents(cells);
+		const zoom = getCellsZoomToFit(cell_extents, margin)
+
+		const camera_pos = new THREE.Vector2(
+			(cell_extents.min.x + cell_extents.max.x) / 2,
+			(cell_extents.min.y + cell_extents.max.y) / 2,
+		);
+		const camera_dist = Math.max(zoom.zoom_x, zoom.zoom_y, 20);
+
+		centerCameraOnPos(camera_pos, camera_dist);
+	}
+
+	export function centerCameraOnSelection(margin: number = 1.2) {
+		centerCameraOnCells(selectedCells, margin);
+	}
+
+	export function centerCamera(margin: number = 1.2){
+		let all_cells = new Set<CellIndex>();
+		for (let i = 0; i < layers.length; i++) {
+			for (let j = 0; j < layers[i].cells.length; j++) {
+				all_cells.add(new CellIndex(i, j));
+			}
+		}
+
+		centerCameraOnCells(all_cells, margin);
+	}
+
 	async function showContextMenu() {
 		const menu = await Menu.new({
 			items: [
@@ -763,7 +849,19 @@
 				callback: () => {
 					emit("delete");
 				},
-			}
+			},
+			{
+				shortcut: "CommandOrControl+0",
+				callback: () => {
+					centerCamera();
+				},
+			},
+			{
+				shortcut: "CommandOrControl+1",
+				callback: () => {
+					centerCameraOnSelection();
+				},
+			},
 		]);
 	}
 
