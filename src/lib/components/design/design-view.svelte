@@ -18,6 +18,7 @@
 	import type { ICellGeometry } from "./theme/theme";
 	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
 	import { emit } from "@tauri-apps/api/event";
+	import { exportDesign } from "./export/export-design";
 
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -776,6 +777,75 @@
 		centerCameraOnCells(all_cells, margin);
 	}
 
+	export async function renderToOffscreenCanvas(
+		resolutionScale: number = 1,
+		selectionOnly: boolean = false,
+	): Promise<HTMLCanvasElement> {
+		const originalPosition = camera.position.clone();
+		const originalZoom = camera.zoom;
+		const originalAspect = camera.aspect;
+		const originalTarget = controls.target.clone();
+		const originalRendererSize = {
+			width: renderer.getSize(new THREE.Vector2()).width,
+			height: renderer.getSize(new THREE.Vector2()).height
+		};
+		
+		const canvas = document.createElement('canvas');
+
+		const cellsToRender = selectionOnly ? selectedCells : (() => {
+			let all_cells = new Set<CellIndex>();
+			for (let i = 0; i < layers.length; i++) {
+				for (let j = 0; j < layers[i].cells.length; j++) {
+					all_cells.add(new CellIndex(i, j));
+				}
+			}
+			return all_cells;
+		})();
+
+		const cellExtents = getCellsPosExtents(cellsToRender);
+		const aspectRatio = (cellExtents.max.x - cellExtents.min.x) / (cellExtents.max.y - cellExtents.min.y);
+		camera.aspect = aspectRatio;
+		const zoomExtents = getCellsZoomToFit(cellExtents, 1);
+		const zoom = Math.max(zoomExtents.zoom_x, zoomExtents.zoom_y);
+
+		const centerPos = new THREE.Vector2(
+			(cellExtents.min.x + cellExtents.max.x) / 2,
+			(cellExtents.min.y + cellExtents.max.y) / 2,
+		);
+		const width = 1920 * resolutionScale;
+		const height = Math.round(width / aspectRatio);
+
+		canvas.width = width;
+		canvas.height = height;
+
+		try {
+			renderer.setSize(width, height, false);
+
+			camera.position.set(centerPos.x, centerPos.y, zoom);
+			controls.target.set(centerPos.x, centerPos.y, 0);
+			camera.updateProjectionMatrix();
+			
+			renderer.clear();
+			renderer.render(globalScene, camera);
+			cellScene.render();
+			
+			// Copy renderer contents to our canvas
+			const context = canvas.getContext('2d')!;
+			context.drawImage(renderer.domElement, 0, 0);
+			
+			return canvas;
+		} finally {
+			// Restore original state
+			camera.position.copy(originalPosition);
+			camera.zoom = originalZoom;
+			camera.aspect = originalAspect;
+			camera.updateProjectionMatrix();
+			controls.target.copy(originalTarget);
+			controls.update();
+			renderer.setSize(originalRendererSize.width, originalRendererSize.height, false);
+		}
+	}
+
 	async function showContextMenu() {
 		const menu = await Menu.new({
 			items: [
@@ -862,6 +932,20 @@
 					centerCameraOnSelection();
 				},
 			},
+			{
+				shortcut: "F",
+				callback: () => {
+					console.log("F pressed");
+					exportDesign(renderToOffscreenCanvas, { 
+						selectionOnly: false,
+						format: 'jpeg',
+						quality: 100,
+						id: 'design_export_jpeg',
+						name: 'JPEG Image',
+						description: 'JPEG Image (*.jpg; *.jpeg)',
+					 });
+				},
+			}
 		]);
 	}
 
