@@ -11,10 +11,10 @@ test("generateDotDistribution 2-state", () => {
 
 test("generateDotDistribution 3-state", () => {
 	expect(generateDotDistribution([0, 0])).toEqual(new Array(8).fill(0.25));
-	expect(generateDotDistribution([1, 0])).toEqual([1, 0, 0, 0, 1, 0, 0, 0]);
-	expect(generateDotDistribution([-1, 0])).toEqual([0, 0, 1, 0, 0, 0, 1, 0]);
-	expect(generateDotDistribution([0, 1])).toEqual([0, 1, 0, 0, 0, 1, 0, 0]);
-	expect(generateDotDistribution([0, -1])).toEqual([0, 0, 0, 1, 0, 0, 0, 1]);
+	expect(generateDotDistribution([1, 0])).toEqual([0, 1, 0, 0, 0, 1, 0, 0]);
+	expect(generateDotDistribution([-1, 0])).toEqual([0, 0, 0, 1, 0, 0, 0, 1]);
+	expect(generateDotDistribution([0, 1])).toEqual([0, 0, 1, 0, 0, 0, 1, 0]);
+	expect(generateDotDistribution([0, -1])).toEqual([1, 0, 0, 0, 1, 0, 0, 0]);
 });
 
 test("getPolarization 2-state", () => {
@@ -30,11 +30,11 @@ test("getPolarization 3-state", () => {
 		getPolarization([0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]),
 	).toEqual([0, 0]);
 
-	expect(getPolarization([1, 0, 0, 0, 1, 0, 0, 0])).toEqual([1, 0]);
+	expect(getPolarization([0, 1, 0, 0, 0, 1, 0, 0])).toEqual([1, 0]);
 
-	expect(getPolarization([0, 0, 1, 0, 0, 0, 1, 0])).toEqual([-1, 0]);
+	expect(getPolarization([0, 0, 0, 1, 0, 0, 0, 1])).toEqual([-1, 0]);
 
-	expect(getPolarization([0, 1, 0, 0, 0, 1, 0, 0])).toEqual([0, 1]);
+	expect(getPolarization([0, 0, 1, 0, 0, 0, 1, 0])).toEqual([0, 1]);
 
-	expect(getPolarization([0, 0, 0, 1, 0, 0, 0, 1])).toEqual([0, -1]);
+	expect(getPolarization([1, 0, 0, 0, 1, 0, 0, 0])).toEqual([0, -1]);
 });
