@@ -783,6 +783,7 @@
 	export async function renderToOffscreenCanvas(
 		resolutionScale: number = 1,
 		selectionOnly: boolean = false,
+		showGrid: boolean = false,
 	): Promise<HTMLCanvasElement> {
 		const originalPosition = camera.position.clone();
 		const originalZoom = camera.zoom;
@@ -792,7 +793,9 @@
 			width: renderer.getSize(new THREE.Vector2()).width,
 			height: renderer.getSize(new THREE.Vector2()).height
 		};
-		
+		const originalGridVisibility = infinite_grid.visible;
+		const origSelectedCells = selectedCells;
+
 		const canvas = document.createElement('canvas');
 
 		const cellsToRender = selectionOnly ? selectedCells : (() => {
@@ -827,7 +830,11 @@
 			camera.position.set(centerPos.x, centerPos.y, zoom);
 			controls.target.set(centerPos.x, centerPos.y, 0);
 			camera.updateProjectionMatrix();
-			
+
+			infinite_grid.visible = showGrid;
+			selectedCells = new Set<CellIndex>();
+				
+			drawCurrentLayer();
 			renderer.clear();
 			renderer.render(globalScene, camera);
 			cellScene.render();
@@ -846,6 +853,9 @@
 			controls.target.copy(originalTarget);
 			controls.update();
 			renderer.setSize(originalRendererSize.width, originalRendererSize.height, false);
+			infinite_grid.visible = originalGridVisibility;
+			selectedCells = origSelectedCells;
+			drawCurrentLayer();
 		}
 	}
 

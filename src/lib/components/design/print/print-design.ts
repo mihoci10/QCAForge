@@ -32,14 +32,12 @@ export const PRINT_OPTIONS: DesignPrintOptions[] = [
     }
 ];
 
-export async function printDesign(renderCanvasFunc: ((resolutionScale?: number, selectionOnly?: boolean) => Promise<HTMLCanvasElement>), options: DesignPrintOptions) {
-
+export async function printDesign(renderCanvasFunc: ((resolutionScale?: number, selectionOnly?: boolean, showGrid?: boolean) => Promise<HTMLCanvasElement>), options: DesignPrintOptions) {
     const resolutionScale = options.optionValues.get('resolutionScale') as number;
     const showGrid = options.optionValues.get('showGrid') as boolean;
     const selectionOnly = options.optionValues.get('selectionOnly') as boolean;
-    console.log("Print options:", options.optionValues);
 
-    const canvas = await renderCanvasFunc(resolutionScale, selectionOnly);
+    const canvas = await renderCanvasFunc(resolutionScale, selectionOnly, showGrid);
     let binaryData: Uint8Array;
 
     switch (options.format) {
