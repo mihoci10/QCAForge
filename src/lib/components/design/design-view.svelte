@@ -18,7 +18,8 @@
 	import type { ICellGeometry } from "./theme/theme";
 	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
 	import { emit } from "@tauri-apps/api/event";
-	import { exportDesign } from "./export/export-design";
+	import { PRINT_OPTIONS, printDesign } from "./print/print-design";
+	import PrintDesignModal from "./print/print-design-modal.svelte";
 
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -46,6 +47,8 @@
 	let hotkeyHandler: HotkeyHandler;
 
 	let cachedCellsPos: { [id: string]: [pos_x: number, pos_y: number] } = {};
+
+	let isPrintDesignModalOpen: boolean = $state(false);
 
 	export interface DesignViewProps {
 		camera_position?: [number, number, number];
@@ -935,15 +938,7 @@
 			{
 				shortcut: "F",
 				callback: () => {
-					console.log("F pressed");
-					exportDesign(renderToOffscreenCanvas, { 
-						selectionOnly: false,
-						format: 'jpeg',
-						quality: 100,
-						id: 'design_export_jpeg',
-						name: 'JPEG Image',
-						description: 'JPEG Image (*.jpg; *.jpeg)',
-					 });
+					isPrintDesignModalOpen = true;
 				},
 			}
 		]);
@@ -1001,4 +996,9 @@
 		class="absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50"
 	></div>
 	<canvas tabindex="0" bind:this={canvas} class=""></canvas>
+	<PrintDesignModal
+		bind:isOpen={isPrintDesignModalOpen}
+		applyCallback={(printOptions) => printDesign(renderToOffscreenCanvas, printOptions)}
+		designPrintOptions={PRINT_OPTIONS[0]}
+	/>
 </div>
