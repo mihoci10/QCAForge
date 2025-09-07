@@ -1,6 +1,6 @@
-import DesignView from "$lib/components/design/design-view.svelte"
 import { createBooleanInput, createSliderInput, type OptionsList, type OptionValuesMap } from "$lib/custom-options/custom-options";
-import { BaseDirectory, writeFile } from "@tauri-apps/plugin-fs";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 
 type DesignPrintFormat = "png" | "jpeg" | "svg" | "pdf";
 
@@ -40,39 +40,49 @@ export async function printDesign(renderCanvasFunc: ((resolutionScale?: number, 
     console.log("Print options:", options.optionValues);
 
     const canvas = await renderCanvasFunc(resolutionScale, selectionOnly);
+    let binaryData: Uint8Array;
 
     switch (options.format) {
         case "jpeg":
-            printDesignAsJPEG(canvas, options);
+            binaryData = await printDesignAsJPEG(canvas, options);
             break;
         case "png":
-            printDesignAsPNG(canvas, options);
+            binaryData = await printDesignAsPNG(canvas, options);
             break;
         case "svg":
-            printDesignAsSVG(canvas, options);
+            binaryData = await printDesignAsSVG(canvas, options);
             break;
         default:
             throw new Error("Unsupported export format");
     }
+
+    const fileName = await save({
+        defaultPath: `design_print.${options.format}`,
+        title: "Save design as",
+        filters: [{ name: "Image", extensions: [options.format] }],
+    });
+
+    if (!fileName) return;
+
+    await writeFile(
+        fileName,
+         binaryData,
+    );
 }
 
-async function printDesignAsJPEG(canvas: HTMLCanvasElement, options: DesignPrintOptions) {
+async function printDesignAsJPEG(canvas: HTMLCanvasElement, options: DesignPrintOptions): Promise<Uint8Array> {
     const quality = options.optionValues.get('quality') as number;
 
     const blob = await canvasToBlob(canvas, "image/jpeg", quality / 100);
     const binaryData = await blobToUint8Array(blob);
-    await writeFile(
-        'test_export.jpg',
-         binaryData,
-         { baseDir: BaseDirectory.Desktop }
-    );
+    return binaryData
 }
 
-async function printDesignAsPNG(canvas: HTMLCanvasElement, options: DesignPrintOptions) {
+async function printDesignAsPNG(canvas: HTMLCanvasElement, options: DesignPrintOptions): Promise<Uint8Array> {
     throw new Error("PNG export not implemented yet");
 }
 
-async function printDesignAsSVG(canvas: HTMLCanvasElement, options: DesignPrintOptions) {
+async function printDesignAsSVG(canvas: HTMLCanvasElement, options: DesignPrintOptions): Promise<Uint8Array> {
     throw new Error("SVG export not implemented yet");
 }
 
