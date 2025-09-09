@@ -20,6 +20,7 @@
 	import { emit } from "@tauri-apps/api/event";
 	import { PRINT_OPTIONS, printDesign } from "./print/print-design";
 	import PrintDesignModal from "./print/print-design-modal.svelte";
+	import type { Color } from "@tauri-apps/api/webview";
 
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -784,6 +785,7 @@
 		resolutionScale: number = 1,
 		selectionOnly: boolean = false,
 		showGrid: boolean = false,
+		clearColor: THREE.Color = new THREE.Color(0)
 	): Promise<HTMLCanvasElement> {
 		const originalPosition = camera.position.clone();
 		const originalZoom = camera.zoom;
@@ -795,6 +797,7 @@
 		};
 		const originalGridVisibility = infinite_grid.visible;
 		const origSelectedCells = selectedCells;
+		const originalClearColor = renderer.getClearColor(new THREE.Color());
 
 		const canvas = document.createElement('canvas');
 
@@ -833,8 +836,9 @@
 
 			infinite_grid.visible = showGrid;
 			selectedCells = new Set<CellIndex>();
-				
 			drawCurrentLayer();
+
+			renderer.setClearColor(clearColor);
 			renderer.clear();
 			renderer.render(globalScene, camera);
 			cellScene.render();
@@ -855,6 +859,7 @@
 			renderer.setSize(originalRendererSize.width, originalRendererSize.height, false);
 			infinite_grid.visible = originalGridVisibility;
 			selectedCells = origSelectedCells;
+			renderer.setClearColor(originalClearColor);
 			drawCurrentLayer();
 		}
 	}
