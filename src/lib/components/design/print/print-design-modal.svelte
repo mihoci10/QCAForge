@@ -6,13 +6,13 @@
 	interface Props {
 		isOpen: boolean;
 		applyCallback: (printOptions: DesignPrintOptions) => void;
-        designPrintOptions: DesignPrintOptions;
+		designPrintOptions: DesignPrintOptions;
 	}
 
 	let {
 		isOpen = $bindable(),
 		applyCallback,
-        designPrintOptions,
+		designPrintOptions,
 	}: Props = $props();
 
 	let designOptionValues = $state(designPrintOptions.optionValues);
@@ -23,7 +23,11 @@
 	}
 </script>
 
-<BaseModal bind:open={isOpen} type="confirm" applyCallback={applyCallbackWrapper}>
+<BaseModal
+	bind:open={isOpen}
+	type="confirm"
+	applyCallback={applyCallbackWrapper}
+>
 	{#snippet title()}
 		{designPrintOptions.name}
 	{/snippet}
@@ -31,8 +35,9 @@
 		{designPrintOptions.description}
 	{/snippet}
 	<div class="flex flex-col gap-2">
-		<CustomOptions 
+		<CustomOptions
 			optionList={designPrintOptions.options}
-			bind:optionValues={designOptionValues}></CustomOptions>
+			bind:optionValues={designOptionValues}
+		></CustomOptions>
 	</div>
 </BaseModal>

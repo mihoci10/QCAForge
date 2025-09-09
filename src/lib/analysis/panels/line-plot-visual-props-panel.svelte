@@ -56,7 +56,8 @@
 		<Label for="use-dashed-lines" class="text-sm font-medium"
 			>Use Dashed Lines</Label
 		>
-		<Switch.Root id="use-dashed-lines" bind:checked={props.useDashedLines}></Switch.Root>
+		<Switch.Root id="use-dashed-lines" bind:checked={props.useDashedLines}
+		></Switch.Root>
 	</div>
 
 	<div class="flex flex-col gap-2">
