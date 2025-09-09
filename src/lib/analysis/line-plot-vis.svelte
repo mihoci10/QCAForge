@@ -236,7 +236,10 @@
 				.attr("fill", "none")
 				.attr("stroke", COLORS[i])
 				.attr("stroke-width", props.lineWidth)
-				.attr("stroke-dasharray", props.useDashedLines ? "8,4" : "none");
+				.attr(
+					"stroke-dasharray",
+					props.useDashedLines ? "8,4" : "none",
+				);
 
 			if (data.length <= width / 10 && props.showDots) {
 				signalSvgs[i].dots
@@ -427,7 +430,15 @@
 					<div class="flex gap-2">
 						<div
 							class="w-3 h-0.5 rounded"
-							style="background-color: {COLORS[i]}; {props.useDashedLines ? 'background-image: repeating-linear-gradient(to right, transparent 0, transparent 2px, ' + COLORS[i] + ' 2px, ' + COLORS[i] + ' 6px); background-color: transparent;' : ''}"
+							style="background-color: {COLORS[
+								i
+							]}; {props.useDashedLines
+								? 'background-image: repeating-linear-gradient(to right, transparent 0, transparent 2px, ' +
+									COLORS[i] +
+									' 2px, ' +
+									COLORS[i] +
+									' 6px); background-color: transparent;'
+								: ''}"
 						></div>
 						<Label class="text-lg"
 							>{getInputLabel(qcaSimulation!, input)}</Label

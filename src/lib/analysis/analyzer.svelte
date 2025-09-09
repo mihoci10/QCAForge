@@ -46,7 +46,7 @@
 			title: "Design View",
 			inputMode: InputType.CELL,
 			propsPanel: DesignVisualProps,
-		}
+		},
 	];
 
 	function addPanel(panelId: string) {
@@ -81,11 +81,11 @@
 							valueThreshold: 0.8,
 							cellClockDelay: new Map<string, number>(),
 						}
-				: panelId === "designView"
-					? {
-						selectedLayer: undefined,
-						}
-					: {};
+					: panelId === "designView"
+						? {
+								selectedLayer: undefined,
+							}
+						: {};
 
 		visuals.push({
 			Component: component,
