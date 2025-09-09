@@ -191,6 +191,9 @@ export class CellScene {
 			targetOptions,
 		);
 
+		const origClearColor = new THREE.Color();
+		this.renderer.getClearColor(origClearColor);
+
 		this.renderer.setRenderTarget(pickingTexture);
 		this.renderer.setClearColor(geom.getPickClearColor());
 		this.renderer.clear();
@@ -208,6 +211,7 @@ export class CellScene {
 
 		this.renderer.setRenderTarget(null);
 		pickingTexture.dispose();
+		this.renderer.setClearColor(origClearColor);
 
 		return pickingBuffer;
 	}

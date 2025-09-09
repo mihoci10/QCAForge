@@ -112,8 +112,12 @@
 			alpha: true,
 			antialias: true,
 		});
+
+		const style = getComputedStyle(container);
+		const bgColor = new THREE.Color(style.getPropertyValue("background-color"));
+
 		renderer.setClearAlpha(0);
-		renderer.setClearColor(0);
+		renderer.setClearColor(bgColor);
 		renderer.autoClear = false;
 
 		globalScene = new THREE.Scene();
@@ -140,7 +144,7 @@
 		infinite_grid = new InfiniteGrid(
 			20,
 			100,
-			new THREE.Color("white"),
+			new THREE.Color(1.0 - bgColor.r, 1.0 - bgColor.g, 1.0 - bgColor.b), 
 			8000,
 			"xyz",
 		);
@@ -1027,7 +1031,7 @@
 	});
 </script>
 
-<div class="relative w-full flex h-full items-stretch" bind:this={container}>
+<div class="relative w-full flex h-full items-stretch bg-muted" bind:this={container}>
 	{#if properties.cell_edit_enabled}
 		<DesignToolbar
 			bind:inputModeIdx

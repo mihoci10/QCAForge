@@ -82,7 +82,7 @@ void main() {
         mask += HollowCircleMask(vec2(-offX, -offY), 0.0, dotSize, 0.01);
     }
 
-    outColor = vec4(mask * color, 1);
+    outColor = vec4(color, mask);
 }
 `;
 
@@ -104,7 +104,7 @@ export class LegacyDrawableCellMaterial extends THREE.ShaderMaterial {
 	public override vertexShader: string = commonVertexSrc;
 	public override fragmentShader: string = drawableFragmentSrc;
 	public override glslVersion = THREE.GLSL3;
-	public override transparent = false;
+	public override transparent = true;
 
 	constructor(parameters?: THREE.ShaderMaterialParameters) {
 		super(parameters);
