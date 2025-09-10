@@ -46,14 +46,29 @@ export const PRINT_OPTIONS: DesignPrintOptions[] = [
 	},
 ];
 
-export async function printDesign(renderCanvasFunc: ((resolutionScale?: number, selectionOnly?: boolean, showGrid?: boolean, clearColor?: THREE.Color) => Promise<HTMLCanvasElement>), options: DesignPrintOptions) {
-    const resolutionScale = options.optionValues.get('resolutionScale') as number;
-    const showGrid = options.optionValues.get('showGrid') as boolean;
-    const selectionOnly = options.optionValues.get('selectionOnly') as boolean;
-    const bgColor = new THREE.Color(1, 1, 1); // White background for prints
+export async function printDesign(
+	renderCanvasFunc: (
+		resolutionScale?: number,
+		selectionOnly?: boolean,
+		showGrid?: boolean,
+		clearColor?: THREE.Color,
+	) => Promise<HTMLCanvasElement>,
+	options: DesignPrintOptions,
+) {
+	const resolutionScale = options.optionValues.get(
+		"resolutionScale",
+	) as number;
+	const showGrid = options.optionValues.get("showGrid") as boolean;
+	const selectionOnly = options.optionValues.get("selectionOnly") as boolean;
+	const bgColor = new THREE.Color(1, 1, 1); // White background for prints
 
-    const canvas = await renderCanvasFunc(resolutionScale, selectionOnly, showGrid, bgColor);
-    let binaryData: Uint8Array;
+	const canvas = await renderCanvasFunc(
+		resolutionScale,
+		selectionOnly,
+		showGrid,
+		bgColor,
+	);
+	let binaryData: Uint8Array;
 
 	switch (options.format) {
 		case "jpeg":

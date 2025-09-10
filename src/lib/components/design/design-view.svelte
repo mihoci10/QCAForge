@@ -114,7 +114,9 @@
 		});
 
 		const style = getComputedStyle(container);
-		const bgColor = new THREE.Color(style.getPropertyValue("background-color"));
+		const bgColor = new THREE.Color(
+			style.getPropertyValue("background-color"),
+		);
 
 		renderer.setClearAlpha(0);
 		renderer.setClearColor(bgColor);
@@ -144,7 +146,7 @@
 		infinite_grid = new InfiniteGrid(
 			20,
 			100,
-			new THREE.Color(1.0 - bgColor.r, 1.0 - bgColor.g, 1.0 - bgColor.b), 
+			new THREE.Color(1.0 - bgColor.r, 1.0 - bgColor.g, 1.0 - bgColor.b),
 			8000,
 			"xyz",
 		);
@@ -811,7 +813,7 @@
 		resolutionScale: number = 1,
 		selectionOnly: boolean = false,
 		showGrid: boolean = false,
-		clearColor: THREE.Color = new THREE.Color(0)
+		clearColor: THREE.Color = new THREE.Color(0),
 	): Promise<HTMLCanvasElement> {
 		const originalPosition = camera.position.clone();
 		const originalZoom = camera.zoom;
@@ -1031,7 +1033,10 @@
 	});
 </script>
 
-<div class="relative w-full flex h-full items-stretch bg-muted" bind:this={container}>
+<div
+	class="relative w-full flex h-full items-stretch bg-muted"
+	bind:this={container}
+>
 	{#if properties.cell_edit_enabled}
 		<DesignToolbar
 			bind:inputModeIdx
