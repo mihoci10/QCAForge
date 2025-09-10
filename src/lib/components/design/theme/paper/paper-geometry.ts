@@ -170,25 +170,28 @@ export class PaperCellGeometry implements ICellGeometry {
 
 	private getClockPhaseColor(clock_phase: number): THREE.Color {
 		const phase = ((clock_phase % 360) + 360) % 360;
-		if (phase < 90) return new THREE.Color(0, 1, 0);
-		else if (phase < 180) return new THREE.Color(1, 0, 1);
-		else if (phase < 270) return new THREE.Color(0, 1, 1);
-		else return new THREE.Color(1, 1, 1);
+		if (phase < 90)
+			return new THREE.Color(0.2, 0.8, 0.2); // Softer green
+		else if (phase < 180)
+			return new THREE.Color(0.8, 0.2, 0.8); // Softer magenta
+		else if (phase < 270)
+			return new THREE.Color(0.2, 0.7, 0.8); // Softer cyan
+		else return new THREE.Color(0.7, 0.7, 0.7); // Light gray instead of white
 	}
 
 	private getCellColor(cell: Cell, selected: boolean): THREE.Color {
 		if (this.props.ghost) return new THREE.Color(0.5, 0.5, 0.5);
-		if (selected) return new THREE.Color(1, 0, 0);
+		if (selected) return new THREE.Color(0.9, 0.1, 0.1); // Softer red
 
 		switch (cell.typ) {
 			case CellType.Normal:
 				return this.getClockPhaseColor(cell.clock_phase_shift);
 			case CellType.Input:
-				return new THREE.Color(0, 0, 1);
+				return new THREE.Color(0.1, 0.3, 0.8); // Darker, softer blue
 			case CellType.Output:
-				return new THREE.Color(1, 1, 0);
+				return new THREE.Color(0.8, 0.7, 0.1); // Darker yellow/gold
 			case CellType.Fixed:
-				return new THREE.Color(1, 0.5, 0);
+				return new THREE.Color(0.9, 0.5, 0.1); // Slightly darker orange
 		}
 	}
 

@@ -8,7 +8,7 @@ import { Set } from "typescript-collections";
 import type { CellGeometryProps, ICellGeometry } from "./theme/theme";
 import { ThemeManager } from "./theme/theme-manager";
 import { LegacyCellTheme } from "./theme/legacy/legacy-theme";
-import { PaperCellTheme } from "./theme/modern/paper-theme";
+import { PaperCellTheme } from "./theme/paper/paper-theme";
 
 class CellSceneLayer {
 	public visible: boolean;

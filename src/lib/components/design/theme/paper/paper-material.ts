@@ -66,6 +66,8 @@ void main() {
     float rotOffset = PI / 4.0 + polarizationRotation;
     float rotStep = PI / float(polarizationCount * 2);
 
+    float dotMask = 0.0;
+
     for(int i = 0; i < polarizationCount * 2; i++){
         float rot = rotStep * float((i/2) + (i%2) * polarizationCount) + rotOffset;
         float offX = cos(rot) * 0.6;
@@ -78,11 +80,17 @@ void main() {
         mask -= RoundedRectMask(vec2(offX, offY), vec2(circleSize), 1.0, 0.01);
         mask -= RoundedRectMask(vec2(-offX, -offY), vec2(circleSize), 1.0, 0.01);
 
-        mask += RoundedRectMask(vec2(offX, offY), vec2(dotSize), 1.0, 0.01);
-        mask += RoundedRectMask(vec2(-offX, -offY), vec2(dotSize), 1.0, 0.01);
+        dotMask += RoundedRectMask(vec2(offX, offY), vec2(dotSize), 1.0, 0.01);
+        dotMask += RoundedRectMask(vec2(-offX, -offY), vec2(dotSize), 1.0, 0.01);
     }
 
-    outColor = vec4(color, mask);
+    dotMask = clamp(dotMask, 0.0, 1.0);
+    mask += dotMask;
+    mask = clamp(mask, 0.0, 1.0);
+
+    vec3 finalColor = mix(color, vec3(0.0), dotMask);
+
+    outColor = vec4(finalColor, mask);
 }
 `;
 

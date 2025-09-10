@@ -4,7 +4,7 @@
 		getInputLabel,
 		InputType,
 		SignalType,
-		type Input,
+		type PanelInput,
 		type QCASimulation,
 		type SignalIndex,
 	} from "$lib/qca-simulation";
@@ -20,7 +20,7 @@
 		qcaSimulation: QCASimulation | undefined;
 		currentSample: number;
 		title: string;
-		inputs: Input[];
+		inputs: PanelInput[];
 		props: TruthTableProps;
 	};
 

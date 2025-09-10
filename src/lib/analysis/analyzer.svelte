@@ -1,7 +1,11 @@
 <script lang="ts">
 	import * as Resizable from "$lib/components/ui/resizable";
 	import * as Accordion from "$lib/components/ui/accordion";
-	import { QCASimulation, type Input, InputType } from "$lib/qca-simulation";
+	import {
+		QCASimulation,
+		type PanelInput,
+		InputType,
+	} from "$lib/qca-simulation";
 	import LinePlotVis from "./line-plot-vis.svelte";
 	import InputsPanel from "./panels/inputs-panel.svelte";
 	import * as Tabs from "$lib/components/ui/tabs/";
@@ -21,7 +25,7 @@
 	let { qcaSimulation = $bindable() }: Props = $props();
 
 	let activeTab: string | undefined = $state("0");
-	let selectedInputs: Input[] = $state([]);
+	let selectedInputs: PanelInput[] = $state([]);
 	let currentProps: any = $state({});
 	let currentSample: number = $state(0);
 

@@ -36,8 +36,8 @@
 	let infinite_grid: InfiniteGrid;
 	let ghostGeometry: ICellGeometry | undefined;
 
-	let stats: Stats;
-	let statsDrawCall: Stats.Panel;
+	let stats: Stats | undefined;
+	let statsDrawCall: Stats.Panel | undefined;
 
 	let inputModeIdx: number = $state(0);
 
@@ -99,7 +99,7 @@
 
 	onMount(() => {
 		initThreeJS();
-		initDebugStats();
+		if (false) initDebugStats();
 		initKeyboardShortcuts();
 
 		renderer.setAnimationLoop(render);
@@ -210,12 +210,12 @@
 		controls.update();
 		renderer.setRenderTarget(null);
 		renderer.clear();
-		stats.begin();
+		if (stats) stats.begin();
 		renderer.render(globalScene, camera);
 		cellScene.render();
-		stats.end();
+		if (stats) stats.end();
 
-		statsDrawCall.update(renderer.info.render.calls, 10);
+		if (statsDrawCall) statsDrawCall.update(renderer.info.render.calls, 10);
 	}
 
 	function get_cell_architecture(layerIndex: number | undefined = undefined) {

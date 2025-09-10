@@ -2,7 +2,7 @@
 	import { Label } from "$lib/components/ui/label";
 	import {
 		InputType,
-		type Input,
+		type PanelInput,
 		type QCASimulation,
 		type SignalIndex,
 	} from "$lib/qca-simulation";
@@ -13,12 +13,12 @@
 		qcaSimulation: QCASimulation | undefined;
 		title: string;
 		children: Snippet | undefined;
-		inputs: Input[] | undefined;
+		inputs: PanelInput[] | undefined;
 		needDataLoad: boolean;
 		beforeLoadData?: () => void;
-		loadInputData?: (input: Input, data: Float64Array[]) => void;
+		loadInputData?: (input: PanelInput, data: Float64Array[]) => void;
 		afterLoadData?: () => void;
-		getNeededInputs?: () => Input[];
+		getNeededInputs?: () => PanelInput[];
 	};
 
 	let {

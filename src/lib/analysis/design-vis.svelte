@@ -2,7 +2,7 @@
 	import {
 		InputType,
 		type CellInput,
-		type Input,
+		type PanelInput,
 		type QCASimulation,
 	} from "$lib/qca-simulation";
 	import BaseDataVis from "./base-data-vis.svelte";
@@ -43,7 +43,7 @@
 		cellsData = new Map<CellIndex, Float64Array[]>();
 	}
 
-	function loadInputData(input: Input, data: Float64Array[]) {
+	function loadInputData(input: PanelInput, data: Float64Array[]) {
 		if (!qcaSimulation) return;
 		if (input.type !== InputType.CELL)
 			throw new Error("Input type must be CELL");

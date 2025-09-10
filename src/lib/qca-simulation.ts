@@ -44,9 +44,9 @@ export type SignalInput = {
 	index: SignalIndex;
 };
 
-export type Input = CellInput | SignalInput;
+export type PanelInput = CellInput | SignalInput;
 
-export function inputsEqual(input1: Input, input2: Input): boolean {
+export function inputsEqual(input1: PanelInput, input2: PanelInput): boolean {
 	if (input1.type !== input2.type) {
 		return false;
 	}
@@ -71,7 +71,7 @@ export function inputsEqual(input1: Input, input2: Input): boolean {
 
 export function getInputLabel(
 	qcaSimulation: QCASimulation,
-	input: Input,
+	input: PanelInput,
 ): string {
 	switch (input.type) {
 		case InputType.CELL:
@@ -158,7 +158,7 @@ export class QCASimulation {
 		return this._cellData.get(cell.toString())![polarizationIndex];
 	}
 
-	public async getInputData(input: Input): Promise<Float64Array[]> {
+	public async getInputData(input: PanelInput): Promise<Float64Array[]> {
 		switch (input.type) {
 			case InputType.CELL:
 				const cellIndex = input.index as CellIndex;
@@ -192,7 +192,7 @@ export class QCASimulation {
 		}
 	}
 
-	public getInputs(type: InputType): Input[] {
+	public getInputs(type: InputType): PanelInput[] {
 		switch (type) {
 			case InputType.CELL:
 				return this._metadata.stored_cells.map((cellIndex) => ({

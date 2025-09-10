@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
 	import * as d3 from "d3";
-	import type { Input, QCASimulation } from "$lib/qca-simulation";
+	import type { PanelInput, QCASimulation } from "$lib/qca-simulation";
 	import { getInputLabel } from "$lib/qca-simulation";
 	import BaseDataVis from "./base-data-vis.svelte";
 	import { COLORS } from "$lib/utils/visual-colors";
@@ -12,7 +12,7 @@
 		qcaSimulation: QCASimulation | undefined;
 		currentSample: number;
 		title: string;
-		inputs: Input[];
+		inputs: PanelInput[];
 		props: LinePlotProps;
 	};
 
@@ -135,7 +135,7 @@
 		filteredDrawData = [];
 	}
 
-	function loadInputData(input: Input, data: Float64Array[]) {
+	function loadInputData(input: PanelInput, data: Float64Array[]) {
 		data.forEach((signal, _) => {
 			const signalData: [number, number][] = [];
 			for (let i = 0; i < signal.length; i++) {
