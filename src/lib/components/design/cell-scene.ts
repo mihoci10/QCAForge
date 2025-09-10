@@ -8,6 +8,7 @@ import { Set } from "typescript-collections";
 import type { CellGeometryProps, ICellGeometry } from "./theme/theme";
 import { ThemeManager } from "./theme/theme-manager";
 import { LegacyCellTheme } from "./theme/legacy/legacy-theme";
+import { PaperCellTheme } from "./theme/modern/paper-theme";
 
 class CellSceneLayer {
 	public visible: boolean;
@@ -108,7 +109,7 @@ export class CellScene {
 		this.layers = [];
 		this.themeManager = themeManager ?? new ThemeManager();
 		// Ensure a default theme exists if none registered
-		if (!themeManager) this.themeManager.register(new LegacyCellTheme());
+		if (!themeManager) this.themeManager.register(new PaperCellTheme());
 
 		// Rebuild layers when theme changes
 		this.themeManager.onChange(() => {
