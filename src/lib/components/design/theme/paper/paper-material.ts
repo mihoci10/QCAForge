@@ -88,7 +88,7 @@ void main() {
     mask += dotMask;
     mask = clamp(mask, 0.0, 1.0);
 
-    vec3 finalColor = mix(color, vec3(0.0), dotMask);
+    vec3 finalColor = mix(color, vec3(0.216, 0.255, 0.318), dotMask);
 
     outColor = vec4(finalColor, mask);
 }
