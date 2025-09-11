@@ -4,7 +4,7 @@ use qca_core::{
     design::{self, file::QCADesign},
     objects::{architecture::QCACellArchitecture, layer::QCALayer},
     simulation::{
-        file::write_to_file, full_basis::FullBasisModel, model::SimulationModelTrait,
+        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait,
         run_simulation_async, SimulationProgress,
     },
 };
@@ -13,7 +13,7 @@ use tauri::{AppHandle, Emitter};
 pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>> {
     match sim_model_id.as_str() {
         //"bistable_model" => Some(Box::new(BistableModel::new())),
-        "full_basis_model" => Some(Box::new(FullBasisModel::new())),
+        "full_basis_model" => Some(Box::new(ICHAModel::new())),
         _ => None,
     }
 }

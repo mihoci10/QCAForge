@@ -3,7 +3,7 @@
 
 use qca_core::{
     objects::{architecture::QCACellArchitecture, layer::QCALayer},
-    simulation::{full_basis::FullBasisModel, model::SimulationModelTrait, settings::OptionsList},
+    simulation::{icha::ICHAModel, model::SimulationModelTrait, settings::OptionsList},
 };
 use serde::Serialize;
 use std::collections::HashMap;
@@ -94,7 +94,7 @@ fn get_sim_version() -> String {
 fn get_sim_models() -> Vec<SimulationModelDescriptor> {
     let model_list: Vec<Box<dyn SimulationModelTrait>> = vec![
         //Box::new(BistableModel::new()),
-        Box::new(FullBasisModel::new()),
+        Box::new(ICHAModel::new()),
     ];
     model_list
         .iter()
