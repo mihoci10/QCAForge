@@ -28,8 +28,8 @@ export function createCellArchitecture(
 			Math.sin(angle) * dot_radius,
 		]);
 		dot_tunnels.push([
-			(i - 1 + dot_count) % dot_count,
-			(i + 1 + dot_count) % dot_count,
+			i,
+			(i + 1) % dot_count,
 		]);
 	}
 
