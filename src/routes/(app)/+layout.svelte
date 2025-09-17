@@ -108,7 +108,7 @@
 			href="/design"
 			data-state={page.url.pathname.startsWith("/design") ? "on" : "off"}
 		>
-			<Icon width={32} icon="material-symbols:design-services-outline" />
+			<Icon width={30} icon="material-symbols:design-services-outline" />
 		</Button>
 		<Button
 			variant="ghost"
@@ -119,11 +119,11 @@
 				? "on"
 				: "off"}
 		>
-			<Icon width={32} icon="material-symbols:search-insights-rounded" />
+			<Icon width={30} icon="material-symbols:search-insights-rounded" />
 		</Button>
 		<div class="grow"></div>
 		<Button variant="ghost" size="icon">
-			<Icon width={24} icon="material-symbols:settings" />
+			<Icon width={30} icon="material-symbols:settings" />
 		</Button>
 	</div>
 	<div class="flex h-full w-full overflow-auto">
