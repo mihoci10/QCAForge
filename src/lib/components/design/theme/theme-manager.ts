@@ -23,6 +23,18 @@ export class ThemeManager {
 		return theme;
 	}
 
+	getActiveId(): string | null {
+		return this.activeId;
+	}
+
+	getAllThemes(): CellTheme[] {
+		return Array.from(this.themes.values());
+	}
+
+	hasTheme(id: string): boolean {
+		return this.themes.has(id);
+	}
+
 	setActive(id: string): void {
 		if (id === this.activeId) return;
 		if (!this.themes.has(id))

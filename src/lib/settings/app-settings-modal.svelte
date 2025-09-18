@@ -6,7 +6,6 @@
 	import GeneralSettings from "./general-settings.svelte";
 	import AppearanceSettings from "./appearance-settings.svelte";
 	import AboutSettings from "./about-settings.svelte";
-	import { onMount } from "svelte";
 
 	interface Props {
 		isOpen: boolean;
