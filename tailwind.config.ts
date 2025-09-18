@@ -59,24 +59,6 @@ const config: Config = {
                     border: "hsl(var(--sidebar-border))",
                     ring: "hsl(var(--sidebar-ring))",
                 },
-                // Print-friendly color palette
-                print: {
-                    background: "255 255 255", // Pure white
-                    foreground: "0 0 0", // Pure black
-                    border: "107 114 128", // Gray-500 for clear borders
-                    card: "249 250 251", // Gray-50 for subtle backgrounds
-                    "card-foreground": "17 24 39", // Gray-900 for text
-                    primary: "37 99 235", // Blue-600 for primary actions
-                    "primary-foreground": "255 255 255", // White text on primary
-                    secondary: "229 231 235", // Gray-200 for secondary elements
-                    "secondary-foreground": "55 65 81", // Gray-700 for secondary text
-                    accent: "99 102 241", // Indigo-500 for accents
-                    "accent-foreground": "255 255 255", // White text on accent
-                    muted: "243 244 246", // Gray-100 for muted backgrounds
-                    "muted-foreground": "107 114 128", // Gray-500 for muted text
-                    destructive: "220 38 38", // Red-600 for destructive actions
-                    "destructive-foreground": "255 255 255", // White text on destructive
-                }
             },
             borderRadius: {
                 xl: "calc(var(--radius) + 4px)",

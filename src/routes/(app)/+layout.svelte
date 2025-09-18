@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "../../app.css";
 	import { Toaster } from "$lib/components/ui/sonner";
+	import { ModeWatcher } from "mode-watcher";
 
 	import { page } from "$app/state";
 	import { listen } from "@tauri-apps/api/event";
@@ -132,5 +133,7 @@
 	<div class="flex h-full w-full overflow-auto">
 		{@render children()}
 	</div>
+	<ModeWatcher />
+	<Toaster />
 	<AppSettingsModal bind:isOpen={settingsOpen} />
 </div>
