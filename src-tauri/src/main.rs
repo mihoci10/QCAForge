@@ -22,6 +22,16 @@ struct SimulationModelDescriptor {
     clock_generator_settings: String,
 }
 
+#[derive(Serialize)]
+struct BuildInfo {
+    timestamp: String,
+    git_sha: String,
+    git_branch: String,
+    version: String,
+    qca_core_version: String,
+    debug: bool,
+}
+
 mod window_menu;
 use window_menu::create_menu_bar;
 
@@ -36,6 +46,8 @@ use startup::*;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -55,6 +67,7 @@ fn main() {
         })
         .manage(Mutex::new(StartupState::new()))
         .invoke_handler(tauri::generate_handler![
+            get_build_info,
             get_sim_version,
             get_sim_models,
             run_sim_model,
@@ -107,4 +120,22 @@ fn get_sim_models() -> Vec<SimulationModelDescriptor> {
             clock_generator_settings: model.serialize_clock_generator_settings().unwrap(),
         })
         .collect()
+}
+
+#[tauri::command]
+fn get_build_info() -> BuildInfo {
+    let build_time = env!("VERGEN_BUILD_TIMESTAMP").to_string();
+    let git_sha = env!("VERGEN_GIT_SHA").to_string();
+    let git_branch = env!("VERGEN_GIT_BRANCH").to_string();
+    let version = env!("VERGEN_GIT_DESCRIBE").to_string();
+    let debug = env!("VERGEN_CARGO_DEBUG").to_string() == "true";
+
+    BuildInfo {
+        timestamp: build_time,
+        git_sha,
+        git_branch,
+        version,
+        qca_core_version: qca_core::QCA_CORE_VERSION.to_string(),
+        debug,
+    }
 }

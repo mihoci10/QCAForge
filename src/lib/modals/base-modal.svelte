@@ -1,18 +1,19 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import { onMount, type Snippet } from "svelte";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import type { WithoutChild, DialogRootProps } from "bits-ui";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import Label from "$lib/components/ui/label/label.svelte";
 
-	type ModalType = "confirm" | "alert";
+	type ModalType = "confirm" | "alert" | "blank";
 
 	type Props = DialogRootProps & {
-		title: Snippet;
-		description: Snippet;
+		title?: Snippet | undefined;
+		description?: Snippet | undefined;
 		footer?: Snippet | undefined;
 		type: ModalType;
 		applyCallback?: (data: any) => void;
+		customContentClass?: string;
 	};
 
 	let {
@@ -23,6 +24,7 @@
 		title,
 		description,
 		footer,
+		customContentClass,
 		...restProps
 	}: Props = $props();
 
@@ -41,16 +43,22 @@
 <Dialog.Root bind:open {...restProps}>
 	<Dialog.Portal>
 		<Dialog.Overlay />
-		<Dialog.Content>
+		<Dialog.Content class={customContentClass ?? ""}>
 			<form class="flex flex-col gap-2" onsubmit={formSubmit}>
-				<Dialog.Header>
-					<Dialog.Title>
-						{@render title()}
-					</Dialog.Title>
-					<Dialog.Description>
-						{@render description()}
-					</Dialog.Description>
-				</Dialog.Header>
+				{#if title || description}
+					<Dialog.Header>
+						{#if title}
+							<Dialog.Title>
+								{@render title()}
+							</Dialog.Title>
+						{/if}
+						{#if description}
+							<Dialog.Description>
+								{@render description()}
+							</Dialog.Description>
+						{/if}
+					</Dialog.Header>
+				{/if}
 				{@render children?.()}
 				<Dialog.Footer>
 					{#if footer}
@@ -65,6 +73,8 @@
 						<Button type="submit">Ok</Button>
 					{:else if type === "alert"}
 						<Button type="submit">Ok</Button>
+					{:else if type === "blank"}
+						<!-- No buttons -->
 					{:else}
 						<Label class="text-destructive"
 							>Invalid modal type: {type}</Label

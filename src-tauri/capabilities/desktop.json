@@ -20,6 +20,9 @@
     "fs:default",
     "fs:write-all",
     "fs:read-all",
-    "fs:allow-desktop-write-recursive"
+    "fs:allow-desktop-write-recursive",
+    "opener:default",
+    "os:default",
+    "os:allow-hostname"
   ]
 }

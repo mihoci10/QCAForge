@@ -28,6 +28,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import Icon from "@iconify/svelte";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
+	import AppSettingsModal from "$lib/settings/app-settings-modal.svelte";
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow();
@@ -95,6 +96,8 @@
 				});
 		});
 	});
+
+	let settingsOpen = $state(false);
 </script>
 
 <Toaster />
@@ -122,11 +125,12 @@
 			<Icon width={30} icon="material-symbols:search-insights-rounded" />
 		</Button>
 		<div class="grow"></div>
-		<Button variant="ghost" size="icon">
+		<Button variant="ghost" size="icon" onclick={() => (settingsOpen = true)}>
 			<Icon width={30} icon="material-symbols:settings" />
 		</Button>
 	</div>
 	<div class="flex h-full w-full overflow-auto">
 		{@render children()}
 	</div>
+	<AppSettingsModal bind:isOpen={settingsOpen} />
 </div>

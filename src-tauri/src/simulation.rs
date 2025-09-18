@@ -4,8 +4,8 @@ use qca_core::{
     design::{self, file::QCADesign},
     objects::{architecture::QCACellArchitecture, layer::QCALayer},
     simulation::{
-        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait,
-        run_simulation_async, SimulationProgress,
+        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait, run_simulation_async,
+        SimulationProgress,
     },
 };
 use tauri::{AppHandle, Emitter};

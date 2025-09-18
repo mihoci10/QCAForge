@@ -95,5 +95,8 @@ fn create_edit_menu(app: &mut App) -> Submenu<Wry> {
 pub fn create_menu_bar(app: &mut App) -> Menu<Wry> {
     let file_menu = create_file_menu(app);
     let edit_menu = create_edit_menu(app);
-    MenuBuilder::new(app).items(&[&file_menu, &edit_menu]).build().unwrap()
+    MenuBuilder::new(app)
+        .items(&[&file_menu, &edit_menu])
+        .build()
+        .unwrap()
 }
