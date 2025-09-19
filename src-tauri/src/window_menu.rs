@@ -92,11 +92,37 @@ fn create_edit_menu(app: &mut App) -> Submenu<Wry> {
         .unwrap()
 }
 
+fn create_help_menu(app: &mut App) -> Submenu<Wry> {
+    let about_item = MenuItemBuilder::new("About")
+        .id("about")
+        .build(app)
+        .unwrap();
+    let check_update_item = MenuItemBuilder::new("Check for Updates")
+        .id("checkForUpdates")
+        .build(app)
+        .unwrap();
+
+    SubmenuBuilder::new(app, "Help")
+        .items(&[&about_item, &check_update_item])
+        .build()
+        .unwrap()
+}
+
 pub fn create_menu_bar(app: &mut App) -> Menu<Wry> {
     let file_menu = create_file_menu(app);
     let edit_menu = create_edit_menu(app);
-    MenuBuilder::new(app)
-        .items(&[&file_menu, &edit_menu])
-        .build()
-        .unwrap()
+    let help_menu = create_help_menu(app);
+
+    // On macOS, put Help menu first; on other platforms, put it last
+    return if cfg!(target_os = "macos") {
+        MenuBuilder::new(app)
+            .items(&[&help_menu, &file_menu, &edit_menu])
+            .build()
+            .unwrap()
+    } else {
+        MenuBuilder::new(app)
+            .items(&[&file_menu, &edit_menu, &help_menu])
+            .build()
+            .unwrap()
+    };
 }
