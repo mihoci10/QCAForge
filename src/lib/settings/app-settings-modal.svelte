@@ -7,15 +7,8 @@
 	import AppearanceSettings from "./appearance-settings.svelte";
 	import AboutSettings from "./about-settings.svelte";
 
-	interface Props {
-		isOpen: boolean;
-	}
-
-	let {
-		isOpen = $bindable(),
-	}: Props = $props();
-
 	// Settings state
+	let isOpen = $state(false);
 	let currentSection = $state('general');
 	let settings = $state({
 		// General settings
@@ -99,6 +92,11 @@
 				customConfigPath: ''
 			};
 		}
+	}
+
+	export function openSettings(navigateToTab: string = GENERAL_TAB) {
+		isOpen = true;
+		currentSection = navigateToTab;
 	}
 </script>
 

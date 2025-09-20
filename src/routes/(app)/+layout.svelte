@@ -6,6 +6,7 @@
 	import { page } from "$app/state";
 	import { listen } from "@tauri-apps/api/event";
 	import {
+	EVENT_ABOUT,
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
 		EVENT_OPEN_SIMULATION,
@@ -15,6 +16,7 @@
 	import {
 		design,
 		design_filename,
+		recentFilesManager,
 		simulation,
 		simulation_filename,
 	} from "$lib/globals";
@@ -42,20 +44,22 @@
 
 	design_filename.subscribe((value) => {
 		const DESIGN_MODE = page.url.pathname.startsWith("/design");
-		if (value)
+		if (value) {
 			basename(value).then((name) =>
 				appWindow.setTitle(`QCAForge - ${name}`),
 			);
-		else appWindow.setTitle(`QCAForge`);
+			recentFilesManager.fileOpened(value);
+		} else appWindow.setTitle(`QCAForge`);
 	});
 
 	simulation_filename.subscribe((value) => {
 		const ANALYSIS_MODE = page.url.pathname.startsWith("/analysis");
-		if (value)
+		if (value) {
 			basename(value).then((name) =>
 				appWindow.setTitle(`QCAForge - ${name}`),
 			);
-		else appWindow.setTitle(`QCAForge`);
+			recentFilesManager.fileOpened(value);
+		} else appWindow.setTitle(`QCAForge`);
 	});
 
 	listen(EVENT_NEW_FILE, () => {
@@ -97,8 +101,11 @@
 				});
 		});
 	});
+	listen(EVENT_ABOUT, () => {
+		settingsModal?.openSettings("about");
+	});
 
-	let settingsOpen = $state(false);
+	let settingsModal: AppSettingsModal | undefined = $state();
 </script>
 
 <Toaster />
@@ -126,7 +133,7 @@
 			<Icon width={30} icon="material-symbols:search-insights-rounded" />
 		</Button>
 		<div class="grow"></div>
-		<Button variant="ghost" size="icon" onclick={() => (settingsOpen = true)}>
+		<Button variant="ghost" size="icon" onclick={() => (settingsModal?.openSettings())}>
 			<Icon width={30} icon="material-symbols:settings" />
 		</Button>
 	</div>
@@ -135,5 +142,5 @@
 	</div>
 	<ModeWatcher />
 	<Toaster />
-	<AppSettingsModal bind:isOpen={settingsOpen} />
+	<AppSettingsModal bind:this={settingsModal} />
 </div>

@@ -13,3 +13,5 @@ export const EVENT_CUT = "cut";
 export const EVENT_COPY = "copy";
 export const EVENT_PASTE = "paste";
 export const EVENT_DELETE = "delete";
+
+export const EVENT_ABOUT = "about";
