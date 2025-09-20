@@ -54,9 +54,10 @@ export class RecentFilesManager {
 
     fileOpened(filename: string){
         const fileType = this.getFileType(filename);
+        const baseName = filename.split(/[/\\]/).pop() || filename;
         const recentFile: RecentFile = {
             fullPath: filename,
-            name: filename.split('/').pop() || filename,
+            name: baseName,
             type: fileType,
             lastOpened: new Date()
         };
