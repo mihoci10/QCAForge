@@ -111,7 +111,7 @@
 <Toaster />
 
 <div class="flex flex-row h-full">
-	<div class="flex flex-col h-full bg-sidebar gap-1">
+	<div class="flex flex-col h-full bg-sidebar-accent gap-1">
 		<Button
 			variant="ghost"
 			size="icon"

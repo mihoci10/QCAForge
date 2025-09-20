@@ -74,7 +74,7 @@
 	}
 </script>
 
-<div class="bg-surface-600 border-t border-border p-3">
+<div class="bg-sidebar border-t border-border p-3">
 	<div class="flex items-center gap-4">
 		<!-- Play/Pause Button -->
 		<Button

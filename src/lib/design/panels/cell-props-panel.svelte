@@ -330,23 +330,25 @@
 			</div>
 			<div class="flex flex-col gap-1.5">
 				<Label>Position</Label>
-				<div class="flex gap-5">
-					<div class="flex">
-						<div class="bg-red-700 flex items-center px-2">X</div>
+				<div class="flex gap-2">
+					<div class="flex items-center gap-2">
+						<span class="inline-flex items-center rounded-md bg-red-800 px-2 py-1 text-xs font-medium text-destructive-foreground">X</span>
 						<Input
 							type="number"
 							step="1"
 							bind:value={positionInput[0]}
 							onchange={() => positionInputChanged(0)}
+							class="flex-1"
 						/>
 					</div>
-					<div class="flex">
-						<div class="bg-green-700 flex items-center px-2">Y</div>
+					<div class="flex items-center gap-2">
+						<span class="inline-flex items-center rounded-md bg-green-800 px-2 py-1 text-xs font-medium text-destructive-foreground">Y</span>
 						<Input
 							type="number"
 							step="1"
 							bind:value={positionInput[1]}
 							onchange={() => positionInputChanged(1)}
+							class="flex-1"
 						/>
 					</div>
 				</div>

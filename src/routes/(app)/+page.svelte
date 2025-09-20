@@ -4,6 +4,7 @@
 	import Button from "$lib/components/ui/button/button.svelte";
 	import { recentFilesManager } from "$lib/globals";
 	import type { RecentFile } from "$lib/recent-files";
+	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 
 	let recentDesignFiles: RecentFile[] = $state([]);
 	let recentSimulationFiles: RecentFile[] = $state([]);
@@ -34,7 +35,7 @@
 	});
 </script>
 
-<div class="min-h-screen min-w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+<ScrollArea class="h-full w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
 	<!-- Hero Section -->
 	<div class="container mx-auto px-6 py-16">
 		<div class="text-center mb-16">
@@ -218,4 +219,4 @@
 			</div>
 		</div>
 	</div>
-</div>
+</ScrollArea>

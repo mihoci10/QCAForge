@@ -74,7 +74,7 @@
 
 <Resizable.PaneGroup direction="horizontal">
 	<Resizable.Pane defaultSize={15} minSize={10}>
-		<div class="h-full bg-surface-500 overflow-y-auto pr-2">
+		<div class="h-full bg-sidebar overflow-y-auto pr-2">
 			<Accordion.Root type="multiple">
 				<SimSettingsPanel
 					bind:selected_model_id

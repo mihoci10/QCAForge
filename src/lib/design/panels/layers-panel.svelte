@@ -112,7 +112,7 @@
 		</div>
 	</Accordion.Trigger>
 	<Accordion.Content>
-		<div>
+		<div class="flex gap-2 mb-4">
 			<Button variant="outline" size="icon" onclick={addLayer}>
 				<Icon icon="mdi:plus" />
 			</Button>
@@ -127,27 +127,35 @@
 			</Button>
 		</div>
 
-		<ScrollArea class="overflow-y-auto h-32 resize-y rounded-md border">
+		<ScrollArea class="overflow-y-auto h-32 resize-y rounded-md border bg-background">
 			{#each layers as layer, index}
 				<div
-					class="flex items-center justify-between px-2 py-1 border-b w-full data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+					class="flex items-center justify-between px-2 py-2 border-b w-full hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
 					onclick={() => (selectedLayer = index)}
 					data-state={selectedLayer === index ? "on" : "off"}
 				>
 					<Button
 						variant="ghost"
 						size="icon"
-						onclick={(e) => (layer.visible = !layer.visible)}
+						onclick={(e) => {
+							e.stopPropagation();
+							layer.visible = !layer.visible;
+						}}
+						class="h-8 w-8"
 					>
 						<Icon
 							icon={layer.visible ? "mdi:eye" : "mdi:eye-closed"}
 						/>
 					</Button>
-					<span class="select-none cursor-default">{layer.name}</span>
+					<span class="select-none cursor-default text-sm font-medium truncate flex-1 px-2">{layer.name}</span>
 					<Button
 						variant="ghost"
 						size="icon"
-						onclick={(e) => openLayerOptions(index)}
+						onclick={(e) => {
+							e.stopPropagation();
+							openLayerOptions(index);
+						}}
+						class="h-8 w-8"
 					>
 						<Icon icon="material-symbols:settings" />
 					</Button>

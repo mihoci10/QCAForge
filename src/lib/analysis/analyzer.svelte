@@ -148,12 +148,12 @@
 
 <Resizable.PaneGroup direction="horizontal">
 	<Resizable.Pane defaultSize={15} minSize={10}>
-		<div class="h-full bg-surface-500 overflow-y-auto pr-2">
+		<div class="h-full bg-sidebar overflow-y-auto pr-2">
 			<Accordion.Root type="multiple">
 				<Accordion.Item value="properties">
 					<Accordion.Trigger class="w-full">
 						<div class="flex items-center gap-2">
-							<Icon icon="material-symbols:settings" width={16} />
+							<Icon icon="material-symbols:settings" class="h-4 w-4" />
 							Properties
 						</div>
 					</Accordion.Trigger>
@@ -196,14 +196,14 @@
 					{/each}
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger
-							class="flex items-center px-4 py-2 hover:bg-muted focus:bg-muted data-[state=open]:bg-muted rounded-sm"
+							class="flex items-center px-3 py-2 hover:bg-muted focus:bg-muted data-[state=open]:bg-muted rounded-sm transition-colors"
 						>
 							<div
-								class="flex items-center gap-2 text-sm text-muted-foreground hover:bg-muted rounded-md"
+								class="flex items-center gap-2 text-sm text-muted-foreground"
 							>
 								<Icon
 									icon="material-symbols:add-2-rounded"
-									width={16}
+									class="h-4 w-4"
 								/>
 								Add panel
 							</div>
@@ -241,7 +241,7 @@
 	</Resizable.Pane>
 	<Resizable.Handle />
 	<Resizable.Pane defaultSize={15} minSize={10}>
-		<div class="h-full overflow-y-auto p-2">
+		<div class="h-full overflow-y-auto p-2 bg-sidebar">
 			<Accordion.Root type="multiple">
 				<InputsPanel
 					{qcaSimulation}

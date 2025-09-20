@@ -92,8 +92,9 @@
 						size="icon"
 						disabled={!selected_model_id}
 						onclick={openModelOptions}
+						class="shrink-0"
 					>
-						<Icon icon="material-symbols:settings" />
+						<Icon icon="material-symbols:settings" class="h-4 w-4" />
 					</Button>
 					<SimModelOptions
 						bind:isOpen={openSimOptionsModal}
@@ -107,12 +108,12 @@
 				<div class="flex gap-2">
 					<Button
 						variant="outline"
-						size="lg"
+						class="flex-1 justify-start"
 						disabled={!selected_model_id}
 						onclick={openClockGeneratorOptions}
 					>
 						Settings
-						<Icon icon="material-symbols:settings" />
+						<Icon icon="material-symbols:settings" class="ml-2 h-4 w-4" />
 					</Button>
 					<ClockGeneratorOptions
 						bind:isOpen={openClockGeneratorOptionsModal}

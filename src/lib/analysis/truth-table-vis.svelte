@@ -109,7 +109,7 @@
 								<div class="flex items-center gap-1">
 									<label
 										for="phase:{input.index.toString()}"
-										class="text-xs text-gray-600"
+										class="text-xs text-muted-foreground"
 									>
 										Delay:
 									</label>
