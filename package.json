@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@iconify/icons-material-symbols": "^1.2.58",
-    "@iconify/svelte": "^5.0.1",
+    "@iconify/svelte": "^5.0.2",
     "@lucide/svelte": "^0.482.0",
     "@sveltejs/adapter-auto": "^6.1.0",
     "@sveltejs/adapter-static": "^3.0.9",
