@@ -9,7 +9,7 @@ import {
 import { getVersion } from "@tauri-apps/api/app";
 import type { DesignViewProps } from "./components/design/design-view.svelte";
 
-export const QCA_DESIGN_FILE_EXTENSION = ".qcd";
+export const QCA_DESIGN_FILE_EXTENSION = "qcd";
 
 export interface CommonSimulationModelSettings {
 	max_iterations: number;

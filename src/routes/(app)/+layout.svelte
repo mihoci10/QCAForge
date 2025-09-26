@@ -9,8 +9,10 @@
 		EVENT_ABOUT,
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
+		EVENT_OPEN_DESIGN_FILE,
 		EVENT_OPEN_SETTINGS,
 		EVENT_OPEN_SIMULATION,
+		EVENT_OPEN_SIMULATION_FILE,
 	} from "$lib/utils/events";
 	import { goto } from "$app/navigation";
 	import { open } from "@tauri-apps/plugin-dialog";
@@ -77,7 +79,6 @@
 			filters: [{ name: "Design", extensions: ["qcd"] }],
 		}).then((filename) => {
 			if (!filename) return;
-
 			readTextFile(filename as string).then((contents) => {
 				design_filename.set(filename as string);
 				design.set(deserializeQCADesignFile(contents));
@@ -102,6 +103,29 @@
 				});
 		});
 	});
+
+	listen(EVENT_OPEN_DESIGN_FILE, (event) => {
+		const filename = event.payload as string;
+		readTextFile(filename).then((contents) => {
+			design_filename.set(filename);
+			design.set(deserializeQCADesignFile(contents));
+			goto(`/design`);
+		});
+	});
+
+	listen(EVENT_OPEN_SIMULATION_FILE, (event) => {
+		const filename = event.payload as string;
+		loadSimulationFromFile(filename)
+		.then((qcaSimulation) => {
+			simulation_filename.set(filename);
+			simulation.set(qcaSimulation);
+			goto("/analysis");
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+	});
+
 	listen(EVENT_ABOUT, () => {
 		settingsModal?.openSettings("about");
 	});

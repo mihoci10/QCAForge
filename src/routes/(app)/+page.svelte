@@ -5,9 +5,10 @@
 	import { recentFilesManager } from "$lib/globals";
 	import type { RecentFile } from "$lib/recent-files";
 	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
+	import { openUrl } from "@tauri-apps/plugin-opener";
+	import { AppControl } from "$lib/utils/app-control";
 
-	let recentDesignFiles: RecentFile[] = $state([]);
-	let recentSimulationFiles: RecentFile[] = $state([]);
+	let recentFiles: RecentFile[] = $state([]);
 
 	function formatDate(date: Date): string {
 		const now = new Date();
@@ -26,12 +27,33 @@
 		}
 	}
 
+	function getFileIcon(type: string): string {
+		switch (type) {
+			case "design":
+				return "🎨";
+			case "simulation":
+				return "📊";
+			default:
+				return "📄";
+		}
+	}
+
+	function getFileTypeLabel(type: string): string {
+		switch (type) {
+			case "design":
+				return "Design";
+			case "simulation":
+				return "Simulation";
+			default:
+				return "File";
+		}
+	}
+
 	onMount(() => {
 		invoke("startup_frontend_ready");
 		
 		// Load recent files
-		recentDesignFiles = recentFilesManager.getRecentDesignFiles();
-		recentSimulationFiles = recentFilesManager.getRecentSimulationFiles();
+		recentFiles = recentFilesManager.getAllRecentFiles()
 	});
 </script>
 
@@ -66,157 +88,81 @@
 			</div>
 		</div>
 
-		<!-- Recent Files Section -->
-		<div class="grid md:grid-cols-2 gap-8 mb-16">
-			<!-- Recent Design Files -->
-			<div class="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg">
-				<div class="flex items-center mb-4">
-					<div class="text-2xl mr-3">🎨</div>
-					<h3 class="text-xl font-semibold text-slate-900 dark:text-white">
-						Recent Design Files
-					</h3>
-				</div>
-				
-				{#if recentDesignFiles.length > 0}
+		<!-- Section -->
+		<div class="mb-16 grid lg:grid-cols-2 gap-4">
+			<!-- Recent Files Section -->
+			<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
+				<h3 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Recent Files</h3>
+				{#if recentFiles.length > 0}
 					<div class="space-y-2">
-						{#each recentDesignFiles.slice(0, 5) as file}
-							<div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+						{#each recentFiles.slice(0, 5) as file}
+							<button class="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group w-full text-left"
+								onclick={() => AppControl.loadFileFromPath(file.fullPath)}>
 								<div class="flex-1 min-w-0">
 									<p class="text-sm font-medium text-slate-900 dark:text-white truncate">
 										{file.name}
 									</p>
 									<p class="text-xs text-slate-500 dark:text-slate-400">
-										{formatDate(new Date(file.lastOpened))}
+										{getFileTypeLabel(file.type)}
 									</p>
 								</div>
-								<Button 
-									variant="ghost" 
-									size="sm"
-									class="text-blue-600 hover:text-blue-700 ml-2"
-									onclick={() => {
-										// TODO: Implement file opening logic
-										console.log('Opening design file:', file.fullPath);
-									}}
-								>
-									Open
-								</Button>
-							</div>
-						{/each}
-					</div>
-					
-					{#if recentDesignFiles.length > 5}
-						<p class="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center">
-							And {recentDesignFiles.length - 5} more files...
-						</p>
-					{/if}
-				{:else}
-					<div class="text-center py-8">
-						<p class="text-slate-500 dark:text-slate-400 mb-4">
-							No recent design files found
-						</p>
-						<Button 
-							href="/design" 
-							variant="outline"
-							size="sm"
-						>
-							Create New Design
-						</Button>
-					</div>
-				{/if}
-			</div>
-
-			<!-- Recent Simulation Files -->
-			<div class="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg">
-				<div class="flex items-center mb-4">
-					<div class="text-2xl mr-3">📊</div>
-					<h3 class="text-xl font-semibold text-slate-900 dark:text-white">
-						Recent Simulation Files
-					</h3>
-				</div>
-				
-				{#if recentSimulationFiles.length > 0}
-					<div class="space-y-2">
-						{#each recentSimulationFiles.slice(0, 5) as file}
-							<div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
-								<div class="flex-1 min-w-0">
-									<p class="text-sm font-medium text-slate-900 dark:text-white truncate">
-										{file.name}
-									</p>
-									<p class="text-xs text-slate-500 dark:text-slate-400">
-										{formatDate(new Date(file.lastOpened))}
-									</p>
+								<div class="text-xs text-slate-500 dark:text-slate-400">
+									{formatDate(new Date(file.lastOpened))}
 								</div>
-								<Button 
-									variant="ghost" 
-									size="sm"
-									class="text-blue-600 hover:text-blue-700 ml-2"
-									onclick={() => {
-										// TODO: Implement file opening logic
-										console.log('Opening simulation file:', file.fullPath);
-									}}
-								>
-									Open
-								</Button>
-							</div>
+							</button>
 						{/each}
 					</div>
-					
-					{#if recentSimulationFiles.length > 5}
-						<p class="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center">
-							And {recentSimulationFiles.length - 5} more files...
-						</p>
-					{/if}
 				{:else}
-					<div class="text-center py-8">
-						<p class="text-slate-500 dark:text-slate-400 mb-4">
-							No recent simulation files found
-						</p>
-						<Button 
-							href="/analysis" 
-							variant="outline"
-							size="sm"
-						>
-							View Analysis
-						</Button>
-					</div>
+					<p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
+						No recent files
+					</p>
 				{/if}
 			</div>
-		</div>
-
-		<!-- Quick Start Section -->
-		<div class="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
-			<h2 class="text-2xl font-bold text-center mb-6 text-slate-900 dark:text-white">
-				Quick Start Guide
-			</h2>
-			<div class="grid md:grid-cols-3 gap-6">
-				<div class="text-center">
-					<div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-						<span class="text-xl font-bold text-blue-600 dark:text-blue-400">1</span>
-					</div>
-					<h4 class="font-semibold mb-2 text-slate-900 dark:text-white">Design Your Circuit</h4>
-					<p class="text-sm text-slate-600 dark:text-slate-300">
-						Use the interactive designer to create your QCA circuit layout
-					</p>
-				</div>
-				<div class="text-center">
-					<div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-						<span class="text-xl font-bold text-green-600 dark:text-green-400">2</span>
-					</div>
-					<h4 class="font-semibold mb-2 text-slate-900 dark:text-white">Run Simulation</h4>
-					<p class="text-sm text-slate-600 dark:text-slate-300">
-						Configure simulation parameters and execute your design
-					</p>
-				</div>
-				<div class="text-center">
-					<div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-						<span class="text-xl font-bold text-purple-600 dark:text-purple-400">3</span>
-					</div>
-					<h4 class="font-semibold mb-2 text-slate-900 dark:text-white">Analyze Results</h4>
-					<p class="text-sm text-slate-600 dark:text-slate-300">
-						Visualize and export your simulation data for further research
-					</p>
+			<!--Shortcuts Section-->
+			<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
+				<h3 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Getting Started</h3>
+				<div class="space-y-3">
+					<a href="/design" class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
+						<div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mr-3">
+							<span class="text-blue-600 dark:text-blue-400">🎨</span>
+						</div>
+						<div>
+							<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">Create Your First Design</p>
+							<p class="text-xs text-slate-500 dark:text-slate-400">Learn to create QCA designs</p>
+						</div>
+					</a>
+					
+					<a href="/analysis" class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
+						<div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mr-3">
+							<span class="text-green-600 dark:text-green-400">📊</span>
+						</div>
+						<div>
+							<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400">Analyze Simulation Results</p>
+							<p class="text-xs text-slate-500 dark:text-slate-400">Interpret your simulation data</p>
+						</div>
+					</a>
+					
+					<a href="/examples" class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
+						<div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mr-3">
+							<span class="text-purple-600 dark:text-purple-400">💡</span>
+						</div>
+						<div>
+							<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">Examples</p>
+							<p class="text-xs text-slate-500 dark:text-slate-400">Explore sample circuits</p>
+						</div>
+					</a>
+					
+					<button onclick={() => openUrl('https://missing.docs.com')} class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group w-full text-left">
+						<div class="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mr-3">
+							<span class="text-orange-600 dark:text-orange-400">📚</span>
+						</div>
+						<div>
+							<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400">Documentation</p>
+							<p class="text-xs text-slate-500 dark:text-slate-400">Complete reference guide</p>
+						</div>
+					</button>
 				</div>
 			</div>
 		</div>
-	</div>
+	<!-- Footer -->	
 </ScrollArea>

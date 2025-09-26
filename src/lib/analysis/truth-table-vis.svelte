@@ -12,7 +12,6 @@
 	import { default as InputUI } from "$lib/components/ui/input/input.svelte";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import type { TruthTableProps } from "./panels/truth-table-visual-props-panel.svelte";
-	import type { ChangeEvent } from "sveltekit-superforms";
 	import { parseCellIndex, type CellIndex } from "$lib/Cell";
 	import { invoke } from "@tauri-apps/api/core";
 

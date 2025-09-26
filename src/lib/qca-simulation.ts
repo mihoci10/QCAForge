@@ -8,7 +8,7 @@ import {
 } from "./qca-design";
 import { v4 as uuidv4 } from "uuid";
 
-export const QCA_SIMULATION_FILE_EXTENSION = ".qcs";
+export const QCA_SIMULATION_FILE_EXTENSION = "qcs";
 
 export interface TimeDelta {
 	seconds: number;
