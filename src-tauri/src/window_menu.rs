@@ -28,6 +28,10 @@ fn create_file_menu(app: &mut App) -> Submenu<Wry> {
         .accelerator("CmdOrCtrl+Shift+S")
         .build(app)
         .unwrap();
+    let settings = MenuItemBuilder::new("Settings")
+        .id("appSettings")
+        .build(app)
+        .unwrap();
     let exit_application = PredefinedMenuItem::quit(app, None).unwrap();
 
     SubmenuBuilder::new(app, "File")
@@ -39,6 +43,8 @@ fn create_file_menu(app: &mut App) -> Submenu<Wry> {
             &PredefinedMenuItem::separator(app).unwrap(),
             &file_save_file,
             &file_save_file_as,
+            &PredefinedMenuItem::separator(app).unwrap(),
+            &settings,
             &PredefinedMenuItem::separator(app).unwrap(),
             &exit_application,
         ])

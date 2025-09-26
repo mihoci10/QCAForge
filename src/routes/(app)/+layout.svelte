@@ -6,9 +6,10 @@
 	import { page } from "$app/state";
 	import { listen } from "@tauri-apps/api/event";
 	import {
-	EVENT_ABOUT,
+		EVENT_ABOUT,
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
+		EVENT_OPEN_SETTINGS,
 		EVENT_OPEN_SIMULATION,
 	} from "$lib/utils/events";
 	import { goto } from "$app/navigation";
@@ -104,6 +105,9 @@
 	listen(EVENT_ABOUT, () => {
 		settingsModal?.openSettings("about");
 	});
+	listen(EVENT_OPEN_SETTINGS, () => {
+		settingsModal?.openSettings();
+	});
 
 	let settingsModal: AppSettingsModal | undefined = $state();
 </script>
@@ -133,7 +137,11 @@
 			<Icon width={30} icon="material-symbols:search-insights-rounded" />
 		</Button>
 		<div class="grow"></div>
-		<Button variant="ghost" size="icon" onclick={() => (settingsModal?.openSettings())}>
+		<Button
+			variant="ghost"
+			size="icon"
+			onclick={() => settingsModal?.openSettings()}
+		>
 			<Icon width={30} icon="material-symbols:settings" />
 		</Button>
 	</div>

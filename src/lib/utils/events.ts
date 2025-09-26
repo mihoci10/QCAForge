@@ -15,3 +15,4 @@ export const EVENT_PASTE = "paste";
 export const EVENT_DELETE = "delete";
 
 export const EVENT_ABOUT = "about";
+export const EVENT_OPEN_SETTINGS = "appSettings";
