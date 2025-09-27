@@ -6,11 +6,9 @@
 	import { page } from "$app/state";
 	import { listen } from "@tauri-apps/api/event";
 	import {
-		EVENT_ABOUT,
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
 		EVENT_OPEN_DESIGN_FILE,
-		EVENT_OPEN_SETTINGS,
 		EVENT_OPEN_SIMULATION,
 		EVENT_OPEN_SIMULATION_FILE,
 	} from "$lib/utils/events";
@@ -34,7 +32,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import Icon from "@iconify/svelte";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
-	import AppSettingsModal from "$lib/settings/app-settings-modal.svelte";
+	import Sidebar from "$lib/components/sidebar.svelte";
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow();
@@ -106,7 +104,7 @@
 
 	listen(EVENT_OPEN_DESIGN_FILE, (event) => {
 		const filename = event.payload as string;
-		readTextFile(filename).then((contents) => {
+		readTextFile(filename as string).then((contents) => {
 			design_filename.set(filename);
 			design.set(deserializeQCADesignFile(contents));
 			goto(`/design`);
@@ -115,7 +113,7 @@
 
 	listen(EVENT_OPEN_SIMULATION_FILE, (event) => {
 		const filename = event.payload as string;
-		loadSimulationFromFile(filename)
+		loadSimulationFromFile(filename as string)
 		.then((qcaSimulation) => {
 			simulation_filename.set(filename);
 			simulation.set(qcaSimulation);
@@ -125,54 +123,15 @@
 			console.error(err);
 		});
 	});
-
-	listen(EVENT_ABOUT, () => {
-		settingsModal?.openSettings("about");
-	});
-	listen(EVENT_OPEN_SETTINGS, () => {
-		settingsModal?.openSettings();
-	});
-
-	let settingsModal: AppSettingsModal | undefined = $state();
 </script>
 
 <Toaster />
 
 <div class="flex flex-row h-full">
-	<div class="flex flex-col h-full bg-sidebar-accent gap-1">
-		<Button
-			variant="ghost"
-			size="icon"
-			class="data-[state=on]:bg-sidebar-ring"
-			href="/design"
-			data-state={page.url.pathname.startsWith("/design") ? "on" : "off"}
-		>
-			<Icon width={30} icon="material-symbols:design-services-outline" />
-		</Button>
-		<Button
-			variant="ghost"
-			size="icon"
-			class="data-[state=on]:bg-sidebar-ring"
-			href="/analysis"
-			data-state={page.url.pathname.startsWith("/analysis")
-				? "on"
-				: "off"}
-		>
-			<Icon width={30} icon="material-symbols:search-insights-rounded" />
-		</Button>
-		<div class="grow"></div>
-		<Button
-			variant="ghost"
-			size="icon"
-			onclick={() => settingsModal?.openSettings()}
-		>
-			<Icon width={30} icon="material-symbols:settings" />
-		</Button>
-	</div>
+	<Sidebar />
 	<div class="flex h-full w-full overflow-auto">
 		{@render children()}
 	</div>
 	<ModeWatcher />
 	<Toaster />
-	<AppSettingsModal bind:this={settingsModal} />
 </div>
