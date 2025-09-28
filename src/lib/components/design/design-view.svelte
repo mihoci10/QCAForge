@@ -97,6 +97,14 @@
 		properties.cell_snapping_divider = cellSnappingDivider;
 	});
 
+	function updatePropertiesFromCamera() {
+		properties.camera_position = [
+			camera.position.x,
+			camera.position.y,
+			camera.position.z,
+		];
+	}
+
 	onMount(() => {
 		initThreeJS();
 		if (false) initDebugStats();
@@ -216,6 +224,7 @@
 		if (stats) stats.end();
 
 		if (statsDrawCall) statsDrawCall.update(renderer.info.render.calls, 10);
+		updatePropertiesFromCamera();
 	}
 
 	function get_cell_architecture(layerIndex: number | undefined = undefined) {
