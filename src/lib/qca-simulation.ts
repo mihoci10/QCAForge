@@ -364,12 +364,6 @@ export class QCASimulation {
 				});
 		});
 	}
-
-	public getSimulationModelSettings(): CommonSimulationModelSettings {
-		return this._design.simulation_model_settings.get(
-			this._design.selected_simulation_model_id!,
-		)! as CommonSimulationModelSettings;
-	}
 }
 
 export function loadSimulationFromFile(

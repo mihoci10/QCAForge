@@ -44,6 +44,9 @@ use simulation::*;
 mod startup;
 use startup::*;
 
+mod design;
+use design::*;
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -72,6 +75,7 @@ fn main() {
             get_sim_version,
             get_sim_models,
             run_sim_model,
+            load_design_file,
             load_simulation_file,
             calculate_truth_table,
             startup_frontend_ready,

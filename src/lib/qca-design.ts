@@ -156,3 +156,20 @@ export async function createDefaultQCADesignFile(): Promise<QCADesignFile> {
 	);
 	return await createQCADesignFile(design, undefined);
 }
+
+export function loadDesignFromFile(
+	filename: string,
+): Promise<QCADesignFile> {
+	return new Promise((resolve, reject) => {
+		invoke("load_design_file", { filename: filename })
+			.then((result: unknown) => {
+				const resignRaw = JSON.stringify(result);
+				const designFile = deserializeQCADesignFile(resignRaw);
+				resolve(designFile);
+			})
+			.catch((error: any) => {
+				console.error("Error loading design file:", error);
+				reject(error);
+			});
+	});
+}

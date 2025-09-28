@@ -24,6 +24,7 @@
 	import {
 		createDefaultQCADesignFile,
 		deserializeQCADesignFile,
+		loadDesignFromFile,
 	} from "$lib/qca-design";
 	import { readTextFile } from "@tauri-apps/plugin-fs";
 	import { onMount } from "svelte";
@@ -104,10 +105,12 @@
 
 	listen(EVENT_OPEN_DESIGN_FILE, (event) => {
 		const filename = event.payload as string;
-		readTextFile(filename as string).then((contents) => {
+		loadDesignFromFile(filename).then((designFile) => {
 			design_filename.set(filename);
-			design.set(deserializeQCADesignFile(contents));
+			design.set(designFile);
 			goto(`/design`);
+		}).catch(() => {
+			console.error("Failed to load design file:", filename);
 		});
 	});
 
