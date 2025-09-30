@@ -4,7 +4,6 @@
 
 	import type { Layer } from "../Layer";
 	import type { SimulationModel } from "../SimulationModel";
-	import SimSettingsPanel from "./panels/sim-settings-panel.svelte";
 	import CellPropsPanel from "./panels/cell-props-panel.svelte";
 	import LayersPanel from "./panels/layers-panel.svelte";
 
@@ -75,11 +74,7 @@
 <Resizable.PaneGroup direction="horizontal">
 	<Resizable.Pane defaultSize={15} minSize={10}>
 		<div class="h-full bg-sidebar overflow-y-auto pr-2">
-			<Accordion.Root type="multiple">
-				<SimSettingsPanel
-					bind:selected_model_id
-					bind:simulation_models
-				/>
+			<Accordion.Root type="multiple" value={["layers", "cell-props"]}>
 				<LayersPanel
 					bind:layers
 					bind:selectedLayer
