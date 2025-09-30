@@ -1,12 +1,11 @@
 <script lang="ts">
 	import Designer from "$lib/design/designer.svelte";
+	import DesignToolbar from "$lib/design/design-toolbar.svelte";
 	import { onMount } from "svelte";
-	import { startSimulation } from "$lib/Simulation";
 	import {
 		loadSimulationModels,
 		type SimulationModel,
 	} from "$lib/SimulationModel";
-	import { toast } from "svelte-sonner";
 	import { listen } from "@tauri-apps/api/event";
 	import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
 	import {
@@ -22,8 +21,6 @@
 	import { get } from "svelte/store";
 	import { type Layer } from "$lib/Layer.js";
 	import { type CellArchitecture } from "$lib/CellArchitecture";
-	import Button from "$lib/components/ui/button/button.svelte";
-	import SimulationProgressToast from "$lib/toasts/simulation-progress-toast.svelte";
 	import type { DesignViewProps } from "$lib/components/design/design-view.svelte";
 
 	let selected_model_id: string | undefined = $state();
@@ -158,64 +155,15 @@
 			});
 		});
 	}
-
-	function executeSimulation() {
-		if (!selected_model_id) console.error("invalid simulation model id!");
-
-		if (!simulation_models.has(selected_model_id!))
-			console.error("invalid simulation model!");
-
-		let simulation_toast = toast(SimulationProgressToast, {
-			duration: Infinity,
-			action: { label: "Cancel", onClick: (e) => {} },
-		});
-
-		createDesign(
-			layers,
-			selected_model_id,
-			simulation_models,
-			cell_architectures,
-		)
-			.then((design) => {
-				startSimulation(design)
-					.then((res) => {
-						toast.success("Simulation finished successfully.", {
-							id: simulation_toast,
-							duration: 5000,
-							action: undefined,
-						});
-					})
-					.catch((err) => {
-						console.error(err);
-						toast.error("Simulation failed.", {
-							id: simulation_toast,
-							duration: 5000,
-							action: undefined,
-						});
-					});
-			})
-			.catch((err) => {
-				console.error(err);
-				toast.error("Simulation failed.", {
-					id: simulation_toast,
-					duration: 5000,
-					action: undefined,
-				});
-			});
-	}
 </script>
 
 <div class="w-full flex flex-col">
-	<div class="my-1">
-		<div class="flex flex-row float-right">
-			<Button
-				disabled={!selected_model_id}
-				onclick={() => executeSimulation()}
-			>
-				Run
-			</Button>
-		</div>
-	</div>
+	<DesignToolbar
+		bind:selected_model_id
+		bind:simulation_models
+		bind:layers
+		bind:cell_architectures
+	/>
 	<Designer
 		bind:this={designer}
 		bind:designViewProps
