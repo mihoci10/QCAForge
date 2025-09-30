@@ -13,16 +13,6 @@ use tauri::http::{header, Response, StatusCode};
 use tauri::{Emitter, Manager, Url};
 
 #[derive(Serialize)]
-struct SimulationModelDescriptor {
-    model_id: String,
-    model_name: String,
-    model_option_list: OptionsList,
-    model_settings: String,
-    clock_generator_option_list: OptionsList,
-    clock_generator_settings: String,
-}
-
-#[derive(Serialize)]
 struct BuildInfo {
     timestamp: String,
     git_sha: String,
@@ -76,6 +66,7 @@ fn main() {
             get_sim_models,
             run_sim_model,
             load_design_file,
+            save_design_file,
             load_simulation_file,
             calculate_truth_table,
             startup_frontend_ready,
@@ -106,25 +97,6 @@ fn main() {
 #[tauri::command]
 fn get_sim_version() -> String {
     qca_core::QCA_CORE_VERSION.to_string()
-}
-
-#[tauri::command]
-fn get_sim_models() -> Vec<SimulationModelDescriptor> {
-    let model_list: Vec<Box<dyn SimulationModelTrait>> = vec![
-        //Box::new(BistableModel::new()),
-        Box::new(ICHAModel::new()),
-    ];
-    model_list
-        .iter()
-        .map(|model| SimulationModelDescriptor {
-            model_id: model.get_unique_id(),
-            model_name: model.get_name(),
-            model_option_list: model.get_model_options_list(),
-            model_settings: model.serialize_model_settings().unwrap(),
-            clock_generator_option_list: model.get_clock_generator_options_list(),
-            clock_generator_settings: model.serialize_clock_generator_settings().unwrap(),
-        })
-        .collect()
 }
 
 #[tauri::command]

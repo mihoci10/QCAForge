@@ -1,21 +1,54 @@
-use std::{collections::HashMap, fs::File};
+use std::{fs::File};
 
 use qca_core::{
-    design::{self, file::QCADesign},
-    objects::{architecture::QCACellArchitecture, layer::QCALayer},
+    design::{file::QCADesign},
     simulation::{
-        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait, run_simulation_async,
-        SimulationProgress,
+        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait, run_simulation_async, settings::OptionsList, SimulationProgress
     },
 };
+use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 
+#[derive(Serialize)]
+pub struct SimulationModelDescriptor {
+    model_id: String,
+    model_name: String,
+    model_option_list: OptionsList,
+    model_settings: String,
+    clock_generator_option_list: OptionsList,
+    clock_generator_settings: String,
+}
+
+fn get_available_sim_models() -> Vec<Box<dyn SimulationModelTrait>> {
+    vec![
+        //Box::new(BistableModel::new()),   
+        Box::new(ICHAModel::new()),
+    ]
+}
+
+#[tauri::command]
+pub fn get_sim_models() -> Vec<SimulationModelDescriptor> {
+    get_available_sim_models()
+        .iter()
+        .map(|model| SimulationModelDescriptor {
+            model_id: model.get_unique_id(),
+            model_name: model.get_name(),
+            model_option_list: model.get_model_options_list(),
+            model_settings: model.serialize_model_settings().unwrap(),
+            clock_generator_option_list: model.get_clock_generator_options_list(),
+            clock_generator_settings: model.serialize_clock_generator_settings().unwrap(),
+        })
+        .collect()
+}
+
 pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>> {
-    match sim_model_id.as_str() {
-        //"bistable_model" => Some(Box::new(BistableModel::new())),
-        "full_basis_model" => Some(Box::new(ICHAModel::new())),
-        _ => None,
+    let models = get_available_sim_models();
+    for model in models {
+        if model.get_unique_id() == sim_model_id {
+            return Some(model);
+        }
     }
+    None
 }
 
 #[tauri::command(async)]
@@ -58,7 +91,7 @@ pub fn run_sim_model(app: AppHandle, qca_design: QCADesign) -> Result<String, St
             }
 
             let simulation_data = sim_handle.join().unwrap();
-            write_to_file(file, &qca_design, &simulation_data);
+            let _ = write_to_file(file, &qca_design, &simulation_data);
             Ok("".into())
         }
         None => Err("No model with such id exists".into()),

@@ -163,12 +163,27 @@ export function loadDesignFromFile(
 	return new Promise((resolve, reject) => {
 		invoke("load_design_file", { filename: filename })
 			.then((result: unknown) => {
-				const resignRaw = JSON.stringify(result);
+				const resignRaw = result as string;
 				const designFile = deserializeQCADesignFile(resignRaw);
 				resolve(designFile);
 			})
 			.catch((error: any) => {
-				console.error("Error loading design file:", error);
+				reject(error);
+			});
+	});
+}
+
+export function saveDesignToFile(
+	filename: string,
+	designFile: QCADesignFile,
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const serializedDesign = serializeQCADesignFile(designFile);
+		invoke("save_design_file", { filename, serializedDesign })
+			.then(() => {
+				resolve();
+			})
+			.catch((error: any) => {
 				reject(error);
 			});
 	});

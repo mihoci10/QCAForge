@@ -12,6 +12,7 @@
 		createDefaultDesignViewProps,
 		createDesign,
 		createQCADesignFile,
+		saveDesignToFile,
 		serializeQCADesignFile,
 		type QCADesignFile,
 	} from "$lib/qca-design";
@@ -88,11 +89,7 @@
 					);
 					resolve(designFile);
 				}).then((designFile) => {
-					writeTextFile(
-						filename,
-						serializeQCADesignFile(designFile),
-						{ baseDir: BaseDirectory.Desktop },
-					);
+					saveDesignToFile(filename, designFile);
 					design_filename.set(filename);
 				});
 			});
