@@ -21,7 +21,7 @@
     "@sveltejs/kit": "^2.37.1",
     "@sveltejs/vite-plugin-svelte": "^6.1.1",
     "@tauri-apps/cli": "^2.8.0",
-    "@types/node": "24.0.3",
+    "@types/node": "24.6.0",
     "@types/three": "^0.176.0",
     "autoprefixer": "10.4.21",
     "bits-ui": "^1.8.0",
