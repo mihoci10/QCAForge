@@ -14,6 +14,7 @@
 	import type { Cell, CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
 	import { listen } from "@tauri-apps/api/event";
+	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 
 	interface Props {
 		selected_model_id: string | undefined;
@@ -73,7 +74,8 @@
 
 <Resizable.PaneGroup direction="horizontal">
 	<Resizable.Pane defaultSize={15} minSize={10}>
-		<div class="h-full bg-sidebar overflow-y-auto pr-2">
+		<!-- Sidebar -->
+		<ScrollArea class="h-full bg-sidebar px-2">
 			<Accordion.Root type="multiple" value={["layers", "cell-props"]}>
 				<LayersPanel
 					bind:layers
@@ -87,7 +89,7 @@
 					{propertyChangedCallback}
 				/>
 			</Accordion.Root>
-		</div>
+		</ScrollArea>
 	</Resizable.Pane>
 	<Resizable.Handle />
 	<Resizable.Pane minSize={10}>

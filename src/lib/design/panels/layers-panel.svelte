@@ -108,7 +108,6 @@
 	<Accordion.Trigger>
 		<div class="flex items-center gap-1.5">
 			Layers
-			<Icon icon="material-symbols:layers" />
 		</div>
 	</Accordion.Trigger>
 	<Accordion.Content>

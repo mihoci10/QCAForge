@@ -234,7 +234,6 @@
 	<Accordion.Trigger>
 		<div class="flex items-center gap-1.5">
 			Cell properties
-			<Icon icon="material-symbols:build-rounded" />
 		</div>
 	</Accordion.Trigger>
 	<Accordion.Content>
