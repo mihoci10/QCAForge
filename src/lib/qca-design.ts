@@ -39,6 +39,11 @@ export interface QCADesignFile {
 	designer_properties: DesignViewProps;
 }
 
+export interface NewDesignConfig {
+	sim_model_id: string;
+	cell_architecture_id: string;
+}
+
 export function serializeQCADesignFile(qcaDesignFile: QCADesignFile): string {
 	const obj: any = { ...qcaDesignFile };
 	obj.design = {
@@ -109,7 +114,7 @@ export async function createDesign(
 
 export function createDefaultDesignViewProps(): DesignViewProps {
 	return {
-		camera_position: [0, 0, 20],
+		camera_position: [0, 0, 40],
 		camera_rotation: [0, 0, 0],
 		camera_rotate_enabled: false,
 		camera_zoom_enabled: true,
@@ -133,17 +138,17 @@ export async function createQCADesignFile(
 	};
 }
 
-export async function createDefaultQCADesignFile(): Promise<QCADesignFile> {
+export async function createDefaultQCADesignFile(newDesignConfig: NewDesignConfig | undefined = undefined): Promise<QCADesignFile> {
 	const layers: Layer[] = [
 		{
 			name: "Main Layer",
 			visible: true,
-			cell_architecture_id: get_default_cell_architecture_id(),
+			cell_architecture_id: newDesignConfig?.cell_architecture_id ?? get_default_cell_architecture_id(),
 			cells: [],
 			z_position: 0,
 		},
 	];
-	const selected_simulation_model_id: string | undefined = undefined;
+	const selected_simulation_model_id: string | undefined = newDesignConfig?.sim_model_id ?? undefined;
 	const simulation_models: Map<string, SimulationModel> = new Map();
 	const cell_architectures: Map<string, CellArchitecture> =
 		generate_default_cell_architectures();

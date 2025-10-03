@@ -73,7 +73,7 @@
 			<!-- Main Action Buttons -->
 			<div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
 				<Button 
-					href="/design" 
+					onclick={() => AppControl.newDesign()}
 					class="px-8 py-3 text-lg bg-blue-600 hover:bg-blue-700 text-white min-w-[200px]"
 				>
 					🔧 Start Designing

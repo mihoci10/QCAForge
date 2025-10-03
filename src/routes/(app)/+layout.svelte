@@ -25,6 +25,7 @@
 		createDefaultQCADesignFile,
 		deserializeQCADesignFile,
 		loadDesignFromFile,
+		type NewDesignConfig,
 	} from "$lib/qca-design";
 	import { readTextFile } from "@tauri-apps/plugin-fs";
 	import { onMount } from "svelte";
@@ -34,9 +35,12 @@
 	import Icon from "@iconify/svelte";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
 	import Sidebar from "$lib/components/sidebar.svelte";
+	import NewDesignSetup from "$lib/modals/new-design-setup.svelte";
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow();
+
+	let isNewDesignOpen: boolean = $state(false);
 
 	onMount(() =>
 		createDefaultQCADesignFile().then((qcaDesignFile) => {
@@ -64,12 +68,16 @@
 		} else appWindow.setTitle(`QCAForge`);
 	});
 
-	listen(EVENT_NEW_FILE, () => {
-		createDefaultQCADesignFile().then((qcaDesignFile) => {
+	function onCreateNewDesign(newDesignConfig: NewDesignConfig) {
+		createDefaultQCADesignFile(newDesignConfig).then((qcaDesignFile) => {
 			design.set(qcaDesignFile);
+			design_filename.set(undefined);
+			goto(`/design`);
 		});
-		design_filename.set(undefined);
-		goto(`/design`);
+	}
+
+	listen(EVENT_NEW_FILE, () => {
+		isNewDesignOpen = true;
 	});
 
 	listen(EVENT_OPEN_DESIGN, () => {
@@ -138,3 +146,8 @@
 	<ModeWatcher />
 	<Toaster />
 </div>
+
+<NewDesignSetup 
+	bind:isOpen={isNewDesignOpen}
+	{onCreateNewDesign}
+/>
