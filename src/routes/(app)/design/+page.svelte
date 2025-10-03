@@ -39,6 +39,7 @@
 	let designer: Designer | undefined = $state();
 
 	design.subscribe((cur_design_file) => {
+		console.log("Design file updated:", cur_design_file);
 		const cur_design = cur_design_file.design;
 		designViewProps = cur_design_file.designer_properties;
 		layers = cur_design.layers;

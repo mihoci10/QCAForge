@@ -42,12 +42,6 @@
 
 	let isNewDesignOpen: boolean = $state(false);
 
-	onMount(() =>
-		createDefaultQCADesignFile().then((qcaDesignFile) => {
-			design.set(qcaDesignFile);
-		}),
-	);
-
 	design_filename.subscribe((value) => {
 		const DESIGN_MODE = page.url.pathname.startsWith("/design");
 		if (value) {

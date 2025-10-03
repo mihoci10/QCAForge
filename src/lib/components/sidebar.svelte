@@ -3,9 +3,13 @@
 	import Icon from "@iconify/svelte";
 	import { page } from "$app/state";
 	import AppSettingsModal from "$lib/settings/app-settings-modal.svelte";
-	import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-	import { EVENT_ABOUT, EVENT_OPEN_SETTINGS } from "$lib/utils/events";
+	import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
+	import { EVENT_ABOUT, EVENT_OPEN_SETTINGS, EVENT_OPEN_SIMULATION } from "$lib/utils/events";
 	import { onMount, onDestroy } from "svelte";
+	import { design, simulation } from "$lib/globals";
+	import { AppControl } from "$lib/utils/app-control";
+	import { goto } from "$app/navigation";
+	import { get } from "svelte/store";
 
 
 	let settingsModal: AppSettingsModal | undefined = $state();
@@ -47,7 +51,12 @@
 		variant="ghost"
 		size="icon"
 		class="data-[state=on]:bg-sidebar-ring"
-		href="/design"
+		onclick={() => {
+			if (get(design))
+				goto("/design");
+			else
+				AppControl.newDesign();
+		}}
 		data-state={page.url.pathname.startsWith("/design") ? "on" : "off"}
 		aria-label="Navigate to design workspace"
 		title="Design"
@@ -58,7 +67,12 @@
 		variant="ghost"
 		size="icon"
 		class="data-[state=on]:bg-sidebar-ring"
-		href="/analysis"
+		onclick={() => {
+			if (get(simulation))
+				goto("/analysis");
+			else
+				emit(EVENT_OPEN_SIMULATION);
+		}}
 		data-state={page.url.pathname.startsWith("/analysis") ? "on" : "off"}
 		aria-label="Navigate to analysis and simulation results"
 		title="Analysis"
