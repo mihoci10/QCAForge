@@ -141,7 +141,12 @@
 		// 	3000,
 		// );
 
-		const cameraPosition = properties.camera_position ?? [0, 0, 20];
+		const camera_z = properties.camera_position
+			? properties.camera_position[2]
+			: get_cell_architecture().side_length * 6;
+		const cameraPosition = properties.camera_position
+			? properties.camera_position
+			: [0, 0, camera_z];
 		camera.position.set(
 			cameraPosition[0],
 			cameraPosition[1],

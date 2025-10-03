@@ -114,11 +114,9 @@ export async function createDesign(
 
 export function createDefaultDesignViewProps(): DesignViewProps {
 	return {
-		camera_position: [0, 0, 40],
-		camera_rotation: [0, 0, 0],
 		camera_rotate_enabled: false,
 		camera_zoom_enabled: true,
-		camera_zoom_range: [1, 100],
+		camera_zoom_range: [1, 200],
 		cell_edit_enabled: true,
 		cell_snapping_enabled: true,
 	};
