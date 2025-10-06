@@ -2,6 +2,7 @@ import { QCA_DESIGN_FILE_EXTENSION } from "$lib/qca-design";
 import { QCA_SIMULATION_FILE_EXTENSION } from "$lib/qca-simulation";
 import { emit } from "@tauri-apps/api/event";
 import { EVENT_NEW_FILE, EVENT_OPEN_DESIGN_FILE, EVENT_OPEN_SIMULATION_FILE } from "./events";
+import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 
 export class AppControl {
     static loadDesignFile(filename: string) {
@@ -24,5 +25,19 @@ export class AppControl {
 
     static newDesign() {
         emit(EVENT_NEW_FILE);
+    }
+
+    static sendSystemNotification(title: string, body: string) {
+        isPermissionGranted().then(permissionGranted => {
+            if (permissionGranted) {
+                sendNotification({ title, body });
+            } else {
+                requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        sendNotification({ title, body });
+                    }
+                });
+            }
+        });
     }
 }

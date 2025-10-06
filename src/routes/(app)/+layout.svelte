@@ -6,7 +6,7 @@
 	import { page } from "$app/state";
 	import { listen } from "@tauri-apps/api/event";
 	import {
-	EVENT_LOG_ENTRY_ADDED,
+		EVENT_LOG_ENTRY_ADDED,
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
 		EVENT_OPEN_DESIGN_FILE,
@@ -29,15 +29,11 @@
 		type NewDesignConfig,
 	} from "$lib/qca-design";
 	import { readTextFile } from "@tauri-apps/plugin-fs";
-	import { onMount } from "svelte";
 	import { basename } from "@tauri-apps/api/path";
 	import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-	import { Button } from "$lib/components/ui/button";
-	import Icon from "@iconify/svelte";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
 	import Sidebar from "$lib/components/sidebar.svelte";
 	import NewDesignSetup from "$lib/modals/new-design-setup.svelte";
-	import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow();

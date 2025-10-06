@@ -14,7 +14,8 @@
 	import SimModelOptions from "$lib/modals/sim-model-options.svelte";
 	import ClockGeneratorOptions from "$lib/modals/clock-generator-options.svelte";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
-	import { Separator } from "bits-ui";
+	import { getCurrentWindow, ProgressBarStatus } from "@tauri-apps/api/window";
+	import { AppControl } from "$lib/utils/app-control";
 
 	interface Props {
 		selected_model_id: string | undefined;
@@ -99,6 +100,7 @@
 			.then((design) => {
 				startSimulation(design)
 					.then((res) => {
+						onSimulationCompleted();
 						toast.success("Simulation finished successfully.", {
 							id: simulation_toast,
 							duration: 5000,
@@ -106,6 +108,7 @@
 						});
 					})
 					.catch((err) => {
+						onSimulationError();
 						console.error(err);
 						toast.error("Simulation failed.", {
 							id: simulation_toast,
@@ -115,6 +118,7 @@
 					});
 			})
 			.catch((err) => {
+				onSimulationError();
 				console.error(err);
 				toast.error("Simulation failed.", {
 					id: simulation_toast,
@@ -122,6 +126,16 @@
 					action: undefined,
 				});
 			});
+	}
+
+	function onSimulationCompleted(){
+		getCurrentWindow().setProgressBar({status: ProgressBarStatus.None});
+		AppControl.sendSystemNotification("Simulation Completed", "The simulation has finished successfully.");
+	}
+
+	function onSimulationError(){
+		getCurrentWindow().setProgressBar({status: ProgressBarStatus.Error});
+		AppControl.sendSystemNotification("Simulation Error", "The simulation has encountered an error.");
 	}
 </script>
 
