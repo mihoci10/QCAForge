@@ -16,7 +16,7 @@
     "@iconify/icons-material-symbols": "^1.2.58",
     "@iconify/svelte": "^5.0.2",
     "@lucide/svelte": "^0.482.0",
-    "@sveltejs/adapter-auto": "^6.1.0",
+    "@sveltejs/adapter-auto": "^6.1.1",
     "@sveltejs/adapter-static": "^3.0.9",
     "@sveltejs/kit": "^2.37.1",
     "@sveltejs/vite-plugin-svelte": "^6.1.1",
