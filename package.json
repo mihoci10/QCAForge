@@ -27,7 +27,7 @@
     "bits-ui": "^1.8.0",
     "clsx": "^2.1.1",
     "formsnap": "^2.0.1",
-    "lucide-svelte": "^0.516.0",
+    "lucide-svelte": "^0.545.0",
     "mode-watcher": "^1.1.0",
     "paneforge": "^1.0.2",
     "postcss": "8.5.6",
