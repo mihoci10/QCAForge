@@ -37,7 +37,7 @@ impl QCAForgeLoggerContext {
                 entries.pop_front();
             }
             entries.push_back(entry.clone());
-            let _ = self.app.emit("LOG_ENTRY_ADDED", entry);
+            let _ = self.app.emit("logEntryAdded", entry);
         }
     }
 

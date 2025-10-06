@@ -19,3 +19,5 @@ export const EVENT_DELETE = "delete";
 
 export const EVENT_ABOUT = "about";
 export const EVENT_OPEN_SETTINGS = "appSettings";
+
+export const EVENT_LOG_ENTRY_ADDED = "logEntryAdded";
