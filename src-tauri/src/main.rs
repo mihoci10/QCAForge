@@ -36,8 +36,6 @@ mod log;
 use log::*;
 
 fn main() {
-    QCAForgeLogger::init();
-
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_os::init())
@@ -49,6 +47,7 @@ fn main() {
             let _ = app.emit(event.id().0.as_str(), {});
         })
         .setup(|app| {
+            QCAForgeLogger::init(app.handle().clone());
             let _ = app
                 .handle()
                 .get_webview_window("main")

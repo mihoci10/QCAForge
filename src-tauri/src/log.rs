@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::SystemTime;
+use tauri::{AppHandle, Emitter};
 
 const MAX_LOG_ENTRIES: usize = 1000;
 
@@ -25,6 +26,7 @@ pub struct LogFilter {
 
 #[derive(Debug)]
 struct QCAForgeLoggerContext {
+    app: AppHandle,
     entries: Arc<Mutex<VecDeque<LogEntry>>>,
 }
 
@@ -34,7 +36,8 @@ impl QCAForgeLoggerContext {
             if entries.len() >= MAX_LOG_ENTRIES {
                 entries.pop_front();
             }
-            entries.push_back(entry);
+            entries.push_back(entry.clone());
+            let _ = self.app.emit("LOG_ENTRY_ADDED", entry);
         }
     }
 
@@ -91,9 +94,10 @@ pub struct QCAForgeLogger;
 static LOGGER_CONTEXT: OnceLock<QCAForgeLoggerContext> = OnceLock::new();
 
 impl QCAForgeLogger {
-    pub fn init() {
+    pub fn init(app: AppHandle) {
         LOGGER_CONTEXT
             .set(QCAForgeLoggerContext {
+                app: app.clone(),
                 entries: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_LOG_ENTRIES))),
             })
             .expect("Logger already initialized");

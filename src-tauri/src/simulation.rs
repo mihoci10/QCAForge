@@ -1,9 +1,10 @@
-use std::{fs::File};
+use std::fs::File;
 
 use qca_core::{
-    design::{file::QCADesign},
+    design::file::QCADesign,
     simulation::{
-        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait, run_simulation_async, settings::OptionsList, SimulationProgress
+        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait, run_simulation_async,
+        settings::OptionsList, SimulationProgress,
     },
 };
 use serde::Serialize;
@@ -21,7 +22,7 @@ pub struct SimulationModelDescriptor {
 
 fn get_available_sim_models() -> Vec<Box<dyn SimulationModelTrait>> {
     vec![
-        //Box::new(BistableModel::new()),   
+        //Box::new(BistableModel::new()),
         Box::new(ICHAModel::new()),
     ]
 }
