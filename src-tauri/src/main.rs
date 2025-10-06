@@ -1,16 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use qca_core::{
-    objects::{architecture::QCACellArchitecture, layer::QCALayer},
-    simulation::{icha::ICHAModel, model::SimulationModelTrait, settings::OptionsList},
-};
 use serde::Serialize;
-use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::async_runtime::spawn;
 use tauri::http::{header, Response, StatusCode};
-use tauri::{Emitter, Manager, Url};
+use tauri::{Emitter, Manager};
 
 #[derive(Serialize)]
 struct BuildInfo {
@@ -37,7 +32,12 @@ use startup::*;
 mod design;
 use design::*;
 
+mod log;
+use log::*;
+
 fn main() {
+    QCAForgeLogger::init();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_os::init())
@@ -70,6 +70,12 @@ fn main() {
             load_simulation_file,
             calculate_truth_table,
             startup_frontend_ready,
+            set_log_level,
+            get_log_level,
+            clear_log,
+            get_log,
+            get_log_stats,
+            log_message,
         ])
         .register_uri_scheme_protocol("load-sim", |_, req| match handle_load_sim(req) {
             Ok(bin_data) => Response::builder()
