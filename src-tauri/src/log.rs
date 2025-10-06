@@ -2,14 +2,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex, OnceLock};
-use std::time::SystemTime;
 use tauri::{AppHandle, Emitter};
 
 const MAX_LOG_ENTRIES: usize = 1000;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogEntry {
-    pub timestamp: u64,
+    pub timestamp: chrono::DateTime<chrono::Local>,
     pub level: String,
     pub target: String,
     pub message: String,
@@ -129,10 +128,8 @@ impl log::Log for QCAForgeLogger {
 
     fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
-            let timestamp = SystemTime::now()
-                .duration_since(SystemTime::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis() as u64;
+            let timestamp = chrono::Local::now();
+            let pretty_timestamp: String = timestamp.format("%Y-%m-%d %H:%M:%S%.3f").to_string();
 
             let entry = LogEntry {
                 timestamp,
@@ -146,7 +143,7 @@ impl log::Log for QCAForgeLogger {
             // Print to console for development
             println!(
                 "[{}] {} - {} - {}",
-                entry.level, entry.target, entry.message, timestamp
+                pretty_timestamp, entry.level, entry.target, entry.message
             );
 
             QCAForgeLogger::get_instance().add_entry(entry);
