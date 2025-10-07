@@ -23,6 +23,14 @@
 	import { type Layer } from "$lib/Layer.js";
 	import { type CellArchitecture } from "$lib/CellArchitecture";
 	import type { DesignViewProps } from "$lib/components/design/design-view.svelte";
+	import * as Resizable from "$lib/components/ui/resizable";
+	import PanelContainer from "$lib/components/layout/panel-container.svelte";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
+	import * as Accordion from "$lib/components/ui/accordion";
+	import LayersPanel from "$lib/design/panels/layers-panel.svelte";
+	import CellPropsPanel from "$lib/design/panels/cell-props-panel.svelte";
+    import type { CellIndex } from "$lib/Cell";
+    import { Set } from "typescript-collections";
 
 	let selected_model_id: string | undefined = $state();
 	let layers: Layer[] = $state([]);
@@ -37,6 +45,11 @@
 		createDefaultDesignViewProps(),
 	);
 	let designer: Designer | undefined = $state();
+	// Bind targets managed at page level and wired to Designer and panels
+	let selectedLayer: number = $state(0);
+	let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
+	let cellPropsPanel: CellPropsPanel | undefined = $state();
+	function propertyChangedCallback() {}
 
 	design.subscribe((cur_design_file) => {
 		console.log("Design file updated:", cur_design_file);
@@ -162,12 +175,53 @@
 		bind:layers
 		bind:cell_architectures
 	/>
-	<Designer
-		bind:this={designer}
-		bind:designViewProps
-		bind:selected_model_id
-		bind:layers
-		bind:simulation_models
-		bind:cell_architectures
-	/>
+
+	<Resizable.PaneGroup direction="horizontal">
+		<Resizable.Pane defaultSize={15}>
+			<!-- Left side area -->
+			<ScrollArea class="h-full bg-sidebar px-2">
+			<Accordion.Root type="multiple" value={["layers", "cell-props"]}>
+				<LayersPanel
+					bind:layers
+					bind:selectedLayer
+					bind:cell_architectures
+				/>
+				<CellPropsPanel
+					bind:layers
+					{selectedCells}
+					bind:this={cellPropsPanel}
+					{propertyChangedCallback}
+				/>
+			</Accordion.Root>
+			</ScrollArea>
+		</Resizable.Pane>
+		<Resizable.Handle />
+		<Resizable.Pane>
+			<!-- Center area -->
+			 <Resizable.PaneGroup direction="vertical">
+				<Resizable.Pane defaultSize={80}>
+					<Designer
+						bind:this={designer}
+						bind:designViewProps
+						bind:selected_model_id
+						bind:layers
+						bind:simulation_models
+						bind:cell_architectures
+						bind:selectedLayer
+						bind:selectedCells
+						cellPropsPanel={cellPropsPanel}
+						propertyChangedCallback={propertyChangedCallback}
+					/>
+				</Resizable.Pane>
+				<Resizable.Handle />
+				<Resizable.Pane>
+					<PanelContainer panels={ [{ id: "log", title: "Log", visible: true }] } selectedPanelId={"log"}/>
+				</Resizable.Pane>
+			</Resizable.PaneGroup>
+		</Resizable.Pane>
+		<Resizable.Handle />
+		<Resizable.Pane defaultSize={0}>
+			<!-- Right side area -->
+		</Resizable.Pane>
+	</Resizable.PaneGroup>
 </div>

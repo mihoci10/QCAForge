@@ -83,7 +83,6 @@ impl QCAForgeLoggerContext {
     fn clear_entries(&self) {
         if let Ok(mut entries) = self.entries.lock() {
             entries.clear();
-            log::info!("Log entries cleared");
         }
     }
 }

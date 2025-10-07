@@ -22,6 +22,11 @@
 		simulation_models: Map<string, SimulationModel>;
 		cell_architectures: Map<string, CellArchitecture>;
 		designViewProps: DesignViewProps;
+		// Added bindable props so parent page can control/observe these
+		selectedLayer: number;
+		selectedCells: Set<CellIndex>;
+		cellPropsPanel: CellPropsPanel | undefined;
+		propertyChangedCallback: () => void;
 	}
 
 	let {
@@ -30,18 +35,19 @@
 		simulation_models = $bindable(),
 		cell_architectures = $bindable(),
 		designViewProps = $bindable(),
+		// Make internal state bindable to parent
+		selectedLayer = $bindable(0),
+		selectedCells = $bindable(new Set<CellIndex>()),
+		cellPropsPanel = $bindable<CellPropsPanel | undefined>(undefined),
+		propertyChangedCallback = $bindable(() => {}),
 	}: Props = $props();
 
 	let designView: DesignView | undefined = $state();
-	let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
-	let selectedLayer: number = $state(0);
-	let cellPropsPanel: CellPropsPanel | undefined = $state();
 
 	export function redraw() {
 		designView!.drawCurrentLayer();
 	}
 
-	function propertyChangedCallback() {}
 
 	function onGetNewCellProps(): Cell {
 		return cellPropsPanel!.getCellProps();
@@ -72,36 +78,13 @@
 	});
 </script>
 
-<Resizable.PaneGroup direction="horizontal">
-	<Resizable.Pane defaultSize={15} minSize={10}>
-		<!-- Sidebar -->
-		<ScrollArea class="h-full bg-sidebar px-2">
-			<Accordion.Root type="multiple" value={["layers", "cell-props"]}>
-				<LayersPanel
-					bind:layers
-					bind:selectedLayer
-					bind:cell_architectures
-				/>
-				<CellPropsPanel
-					bind:layers
-					{selectedCells}
-					bind:this={cellPropsPanel}
-					{propertyChangedCallback}
-				/>
-			</Accordion.Root>
-		</ScrollArea>
-	</Resizable.Pane>
-	<Resizable.Handle />
-	<Resizable.Pane minSize={10}>
-		<DesignView
-			bind:this={designView}
-			{cell_architectures}
-			bind:layers
-			{selectedLayer}
-			bind:selectedCells
-			bind:properties={designViewProps}
-			{onGetNewCellProps}
-			{onSelectedCellsUpdated}
-		/>
-	</Resizable.Pane>
-</Resizable.PaneGroup>
+<DesignView
+	bind:this={designView}
+	{cell_architectures}
+	bind:layers
+	{selectedLayer}
+	bind:selectedCells
+	bind:properties={designViewProps}
+	{onGetNewCellProps}
+	{onSelectedCellsUpdated}
+/>

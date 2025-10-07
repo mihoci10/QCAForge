@@ -128,6 +128,10 @@
 			});
 	}
 
+	function cancelSimulation() {
+		
+	}
+
 	function onSimulationCompleted(){
 		getCurrentWindow().setProgressBar({status: ProgressBarStatus.None});
 		AppControl.sendSystemNotification("Simulation Completed", "The simulation has finished successfully.");

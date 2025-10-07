@@ -1,7 +1,7 @@
 
-added 1 package, and audited 404 packages in 4s
+added 1 package, removed 1 package, and audited 404 packages in 3s
 
-80 packages are looking for funding
+79 packages are looking for funding
   run `npm fund` for details
 
 7 low severity vulnerabilities

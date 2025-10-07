@@ -12,6 +12,7 @@
   "permissions": [
     "core:default",
     "core:window:allow-set-title",
+    "core:window:allow-set-progress-bar",
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-clear",
@@ -23,6 +24,7 @@
     "opener:default",
     "os:default",
     "os:allow-hostname",
-    "store:default"
+    "store:default",
+    "notification:default"
   ]
 }

@@ -6,7 +6,6 @@
 	import { page } from "$app/state";
 	import { listen } from "@tauri-apps/api/event";
 	import {
-		EVENT_LOG_ENTRY_ADDED,
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
 		EVENT_OPEN_DESIGN_FILE,
@@ -126,24 +125,20 @@
 			console.error(err);
 		});
 	});
-
-	listen(EVENT_LOG_ENTRY_ADDED, (event) => {
-		const logEntry = event.payload;
-		console.log(logEntry);
-	});
 </script>
 
 <Toaster />
 
 <div class="flex flex-row h-full">
 	<Sidebar />
+
 	<div class="flex h-full w-full overflow-auto">
 		{@render children()}
 	</div>
-	<ModeWatcher />
-	<Toaster />
 </div>
 
+<ModeWatcher />
+<Toaster />
 <NewDesignSetup 
 	bind:isOpen={isNewDesignOpen}
 	{onCreateNewDesign}
