@@ -20,8 +20,8 @@
 
 </script>
 
-<Tabs.Root bind:value={selectedPanelId} class="flex h-full min-h-0 flex-col overflow-hidden">
-    <Tabs.List class="shrink-0">
+<Tabs.Root bind:value={selectedPanelId} class="flex h-full min-h-0 flex-col ">
+    <Tabs.List class="shrink-0 justify-start">
         {#each panels as panel}
             {#if panel.visible}
                 <Tabs.Trigger value={panel.id}>{panel.title}</Tabs.Trigger>

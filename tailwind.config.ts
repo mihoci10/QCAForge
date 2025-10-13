@@ -29,6 +29,10 @@ const config: Config = {
                     DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
                     foreground: "hsl(var(--secondary-foreground) / <alpha-value>)"
                 },
+                warn: {
+                    DEFAULT: "hsl(var(--warn) / <alpha-value>)",
+                    foreground: "hsl(var(--warn-foreground) / <alpha-value>)"
+                },
                 destructive: {
                     DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
                     foreground: "hsl(var(--destructive-foreground) / <alpha-value>)"

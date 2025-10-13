@@ -3,7 +3,7 @@
 	import { EVENT_LOG_ENTRY_ADDED } from "$lib/utils/events";
 	import { listen } from "@tauri-apps/api/event";
 	import { invoke } from "@tauri-apps/api/core";
-	import { deserializeLogEntry, type LogEntry, type LogLevel } from "./log";
+	import { deserializeLogEntry, getPrettyLogLevel, LOG_LEVELS, type LogEntry, type LogLevel } from "./log";
 
 	// UI components
 	import Button from "$lib/components/ui/button/button.svelte";
@@ -31,23 +31,17 @@
 	let entries: LogEntry[] = $state([]);
 	let filtered: LogEntry[] = $state([]);
 
-	let levelFilter: '' | LogLevel = $state('');
-	let targetFilter = $state('');
+	let filteredLevels: LogLevel[] = $state(["INFO", "WARN", "ERROR"]);
 	let search = $state('');
 	let autoScroll = $state(true);
-
-	let backendLogLevel = $state<string>("INFO");
-	let lastAppliedLevel: string | null = $state(null);
 
 	// handle listener unlisten
 	let unlisten: (() => void) | null = null;
 
 	function applyFilters() {
 		const s = search.trim().toLowerCase();
-		const t = targetFilter.trim().toLowerCase();
 		filtered = entries.filter((e) => {
-			if (levelFilter && e.level !== levelFilter) return false;
-			if (t && !e.target.toLowerCase().includes(t)) return false;
+			if (!filteredLevels.includes(e.level)) return false;
 			if (s) {
 				const hay = `${e.message}\n${e.target}`.toLowerCase();
 				if (!hay.includes(s)) return false;
@@ -58,20 +52,10 @@
 
 	$effect(() => {
 		// recompute filtered whenever inputs change
-		void levelFilter; void targetFilter; void search; void entries;
+		void filteredLevels; void search; void entries;
 		applyFilters();
 		// schedule autoscroll if enabled
 		if (autoScroll) scrollToBottomSoon();
-	});
-
-	$effect(() => {
-		const v = backendLogLevel;
-		if (v && v !== lastAppliedLevel) {
-			// apply to backend; ignore errors silently
-			invoke("set_log_level", { logLevel: v }).then(() => {
-				lastAppliedLevel = v;
-			}).catch(() => {});
-		}
 	});
 
 	let bottomEl: HTMLDivElement | null = null;
@@ -90,10 +74,10 @@
 		}
 	}
 
-	function levelVariant(level: LogLevel): "default" | "secondary" | "destructive" | "outline" {
+	function getLogLevelVariant(level: LogLevel): "destructive" | "warn" | "default" | "outline" {
 		switch (level) {
 			case "ERROR": return "destructive";
-			case "WARN": return "secondary";
+			case "WARN": return "warn";
 			case "INFO": return "default";
 			case "DEBUG": return "outline";
 			case "TRACE": return "outline";
@@ -101,12 +85,6 @@
 	}
 
 	async function loadInitial() {
-		// fetch current backend level and entries
-		try {
-			const level = (await invoke("get_log_level")) as string;
-			backendLogLevel = level.toUpperCase();
-			lastAppliedLevel = backendLogLevel;
-		} catch {}
 		try {
 			const raw = (await invoke("get_log", { filter: null })) as any[];
 			entries = raw.map(deserializeLogEntry);
@@ -145,41 +123,33 @@
 	});
 </script>
 
-<div class="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+<div class="flex h-full min-h-0 flex-col gap-1 overflow-hidden">
 	<!-- Controls -->
-	<div class="flex flex-wrap items-center gap-2">
+	<div class="flex flex-wrap items-center px-2">
 		<div class="flex items-center gap-2">
-			<Label class="text-sm text-muted-foreground">Level</Label>
-			<Select.Root type="single" bind:value={levelFilter}>
+			<Label class="text-sm text-muted-foreground">Level filter</Label>
+			<Select.Root type="multiple" bind:value={filteredLevels}>
 				<Select.Trigger class="w-32">
-					{levelFilter ? levelFilter.toUpperCase() : 'All'}
+					{#if filteredLevels.length === 0}
+						None
+					{:else if filteredLevels.length === LOG_LEVELS.length}
+						All
+					{:else if filteredLevels.length === 1}
+						{getPrettyLogLevel(filteredLevels[0])}
+					{:else}
+						{filteredLevels.length} selected
+					{/if}
 				</Select.Trigger>
 				<Select.Content>
-					<Select.Item value="">All</Select.Item>
-					<Select.Item value="error">ERROR</Select.Item>
-					<Select.Item value="warn">WARN</Select.Item>
-					<Select.Item value="info">INFO</Select.Item>
-					<Select.Item value="debug">DEBUG</Select.Item>
-					<Select.Item value="trace">TRACE</Select.Item>
+					{#each LOG_LEVELS as lvl}
+						<Select.Item value={lvl}>{getPrettyLogLevel(lvl)}</Select.Item>
+					{/each}
 				</Select.Content>
 			</Select.Root>
 		</div>
-		<Input placeholder="Filter target…" class="w-44" bind:value={targetFilter} />
 		<Input placeholder="Search message/target…" class="min-w-56 flex-1" bind:value={search} />
 
 		<div class="ml-auto flex items-center gap-2">
-			<Label class="text-sm text-muted-foreground">Backend Level</Label>
-			<Select.Root type="single" bind:value={backendLogLevel}>
-				<Select.Trigger class="w-36">{backendLogLevel}</Select.Trigger>
-				<Select.Content>
-					<Select.Item value="ERROR">ERROR</Select.Item>
-					<Select.Item value="WARN">WARN</Select.Item>
-					<Select.Item value="INFO">INFO</Select.Item>
-					<Select.Item value="DEBUG">DEBUG</Select.Item>
-					<Select.Item value="TRACE">TRACE</Select.Item>
-				</Select.Content>
-			</Select.Root>
-
 			<Toggle pressed={autoScroll} onclick={() => (autoScroll = !autoScroll)} title={autoScroll ? 'Auto-scroll on' : 'Auto-scroll off'}>
 				{#if autoScroll}
 					<Pause />
@@ -194,9 +164,6 @@
 			</Button>
 			<Button variant="destructive" onclick={clearLogs} title="Clear all logs">
 				<Trash2 class="size-4" /> Clear
-			</Button>
-			<Button variant="outline" onclick={loadInitial} title="Reload from backend">
-				<RefreshCw class="size-4" /> Reload
 			</Button>
 		</div>
 	</div>
@@ -218,11 +185,11 @@
 						<TableCell colspan={4} class="text-center text-sm text-muted-foreground">No log entries</TableCell>
 					</TableRow>
 				{:else}
-					{#each filtered as e (e.timestamp.toString() + e.message)}
+					{#each filtered as e, index (index)}
 						<TableRow>
 							<TableCell class="font-mono text-xs text-muted-foreground">{formatTime(e.timestamp)}</TableCell>
 							<TableCell>
-								<Badge variant={levelVariant(e.level)}>{e.level.toUpperCase()}</Badge>
+								<Badge variant={getLogLevelVariant(e.level)}>{getPrettyLogLevel(e.level)}</Badge>
 							</TableCell>
 							<TableCell class="font-mono text-xs">{e.target}</TableCell>
 							<TableCell class="whitespace-pre-wrap">{e.message}</TableCell>
