@@ -33,6 +33,8 @@
 		propertyChangedCallback,
 	}: Props = $props();
 
+	let selectedCellsCount = $state(selectedCells.size());
+
 	function selectedClockModeChanged(newClockMode: string) {
 		selectedClockMode = newClockMode;
 
@@ -162,22 +164,8 @@
 			if (cellPositions[i].size() > 1) positionInput[i] = NaN;
 			else positionInput[i] = cellPositions[i].toArray()[0];
 		}
-	}
 
-	export function getCellProps(): Cell {
-		return {
-			clock_phase_shift: parseInt(selectedClockMode || "0"),
-			typ: parseInt(selectedCellType || "0") as CellType,
-			rotation: parseInt(selectedCellRotation || "0"),
-			dot_probability_distribution: generateDotDistribution(
-				polarizationInput.map((v) => (isNaN(v) ? 0 : v)),
-			),
-			label: labelInput,
-			position: positionInput.map((v) => Math.round(v)) as [
-				number,
-				number,
-			],
-		};
+		selectedCellsCount = selectedCells.size();
 	}
 
 	const selected_clock_display = $derived(
@@ -238,6 +226,11 @@
 	</Accordion.Trigger>
 	<Accordion.Content>
 		<div class="flex flex-col gap-2 px-1">
+			{#if selectedCellsCount == 0}
+				<div class="p-2 text-sm text-muted-foreground">
+					No cells selected.
+				</div>
+			{:else}
 			<div class="flex flex-col gap-1.5">
 				<Label>Clock phase shift</Label>
 				<Select.Root
@@ -352,6 +345,7 @@
 					</div>
 				</div>
 			</div>
+			{/if}
 		</div>
 	</Accordion.Content>
 </Accordion.Item>
