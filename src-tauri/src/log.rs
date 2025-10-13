@@ -103,7 +103,7 @@ impl QCAForgeLogger {
         log::set_boxed_logger(Box::new(QCAForgeLogger)).unwrap();
         log::info!("Logger initialized");
 
-        QCAForgeLogger::set_level(log::LevelFilter::Info);
+        QCAForgeLogger::set_level(log::LevelFilter::Trace);
     }
 
     pub fn set_level(level: log::LevelFilter) {

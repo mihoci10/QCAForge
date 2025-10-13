@@ -23,3 +23,6 @@ themeManager.register(new LegacyCellTheme());
 
 // Recent files manager instance
 export const recentFilesManager = new RecentFilesManager();
+
+// UI state management
+export const visibleBottomPanels: Writable<string[]> = writable([]);

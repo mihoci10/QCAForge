@@ -18,7 +18,7 @@
 	} from "$lib/qca-design";
 	import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs";
 	import { save } from "@tauri-apps/plugin-dialog";
-	import { design, design_filename } from "$lib/globals";
+	import { design, design_filename, visibleBottomPanels } from "$lib/globals";
 	import { get } from "svelte/store";
 	import { type Layer } from "$lib/Layer.js";
 	import { type CellArchitecture } from "$lib/CellArchitecture";
@@ -49,7 +49,13 @@
 	let selectedLayer: number = $state(0);
 	let selectedCells: Set<CellIndex> = $state(new Set<CellIndex>());
 	let cellPropsPanel: CellPropsPanel | undefined = $state();
+
 	function propertyChangedCallback() {}
+
+	let bottomPanels = $state([
+		{ id: "log", title: "Log", visible: true },
+	]);
+	let selectedBottomPanelId: string = $state("log");
 
 	design.subscribe((cur_design_file) => {
 		console.log("Design file updated:", cur_design_file);
@@ -198,26 +204,28 @@
 		<Resizable.Handle />
 		<Resizable.Pane>
 			<!-- Center area -->
-			 <Resizable.PaneGroup direction="vertical">
-				<Resizable.Pane defaultSize={80}>
-					<Designer
-						bind:this={designer}
-						bind:designViewProps
-						bind:selected_model_id
-						bind:layers
-						bind:simulation_models
-						bind:cell_architectures
-						bind:selectedLayer
-						bind:selectedCells
-						cellPropsPanel={cellPropsPanel}
-						propertyChangedCallback={propertyChangedCallback}
-					/>
-				</Resizable.Pane>
-				<Resizable.Handle />
-				<Resizable.Pane>
-					<PanelContainer panels={ [{ id: "log", title: "Log", visible: true }] } selectedPanelId={"log"}/>
-				</Resizable.Pane>
-			</Resizable.PaneGroup>
+				<Resizable.PaneGroup direction="vertical">
+					<Resizable.Pane defaultSize={80}>
+						<Designer
+							bind:this={designer}
+							bind:designViewProps
+							bind:selected_model_id
+							bind:layers
+							bind:simulation_models
+							bind:cell_architectures
+							bind:selectedLayer
+							bind:selectedCells
+							cellPropsPanel={cellPropsPanel}
+							propertyChangedCallback={propertyChangedCallback}
+						/>
+					</Resizable.Pane>
+					<Resizable.Handle />
+					{#if bottomPanels.some(panel => panel.visible)}
+						<Resizable.Pane>
+							<PanelContainer bind:panels={bottomPanels} bind:selectedPanelId={selectedBottomPanelId} />
+						</Resizable.Pane>
+					{/if}
+				</Resizable.PaneGroup>
 		</Resizable.Pane>
 		<Resizable.Handle />
 		<Resizable.Pane defaultSize={0}>

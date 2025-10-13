@@ -6,11 +6,10 @@
 	import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
 	import { EVENT_ABOUT, EVENT_OPEN_SETTINGS, EVENT_OPEN_SIMULATION } from "$lib/utils/events";
 	import { onMount, onDestroy } from "svelte";
-	import { design, simulation } from "$lib/globals";
+	import { design, simulation, visibleBottomPanels } from "$lib/globals";
 	import { AppControl } from "$lib/utils/app-control";
 	import { goto } from "$app/navigation";
 	import { get } from "svelte/store";
-
 
 	let settingsModal: AppSettingsModal | undefined = $state();
 	let unlistenAbout: UnlistenFn | undefined;
@@ -29,6 +28,19 @@
 		unlistenAbout?.();
 		unlistenSettings?.();
 	});
+
+	function togglePanel(panelId: string) {
+		visibleBottomPanels.update(v => 
+			v.includes(panelId) ? v.filter(id => id !== panelId) : [...v, panelId]
+		);
+		isLogPanelVisible = isPanelVisible("log");
+	}
+
+	function isPanelVisible(panelId: string): boolean {
+		return get(visibleBottomPanels).includes(panelId);
+	}
+
+	let isLogPanelVisible: boolean = $state(isPanelVisible("log"));
 </script>
 
 <nav 
@@ -80,6 +92,18 @@
 		<Icon width={30} icon="material-symbols:search-insights-rounded" />
 	</Button>
 	<div class="grow"></div>
+	<Button
+		variant="ghost"
+		size="icon"
+		class="data-[state=on]:bg-sidebar-ring"
+		onclick={() => togglePanel("log")}
+		data-state={isLogPanelVisible ? "on" : "off"}
+		aria-label="Toggle logging console"
+		title="Log"
+	>
+		<Icon width={30} icon="material-symbols:list-alt-outline-rounded" />
+	</Button>		
+    <hr />
 	<Button
 		variant="ghost"
 		size="icon"

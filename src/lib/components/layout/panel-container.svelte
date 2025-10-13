@@ -1,6 +1,8 @@
 <script lang="ts">
 	import * as Tabs from "$lib/components/ui/tabs/";
 	import LogPanel from "$lib/logging/log-panel.svelte";
+	import { visibleBottomPanels } from "$lib/globals";
+	import { onMount } from "svelte";
 
     interface PanelId {
         id: string;
@@ -16,8 +18,21 @@
         panels: PanelId[];
         selectedPanelId: string;
     }
-    let { panels, selectedPanelId = $bindable() }: Props = $props();
+    let { panels = $bindable(), selectedPanelId = $bindable() }: Props = $props();
 
+    onMount(() => {
+        visibleBottomPanels.subscribe((visibleIds) => {
+            panels.forEach((panel) => {
+                panel.visible = visibleIds.includes(panel.id);
+            });
+            // If the selected panel is no longer visible, switch to the first visible panel
+            if (!panels.find((p) => p.id === selectedPanelId && p.visible)) {
+                const firstVisible = panels.find((p) => p.visible);
+                if (firstVisible) selectedPanelId = firstVisible.id;
+            }
+            panels = [...panels]; // Trigger reactivity
+        });
+    });
 </script>
 
 <Tabs.Root bind:value={selectedPanelId} class="flex h-full min-h-0 flex-col ">

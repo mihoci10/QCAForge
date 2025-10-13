@@ -125,7 +125,7 @@
 
 <div class="flex h-full min-h-0 flex-col gap-1 overflow-hidden">
 	<!-- Controls -->
-	<div class="flex flex-wrap items-center px-2">
+	<div class="flex flex-wrap items-center px-2 gap-2">
 		<div class="flex items-center gap-2">
 			<Label class="text-sm text-muted-foreground">Level filter</Label>
 			<Select.Root type="multiple" bind:value={filteredLevels}>
