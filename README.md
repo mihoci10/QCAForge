@@ -5,12 +5,20 @@
 ## Features
 
 ### 🔬 **QCA Design & Simulation**
+Create complex QCA circuits with our intuitive visual designer:
+
+![QCA Circuit Design](assets/design.gif)
+
 - Interactive visual QCA circuit designer
 - Support for various cell architectures
 - Integrated simulation engine powered by the [QCASim](https://github.com/mihoci10/QCASim) library
 - Real-time simulation progress tracking
 
 ### 📊 **Analysis & Visualization**
+Visualize and analyze your simulation data with powerful tools:
+
+![QCA Analysis](assets/analyze.gif)
+
 - Comprehensive simulation result analysis with multiple visualization options
 - Truth table analysis
 - Data export capabilities
