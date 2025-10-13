@@ -145,7 +145,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-3">
+<div class="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
 	<!-- Controls -->
 	<div class="flex flex-wrap items-center gap-2">
 		<div class="flex items-center gap-2">
@@ -202,7 +202,7 @@
 	</div>
 
 	<!-- Table -->
-	<ScrollArea orientation="vertical" class="h-full">
+	<ScrollArea orientation="vertical" class="flex-1 min-h-0">
 		<Table class="min-w-full">
 			<TableHeader>
 				<tr>

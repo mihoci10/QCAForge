@@ -20,8 +20,8 @@
 
 </script>
 
-<Tabs.Root bind:value={selectedPanelId}>
-    <Tabs.List>
+<Tabs.Root bind:value={selectedPanelId} class="flex h-full min-h-0 flex-col overflow-hidden">
+    <Tabs.List class="shrink-0">
         {#each panels as panel}
             {#if panel.visible}
                 <Tabs.Trigger value={panel.id}>{panel.title}</Tabs.Trigger>
@@ -30,7 +30,7 @@
     </Tabs.List>
     {#each panels as panel}
         {#if panel.visible}
-        <Tabs.Content value={panel.id}>
+        <Tabs.Content value={panel.id} class="flex flex-1 flex-col overflow-hidden">
             {#if panel.id === 'log'}
                 <LogPanel />
             {/if}
