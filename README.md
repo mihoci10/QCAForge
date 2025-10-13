@@ -1,4 +1,6 @@
-# QCAForge
+# QCAForge 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Build and Test](https://github.com/mihoci10/QCAForge/actions/workflows/ci.yaml/badge.svg)](https://github.com/mihoci10/QCAForge/actions/workflows/ci.yaml)
 
 **QCAForge** is a modern desktop application for designing and simulating Quantum Cellular Automata (QCA) circuits. Built with Tauri, Svelte, and Rust, it provides a comprehensive environment for QCA research, design, and analysis.
 
