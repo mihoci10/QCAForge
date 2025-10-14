@@ -90,6 +90,10 @@ class CellSceneLayer {
 	getGeometry(): ICellGeometry {
 		return this.geometry;
 	}
+
+	setVisible(visible: boolean) {
+		this.visible = visible;
+	}
 }
 
 export class CellScene {

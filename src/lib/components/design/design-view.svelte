@@ -20,8 +20,6 @@
 	import { emit } from "@tauri-apps/api/event";
 	import { PRINT_OPTIONS, printDesign } from "./print/print-design";
 	import PrintDesignModal from "./print/print-design-modal.svelte";
-	import type { Color } from "@tauri-apps/api/webview";
-
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
 	let controls: OrbitControls;
@@ -95,6 +93,11 @@
 	$effect(() => {
 		properties.cell_snapping_enabled = cellSnappingEnabled;
 		properties.cell_snapping_divider = cellSnappingDivider;
+	});
+
+	$effect(() => {
+		void layers;
+		layersVisibilityChanged();
 	});
 
 	function updatePropertiesFromCamera() {
@@ -459,6 +462,15 @@
 					get_cell_architecture(),
 				);
 		}
+	}
+
+	function layersVisibilityChanged() {
+		if (!cellScene) return;
+		console.assert(layers.length == cellScene.getLayersCount());
+		for (let i = 0; i < layers.length; i++) {
+			cellScene.getLayer(i).setVisible(layers[i].visible);
+		}
+		drawCurrentLayer();
 	}
 
 	function screenSpaceToWorld(pos: THREE.Vector2): THREE.Vector3 {
