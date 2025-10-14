@@ -220,9 +220,7 @@
 
 <Accordion.Item value="cell-props">
 	<Accordion.Trigger>
-		<div class="flex items-center gap-1.5">
-			Cell properties
-		</div>
+		<div class="flex items-center gap-1.5">Cell properties</div>
 	</Accordion.Trigger>
 	<Accordion.Content>
 		<div class="flex flex-col gap-2 px-1">
@@ -231,120 +229,126 @@
 					No cells selected.
 				</div>
 			{:else}
-			<div class="flex flex-col gap-1.5">
-				<Label>Clock phase shift</Label>
-				<Select.Root
-					bind:value={selectedClockMode}
-					onValueChange={selectedClockModeChanged}
-					type="single"
-					disabled={!selectedCellType ||
-						!["0", "2", "multiple"].includes(selectedCellType)}
-				>
-					<Select.Trigger>
-						{selected_clock_display}
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Item value="0" label="0 degrees" />
-						<Select.Item value="90" label="90 degrees" />
-						<Select.Item value="180" label="180 degrees" />
-						<Select.Item value="270" label="270 degrees" />
-					</Select.Content>
-				</Select.Root>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<Label>Cell type</Label>
-				<Select.Root
-					bind:value={selectedCellType}
-					onValueChange={selectedCellTypeChanged}
-					type="single"
-				>
-					<Select.Trigger>
-						{selected_type_display}
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Item value="0" label="Normal" />
-						<Select.Item value="1" label="Input" />
-						<Select.Item value="2" label="Output" />
-						<Select.Item value="3" label="Fixed" />
-					</Select.Content>
-				</Select.Root>
-			</div>
-			{#if polarizationInput && polarizationInput.length == 1}
 				<div class="flex flex-col gap-1.5">
-					<Label>Cell rotation</Label>
+					<Label>Clock phase shift</Label>
 					<Select.Root
-						bind:value={selectedCellRotation}
-						onValueChange={selectedCellRotationChanged}
+						bind:value={selectedClockMode}
+						onValueChange={selectedClockModeChanged}
 						type="single"
+						disabled={!selectedCellType ||
+							!["0", "2", "multiple"].includes(selectedCellType)}
 					>
 						<Select.Trigger>
-							{selected_rotation_display}
+							{selected_clock_display}
 						</Select.Trigger>
 						<Select.Content>
 							<Select.Item value="0" label="0 degrees" />
 							<Select.Item value="90" label="90 degrees" />
+							<Select.Item value="180" label="180 degrees" />
+							<Select.Item value="270" label="270 degrees" />
 						</Select.Content>
 					</Select.Root>
 				</div>
-			{/if}
-			<div class="flex flex-col gap-1.5">
-				{#if polarizationInput && polarizationInput.length > 0}
-					<Label>Polarization</Label>
-					{#each polarizationInput as polarization, i}
+				<div class="flex flex-col gap-1.5">
+					<Label>Cell type</Label>
+					<Select.Root
+						bind:value={selectedCellType}
+						onValueChange={selectedCellTypeChanged}
+						type="single"
+					>
+						<Select.Trigger>
+							{selected_type_display}
+						</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="0" label="Normal" />
+							<Select.Item value="1" label="Input" />
+							<Select.Item value="2" label="Output" />
+							<Select.Item value="3" label="Fixed" />
+						</Select.Content>
+					</Select.Root>
+				</div>
+				{#if polarizationInput && polarizationInput.length == 1}
+					<div class="flex flex-col gap-1.5">
+						<Label>Cell rotation</Label>
+						<Select.Root
+							bind:value={selectedCellRotation}
+							onValueChange={selectedCellRotationChanged}
+							type="single"
+						>
+							<Select.Trigger>
+								{selected_rotation_display}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="0" label="0 degrees" />
+								<Select.Item value="90" label="90 degrees" />
+							</Select.Content>
+						</Select.Root>
+					</div>
+				{/if}
+				<div class="flex flex-col gap-1.5">
+					{#if polarizationInput && polarizationInput.length > 0}
+						<Label>Polarization</Label>
+						{#each polarizationInput as polarization, i}
+							<div class="flex items-center gap-2">
+								{#if polarizationInput.length > 1}
+									<span>{"ABCDE".at(i)}</span>
+								{/if}
+								<Input
+									type="number"
+									min="-1"
+									max="1"
+									step="0.1"
+									bind:value={polarizationInput[i]}
+									onchange={polarizationInputChanged}
+									disabled={!selectedCellType ||
+										!["3"].includes(selectedCellType)}
+								/>
+							</div>
+						{/each}
+					{/if}
+				</div>
+				<div class="flex flex-col gap-1.5">
+					<Label>Cell label</Label>
+					<Input
+						type="text"
+						bind:value={labelInput}
+						onchange={labelInputChanged}
+						placeholder="Label"
+						disabled={!selectedCellType ||
+							!["1", "2"].includes(selectedCellType)}
+					/>
+				</div>
+				<div class="flex flex-col gap-1.5">
+					<Label>Position</Label>
+					<div class="flex gap-2">
 						<div class="flex items-center gap-2">
-							{#if polarizationInput.length > 1}
-								<span>{"ABCDE".at(i)}</span>
-							{/if}
+							<span
+								class="inline-flex items-center rounded-md bg-red-800 px-2 py-1 text-xs font-medium text-destructive-foreground"
+								>X</span
+							>
 							<Input
 								type="number"
-								min="-1"
-								max="1"
-								step="0.1"
-								bind:value={polarizationInput[i]}
-								onchange={polarizationInputChanged}
-								disabled={!selectedCellType ||
-									!["3"].includes(selectedCellType)}
+								step="1"
+								bind:value={positionInput[0]}
+								onchange={() => positionInputChanged(0)}
+								class="flex-1"
 							/>
 						</div>
-					{/each}
-				{/if}
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<Label>Cell label</Label>
-				<Input
-					type="text"
-					bind:value={labelInput}
-					onchange={labelInputChanged}
-					placeholder="Label"
-					disabled={!selectedCellType ||
-						!["1", "2"].includes(selectedCellType)}
-				/>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<Label>Position</Label>
-				<div class="flex gap-2">
-					<div class="flex items-center gap-2">
-						<span class="inline-flex items-center rounded-md bg-red-800 px-2 py-1 text-xs font-medium text-destructive-foreground">X</span>
-						<Input
-							type="number"
-							step="1"
-							bind:value={positionInput[0]}
-							onchange={() => positionInputChanged(0)}
-							class="flex-1"
-						/>
-					</div>
-					<div class="flex items-center gap-2">
-						<span class="inline-flex items-center rounded-md bg-green-800 px-2 py-1 text-xs font-medium text-destructive-foreground">Y</span>
-						<Input
-							type="number"
-							step="1"
-							bind:value={positionInput[1]}
-							onchange={() => positionInputChanged(1)}
-							class="flex-1"
-						/>
+						<div class="flex items-center gap-2">
+							<span
+								class="inline-flex items-center rounded-md bg-green-800 px-2 py-1 text-xs font-medium text-destructive-foreground"
+								>Y</span
+							>
+							<Input
+								type="number"
+								step="1"
+								bind:value={positionInput[1]}
+								onchange={() => positionInputChanged(1)}
+								class="flex-1"
+							/>
+						</div>
 					</div>
 				</div>
-			</div>
 			{/if}
 		</div>
 	</Accordion.Content>

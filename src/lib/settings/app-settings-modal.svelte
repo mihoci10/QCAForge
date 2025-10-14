@@ -9,40 +9,40 @@
 
 	// Settings state
 	let isOpen = $state(false);
-	let currentSection = $state('general');
+	let currentSection = $state("general");
 	let settings = $state({
 		// General settings
-		appName: 'QCA Forge',
+		appName: "QCA Forge",
 		autoSave: true,
 		autoSaveInterval: 5,
 		checkUpdates: true,
 		showWelcomeScreen: true,
-		
+
 		// Appearance settings
-		theme: 'system',
-		accentColor: 'blue',
+		theme: "system",
+		accentColor: "blue",
 		fontSize: 14,
 		showGrid: true,
 		showRuler: false,
-		
+
 		// Performance settings
 		maxUndoLevels: 50,
 		enableHardwareAcceleration: true,
 		memoryLimit: 512,
-		
+
 		// Simulation settings
 		defaultClockSpeed: 1000,
 		maxIterations: 10000,
 		enableParallelProcessing: true,
-		
+
 		// Privacy settings
 		sendTelemetry: false,
 		crashReports: true,
-		
+
 		// Advanced settings
 		developerMode: false,
 		debugLogging: false,
-		customConfigPath: ''
+		customConfigPath: "",
 	});
 
 	interface SidebarItem {
@@ -51,31 +51,39 @@
 		iconName: string;
 	}
 
-	const GENERAL_TAB = 'general';
-	const APPEARANCE_TAB = 'appearance';
-	const ABOUT_TAB = 'about';
+	const GENERAL_TAB = "general";
+	const APPEARANCE_TAB = "appearance";
+	const ABOUT_TAB = "about";
 
 	const sidebarItems = [
-		{ id: GENERAL_TAB, label: 'General', iconName: 'mdi:cog-outline' },
-		{ id: APPEARANCE_TAB, label: 'Appearance', iconName: 'mdi:palette-outline' },
-		{ id: ABOUT_TAB, label: 'About', iconName: 'mdi:information-outline' },
+		{ id: GENERAL_TAB, label: "General", iconName: "mdi:cog-outline" },
+		{
+			id: APPEARANCE_TAB,
+			label: "Appearance",
+			iconName: "mdi:palette-outline",
+		},
+		{ id: ABOUT_TAB, label: "About", iconName: "mdi:information-outline" },
 	];
 
 	function applyCallback(data: any) {
-		console.log('Applying settings:', { ...settings, ...data });
+		console.log("Applying settings:", { ...settings, ...data });
 		// Here you would typically save settings to storage or send to backend
 	}
 
 	function resetToDefaults() {
-		if (confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
+		if (
+			confirm(
+				"Are you sure you want to reset all settings to defaults? This action cannot be undone.",
+			)
+		) {
 			settings = {
-				appName: 'QCA Forge',
+				appName: "QCA Forge",
 				autoSave: true,
 				autoSaveInterval: 5,
 				checkUpdates: true,
 				showWelcomeScreen: true,
-				theme: 'system',
-				accentColor: 'blue',
+				theme: "system",
+				accentColor: "blue",
 				fontSize: 14,
 				showGrid: true,
 				showRuler: false,
@@ -89,7 +97,7 @@
 				crashReports: true,
 				developerMode: false,
 				debugLogging: false,
-				customConfigPath: ''
+				customConfigPath: "",
 			};
 		}
 	}
@@ -100,8 +108,15 @@
 	}
 </script>
 
-<BaseModal bind:open={isOpen} type="blank" {applyCallback} customContentClass="max-w-full w-6/12 !p-0">
-	<div class="flex rounded-lg border bg-background overflow-hidden max-h-[80vh] h-[80vh]">
+<BaseModal
+	bind:open={isOpen}
+	type="blank"
+	{applyCallback}
+	customContentClass="max-w-full w-6/12 !p-0"
+>
+	<div
+		class="flex rounded-lg border bg-background overflow-hidden max-h-[80vh] h-[80vh]"
+	>
 		<!-- Sidebar Navigation -->
 		<div class="w-48 border-r bg-sidebar flex flex-col">
 			<div class="p-4 border-b">
@@ -114,9 +129,11 @@
 							<Button
 								variant="ghost"
 								size="icon"
-								onclick={() => currentSection = item.id}
+								onclick={() => (currentSection = item.id)}
 								class="w-full justify-start data-[state=on]:bg-sidebar-ring pl-5"
-								data-state={currentSection === item.id ? 'on' : 'off'}
+								data-state={currentSection === item.id
+									? "on"
+									: "off"}
 							>
 								<Icon icon={item.iconName} width={24} />
 								<span class="ml-2">{item.label}</span>
@@ -136,7 +153,7 @@
 					{:else if currentSection === APPEARANCE_TAB}
 						<AppearanceSettings />
 					{:else if currentSection === ABOUT_TAB}
-						<AboutSettings />	
+						<AboutSettings />
 					{/if}
 				</div>
 			</ScrollArea>

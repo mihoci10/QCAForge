@@ -104,26 +104,28 @@
 
 	listen(EVENT_OPEN_DESIGN_FILE, (event) => {
 		const filename = event.payload as string;
-		loadDesignFromFile(filename).then((designFile) => {
-			design_filename.set(filename);
-			design.set(designFile);
-			goto(`/design`);
-		}).catch(() => {
-			console.error("Failed to load design file:", filename);
-		});
+		loadDesignFromFile(filename)
+			.then((designFile) => {
+				design_filename.set(filename);
+				design.set(designFile);
+				goto(`/design`);
+			})
+			.catch(() => {
+				console.error("Failed to load design file:", filename);
+			});
 	});
 
 	listen(EVENT_OPEN_SIMULATION_FILE, (event) => {
 		const filename = event.payload as string;
 		loadSimulationFromFile(filename as string)
-		.then((qcaSimulation) => {
-			simulation_filename.set(filename);
-			simulation.set(qcaSimulation);
-			goto("/analysis");
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+			.then((qcaSimulation) => {
+				simulation_filename.set(filename);
+				simulation.set(qcaSimulation);
+				goto("/analysis");
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 	});
 </script>
 
@@ -139,7 +141,4 @@
 
 <ModeWatcher />
 <Toaster />
-<NewDesignSetup 
-	bind:isOpen={isNewDesignOpen}
-	{onCreateNewDesign}
-/>
+<NewDesignSetup bind:isOpen={isNewDesignOpen} {onCreateNewDesign} />

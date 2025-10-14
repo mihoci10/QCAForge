@@ -153,7 +153,10 @@
 				<Accordion.Item value="properties">
 					<Accordion.Trigger class="w-full">
 						<div class="flex items-center gap-2">
-							<Icon icon="material-symbols:settings" class="h-4 w-4" />
+							<Icon
+								icon="material-symbols:settings"
+								class="h-4 w-4"
+							/>
 							Properties
 						</div>
 					</Accordion.Trigger>

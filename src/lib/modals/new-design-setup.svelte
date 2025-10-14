@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { loadSimulationModels, type SimulationModel } from "$lib/SimulationModel";
-	import { 
-		generate_default_cell_architectures, 
+	import {
+		loadSimulationModels,
+		type SimulationModel,
+	} from "$lib/SimulationModel";
+	import {
+		generate_default_cell_architectures,
 		get_default_cell_architecture_id,
-		type CellArchitecture 
+		type CellArchitecture,
 	} from "$lib/CellArchitecture";
 	import BaseModal from "./base-modal.svelte";
 	import { Label } from "$lib/components/ui/label";
@@ -16,10 +19,7 @@
 		onCreateNewDesign: (designConfig: NewDesignConfig) => void;
 	}
 
-	let {
-		isOpen = $bindable(),
-		onCreateNewDesign,
-	}: Props = $props();
+	let { isOpen = $bindable(), onCreateNewDesign }: Props = $props();
 
 	let simulationModels: SimulationModel[] = $state([]);
 	let cellArchitectures: Map<string, CellArchitecture> = $state(new Map());
@@ -74,10 +74,12 @@
 		<!-- Simulation Settings -->
 		<div class="flex flex-col gap-1.5">
 			<Label for="simulation_model">Simulation Model</Label>
-			<Select.Root bind:value={selectedSimulationModel} type='single'>
+			<Select.Root bind:value={selectedSimulationModel} type="single">
 				<Select.Trigger>
 					{#if selectedSimulationModel !== ""}
-						{simulationModels.find(m => m.id === selectedSimulationModel)?.name}
+						{simulationModels.find(
+							(m) => m.id === selectedSimulationModel,
+						)?.name}
 					{:else}
 						Select simulation model
 					{/if}
@@ -90,11 +92,9 @@
 			</Select.Root>
 		</div>
 
-	
-		
 		<div class="flex flex-col gap-1.5">
 			<Label for="cell_architecture">Cell Architecture</Label>
-			<Select.Root bind:value={selectedCellArchitecture} type='single'>
+			<Select.Root bind:value={selectedCellArchitecture} type="single">
 				<Select.Trigger>
 					{#if selectedCellArchitecture !== ""}
 						{cellArchitectures.get(selectedCellArchitecture)?.name}
@@ -104,7 +104,9 @@
 				</Select.Trigger>
 				<Select.Content>
 					{#each cellArchitectures as [id, architecture]}
-						<Select.Item value={architecture.id}>{architecture.name}</Select.Item>
+						<Select.Item value={architecture.id}
+							>{architecture.name}</Select.Item
+						>
 					{/each}
 				</Select.Content>
 			</Select.Root>

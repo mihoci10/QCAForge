@@ -2,9 +2,7 @@
 	import { startSimulation } from "$lib/Simulation";
 	import type { SimulationModel } from "$lib/SimulationModel";
 	import { toast } from "svelte-sonner";
-	import {
-		createDesign,
-	} from "$lib/qca-design";
+	import { createDesign } from "$lib/qca-design";
 	import type { Layer } from "$lib/Layer.js";
 	import type { CellArchitecture } from "$lib/CellArchitecture";
 	import Button from "$lib/components/ui/button/button.svelte";
@@ -13,8 +11,11 @@
 	import Icon from "@iconify/svelte";
 	import SimModelOptions from "$lib/modals/sim-model-options.svelte";
 	import ClockGeneratorOptions from "$lib/modals/clock-generator-options.svelte";
-    import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
-	import { getCurrentWindow, ProgressBarStatus } from "@tauri-apps/api/window";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+	import {
+		getCurrentWindow,
+		ProgressBarStatus,
+	} from "@tauri-apps/api/window";
 	import { AppControl } from "$lib/utils/app-control";
 
 	interface Props {
@@ -35,7 +36,9 @@
 	let openSimOptionsModal: boolean = $state(false);
 	let openClockGeneratorOptionsModal: boolean = $state(false);
 	let selectedModel: SimulationModel | undefined = $derived(
-		selected_model_id ? simulation_models.get(selected_model_id) : undefined,
+		selected_model_id
+			? simulation_models.get(selected_model_id)
+			: undefined,
 	);
 
 	const selected_model_display = $derived(
@@ -71,7 +74,6 @@
 
 		openClockGeneratorOptionsModal = true;
 	}
-
 
 	function applyCallback() {
 		if (!selectedModel) throw new Error("Invalid simulation model!");
@@ -128,18 +130,22 @@
 			});
 	}
 
-	function cancelSimulation() {
-		
+	function cancelSimulation() {}
+
+	function onSimulationCompleted() {
+		getCurrentWindow().setProgressBar({ status: ProgressBarStatus.None });
+		AppControl.sendSystemNotification(
+			"Simulation Completed",
+			"The simulation has finished successfully.",
+		);
 	}
 
-	function onSimulationCompleted(){
-		getCurrentWindow().setProgressBar({status: ProgressBarStatus.None});
-		AppControl.sendSystemNotification("Simulation Completed", "The simulation has finished successfully.");
-	}
-
-	function onSimulationError(){
-		getCurrentWindow().setProgressBar({status: ProgressBarStatus.Error});
-		AppControl.sendSystemNotification("Simulation Error", "The simulation has encountered an error.");
+	function onSimulationError() {
+		getCurrentWindow().setProgressBar({ status: ProgressBarStatus.Error });
+		AppControl.sendSystemNotification(
+			"Simulation Error",
+			"The simulation has encountered an error.",
+		);
 	}
 </script>
 
@@ -153,30 +159,27 @@
 				</Select.Trigger>
 				<Select.Content>
 					{#each simulation_models.values() as model}
-						<Select.Item
-							value={model.id}
-							label={model.name}
-						/>
+						<Select.Item value={model.id} label={model.name} />
 					{/each}
 				</Select.Content>
 			</Select.Root>
 
 			<!-- Settings Button -->
-            <DropdownMenu.Root>
-                <DropdownMenu.Trigger disabled={!selected_model_id}>
-				    <Icon icon="material-symbols:more-vert" class="w-6 h-6" />
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                    <DropdownMenu.Group>
-                    <DropdownMenu.Item
-                        onclick={openModelOptions}
-                    >Model settings</DropdownMenu.Item>
-                    <DropdownMenu.Item
-                        onclick={openClockGeneratorOptions}
-                    >Clock generator settings</DropdownMenu.Item>
-                    </DropdownMenu.Group>
-                </DropdownMenu.Content>
-            </DropdownMenu.Root>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger disabled={!selected_model_id}>
+					<Icon icon="material-symbols:more-vert" class="w-6 h-6" />
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content>
+					<DropdownMenu.Group>
+						<DropdownMenu.Item onclick={openModelOptions}
+							>Model settings</DropdownMenu.Item
+						>
+						<DropdownMenu.Item onclick={openClockGeneratorOptions}
+							>Clock generator settings</DropdownMenu.Item
+						>
+					</DropdownMenu.Group>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 
 			<!-- Play/Run Simulation Button -->
 			<Button
@@ -186,10 +189,14 @@
 				onclick={executeSimulation}
 				title="Run Simulation"
 			>
-				<Icon icon="material-symbols:play-arrow" class="w-8 h-8" color="#006400"/>
+				<Icon
+					icon="material-symbols:play-arrow"
+					class="w-8 h-8"
+					color="#006400"
+				/>
 			</Button>
 
-             <div class="w-6"></div>
+			<div class="w-6"></div>
 		</div>
 	</div>
 </div>
@@ -198,11 +205,11 @@
 <SimModelOptions
 	bind:isOpen={openSimOptionsModal}
 	model={selectedModel!}
-    {applyCallback}
+	{applyCallback}
 />
 
 <ClockGeneratorOptions
 	bind:isOpen={openClockGeneratorOptionsModal}
 	model={selectedModel!}
-    {applyCallback}
+	{applyCallback}
 />

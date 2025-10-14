@@ -11,7 +11,12 @@
 	import DesignView, {
 		type DesignViewProps,
 	} from "$lib/components/design/design-view.svelte";
-	import { CellType, generateDotDistribution, type Cell, type CellIndex } from "$lib/Cell";
+	import {
+		CellType,
+		generateDotDistribution,
+		type Cell,
+		type CellIndex,
+	} from "$lib/Cell";
 	import { Set } from "typescript-collections";
 	import { listen } from "@tauri-apps/api/event";
 	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
@@ -48,18 +53,23 @@
 		designView!.drawCurrentLayer();
 	}
 
-
 	function onGetNewCellProps(): Cell {
 		const layer = layers[selectedLayer];
 		const architecture_id = layer.cell_architecture_id;
 		const architecture = cell_architectures.get(architecture_id);
 		if (!architecture)
 			throw new Error(
-				`Cell architecture with ID ${architecture_id} not found.`
+				`Cell architecture with ID ${architecture_id} not found.`,
 			);
 		const dots = architecture.dot_count;
-		const polarization = new Array(dots/4).fill(0);
-		return {position: [0, 0], clock_phase_shift: 0, rotation: 0, typ: CellType.Normal, dot_probability_distribution: generateDotDistribution(polarization)};
+		const polarization = new Array(dots / 4).fill(0);
+		return {
+			position: [0, 0],
+			clock_phase_shift: 0,
+			rotation: 0,
+			typ: CellType.Normal,
+			dot_probability_distribution: generateDotDistribution(polarization),
+		};
 	}
 
 	function onSelectedCellsUpdated() {

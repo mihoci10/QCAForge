@@ -89,13 +89,21 @@
 			class="absolute flex flex-col items-center justify-center w-full h-full bg-background/80 backdrop-blur-sm"
 		>
 			{#if status === "loading"}
-				<Label class="text-lg text-muted-foreground">Loading data...</Label>
+				<Label class="text-lg text-muted-foreground"
+					>Loading data...</Label
+				>
 			{:else if status === "error"}
-				<Label class="text-lg text-destructive">Error loading data</Label>
+				<Label class="text-lg text-destructive"
+					>Error loading data</Label
+				>
 			{:else if status === "empty"}
-				<Label class="text-lg text-muted-foreground">No data displayed</Label>
+				<Label class="text-lg text-muted-foreground"
+					>No data displayed</Label
+				>
 			{:else}
-				<Label class="text-lg text-muted-foreground">Unknown status</Label>
+				<Label class="text-lg text-muted-foreground"
+					>Unknown status</Label
+				>
 			{/if}
 		</div>
 	{/if}

@@ -3,7 +3,13 @@
 	import { EVENT_LOG_ENTRY_ADDED } from "$lib/utils/events";
 	import { listen } from "@tauri-apps/api/event";
 	import { invoke } from "@tauri-apps/api/core";
-	import { deserializeLogEntry, getPrettyLogLevel, LOG_LEVELS, type LogEntry, type LogLevel } from "./log";
+	import {
+		deserializeLogEntry,
+		getPrettyLogLevel,
+		LOG_LEVELS,
+		type LogEntry,
+		type LogLevel,
+	} from "./log";
 
 	// UI components
 	import Button from "$lib/components/ui/button/button.svelte";
@@ -32,7 +38,7 @@
 	let filtered: LogEntry[] = $state([]);
 
 	let filteredLevels: LogLevel[] = $state(["INFO", "WARN", "ERROR"]);
-	let search = $state('');
+	let search = $state("");
 	let autoScroll = $state(true);
 
 	// handle listener unlisten
@@ -52,7 +58,9 @@
 
 	$effect(() => {
 		// recompute filtered whenever inputs change
-		void filteredLevels; void search; void entries;
+		void filteredLevels;
+		void search;
+		void entries;
 		applyFilters();
 		// schedule autoscroll if enabled
 		if (autoScroll) scrollToBottomSoon();
@@ -61,26 +69,36 @@
 	let bottomEl: HTMLDivElement | null = null;
 	async function scrollToBottomSoon() {
 		await tick();
-		bottomEl?.scrollIntoView({ behavior: 'auto', block: 'end' });
+		bottomEl?.scrollIntoView({ behavior: "auto", block: "end" });
 	}
 
 	function formatTime(ts: Date) {
 		try {
 			const d = new Date(ts);
-			return d.toLocaleTimeString(undefined, { hour12: false }) +
-				"." + String(d.getMilliseconds()).padStart(3, '0');
+			return (
+				d.toLocaleTimeString(undefined, { hour12: false }) +
+				"." +
+				String(d.getMilliseconds()).padStart(3, "0")
+			);
 		} catch {
-			return '' + ts;
+			return "" + ts;
 		}
 	}
 
-	function getLogLevelVariant(level: LogLevel): "destructive" | "warn" | "default" | "outline" {
+	function getLogLevelVariant(
+		level: LogLevel,
+	): "destructive" | "warn" | "default" | "outline" {
 		switch (level) {
-			case "ERROR": return "destructive";
-			case "WARN": return "warn";
-			case "INFO": return "default";
-			case "DEBUG": return "outline";
-			case "TRACE": return "outline";
+			case "ERROR":
+				return "destructive";
+			case "WARN":
+				return "warn";
+			case "INFO":
+				return "default";
+			case "DEBUG":
+				return "outline";
+			case "TRACE":
+				return "outline";
 		}
 	}
 
@@ -100,7 +118,10 @@
 
 	async function copyVisible() {
 		const text = filtered
-			.map((e) => `[${formatTime(e.timestamp)}] ${e.level.toUpperCase()} ${e.target} - ${e.message}`)
+			.map(
+				(e) =>
+					`[${formatTime(e.timestamp)}] ${e.level.toUpperCase()} ${e.target} - ${e.message}`,
+			)
 			.join("\n");
 		try {
 			await navigator.clipboard.writeText(text);
@@ -142,15 +163,25 @@
 				</Select.Trigger>
 				<Select.Content>
 					{#each LOG_LEVELS as lvl}
-						<Select.Item value={lvl}>{getPrettyLogLevel(lvl)}</Select.Item>
+						<Select.Item value={lvl}
+							>{getPrettyLogLevel(lvl)}</Select.Item
+						>
 					{/each}
 				</Select.Content>
 			</Select.Root>
 		</div>
-		<Input placeholder="Search message/target…" class="min-w-56 flex-1" bind:value={search} />
+		<Input
+			placeholder="Search message/target…"
+			class="min-w-56 flex-1"
+			bind:value={search}
+		/>
 
 		<div class="ml-auto flex items-center gap-2">
-			<Toggle pressed={autoScroll} onclick={() => (autoScroll = !autoScroll)} title={autoScroll ? 'Auto-scroll on' : 'Auto-scroll off'}>
+			<Toggle
+				pressed={autoScroll}
+				onclick={() => (autoScroll = !autoScroll)}
+				title={autoScroll ? "Auto-scroll on" : "Auto-scroll off"}
+			>
 				{#if autoScroll}
 					<Pause />
 				{:else}
@@ -159,10 +190,18 @@
 				Auto-scroll
 			</Toggle>
 
-			<Button variant="outline" onclick={copyVisible} title="Copy visible logs">
+			<Button
+				variant="outline"
+				onclick={copyVisible}
+				title="Copy visible logs"
+			>
 				<Clipboard class="size-4" /> Copy
 			</Button>
-			<Button variant="destructive" onclick={clearLogs} title="Clear all logs">
+			<Button
+				variant="destructive"
+				onclick={clearLogs}
+				title="Clear all logs"
+			>
 				<Trash2 class="size-4" /> Clear
 			</Button>
 		</div>
@@ -182,17 +221,30 @@
 			<TableBody>
 				{#if filtered.length === 0}
 					<TableRow>
-						<TableCell colspan={4} class="text-center text-sm text-muted-foreground">No log entries</TableCell>
+						<TableCell
+							colspan={4}
+							class="text-center text-sm text-muted-foreground"
+							>No log entries</TableCell
+						>
 					</TableRow>
 				{:else}
 					{#each filtered as e, index (index)}
 						<TableRow>
-							<TableCell class="font-mono text-xs text-muted-foreground">{formatTime(e.timestamp)}</TableCell>
+							<TableCell
+								class="font-mono text-xs text-muted-foreground"
+								>{formatTime(e.timestamp)}</TableCell
+							>
 							<TableCell>
-								<Badge variant={getLogLevelVariant(e.level)}>{getPrettyLogLevel(e.level)}</Badge>
+								<Badge variant={getLogLevelVariant(e.level)}
+									>{getPrettyLogLevel(e.level)}</Badge
+								>
 							</TableCell>
-							<TableCell class="font-mono text-xs">{e.target}</TableCell>
-							<TableCell class="whitespace-pre-wrap">{e.message}</TableCell>
+							<TableCell class="font-mono text-xs"
+								>{e.target}</TableCell
+							>
+							<TableCell class="whitespace-pre-wrap"
+								>{e.message}</TableCell
+							>
 						</TableRow>
 					{/each}
 				{/if}

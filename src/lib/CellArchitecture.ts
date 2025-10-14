@@ -27,10 +27,7 @@ export function createCellArchitecture(
 			Math.cos(angle) * dot_radius,
 			Math.sin(angle) * dot_radius,
 		]);
-		dot_tunnels.push([
-			i,
-			(i + 1) % dot_count,
-		]);
+		dot_tunnels.push([i, (i + 1) % dot_count]);
 	}
 
 	if (!id) id = uuidv4();

@@ -136,17 +136,22 @@ export async function createQCADesignFile(
 	};
 }
 
-export async function createDefaultQCADesignFile(newDesignConfig: NewDesignConfig | undefined = undefined): Promise<QCADesignFile> {
+export async function createDefaultQCADesignFile(
+	newDesignConfig: NewDesignConfig | undefined = undefined,
+): Promise<QCADesignFile> {
 	const layers: Layer[] = [
 		{
 			name: "Main Layer",
 			visible: true,
-			cell_architecture_id: newDesignConfig?.cell_architecture_id ?? get_default_cell_architecture_id(),
+			cell_architecture_id:
+				newDesignConfig?.cell_architecture_id ??
+				get_default_cell_architecture_id(),
 			cells: [],
 			z_position: 0,
 		},
 	];
-	const selected_simulation_model_id: string | undefined = newDesignConfig?.sim_model_id ?? undefined;
+	const selected_simulation_model_id: string | undefined =
+		newDesignConfig?.sim_model_id ?? undefined;
 	const simulation_models: Map<string, SimulationModel> = new Map();
 	const cell_architectures: Map<string, CellArchitecture> =
 		generate_default_cell_architectures();
@@ -160,9 +165,7 @@ export async function createDefaultQCADesignFile(newDesignConfig: NewDesignConfi
 	return await createQCADesignFile(design, undefined);
 }
 
-export function loadDesignFromFile(
-	filename: string,
-): Promise<QCADesignFile> {
+export function loadDesignFromFile(filename: string): Promise<QCADesignFile> {
 	return new Promise((resolve, reject) => {
 		invoke("load_design_file", { filename: filename })
 			.then((result: unknown) => {

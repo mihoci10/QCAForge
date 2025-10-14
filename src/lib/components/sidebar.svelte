@@ -4,7 +4,11 @@
 	import { page } from "$app/state";
 	import AppSettingsModal from "$lib/settings/app-settings-modal.svelte";
 	import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
-	import { EVENT_ABOUT, EVENT_OPEN_SETTINGS, EVENT_OPEN_SIMULATION } from "$lib/utils/events";
+	import {
+		EVENT_ABOUT,
+		EVENT_OPEN_SETTINGS,
+		EVENT_OPEN_SIMULATION,
+	} from "$lib/utils/events";
 	import { onMount, onDestroy } from "svelte";
 	import { design, simulation, visibleBottomPanels } from "$lib/globals";
 	import { AppControl } from "$lib/utils/app-control";
@@ -30,8 +34,10 @@
 	});
 
 	function togglePanel(panelId: string) {
-		visibleBottomPanels.update(v => 
-			v.includes(panelId) ? v.filter(id => id !== panelId) : [...v, panelId]
+		visibleBottomPanels.update((v) =>
+			v.includes(panelId)
+				? v.filter((id) => id !== panelId)
+				: [...v, panelId],
 		);
 		isLogPanelVisible = isPanelVisible("log");
 	}
@@ -43,8 +49,8 @@
 	let isLogPanelVisible: boolean = $state(isPanelVisible("log"));
 </script>
 
-<nav 
-	class="flex flex-col h-full bg-sidebar-accent gap-1" 
+<nav
+	class="flex flex-col h-full bg-sidebar-accent gap-1"
 	aria-label="Main navigation"
 >
 	<Button
@@ -58,16 +64,14 @@
 	>
 		<Icon width={30} icon="material-symbols:home" />
 	</Button>
-    <hr />
+	<hr />
 	<Button
 		variant="ghost"
 		size="icon"
 		class="data-[state=on]:bg-sidebar-ring"
 		onclick={() => {
-			if (get(design))
-				goto("/design");
-			else
-				AppControl.newDesign();
+			if (get(design)) goto("/design");
+			else AppControl.newDesign();
 		}}
 		data-state={page.url.pathname.startsWith("/design") ? "on" : "off"}
 		aria-label="Navigate to design workspace"
@@ -80,10 +84,8 @@
 		size="icon"
 		class="data-[state=on]:bg-sidebar-ring"
 		onclick={() => {
-			if (get(simulation))
-				goto("/analysis");
-			else
-				emit(EVENT_OPEN_SIMULATION);
+			if (get(simulation)) goto("/analysis");
+			else emit(EVENT_OPEN_SIMULATION);
 		}}
 		data-state={page.url.pathname.startsWith("/analysis") ? "on" : "off"}
 		aria-label="Navigate to analysis and simulation results"
@@ -102,8 +104,8 @@
 		title="Log"
 	>
 		<Icon width={30} icon="material-symbols:list-alt-outline-rounded" />
-	</Button>		
-    <hr />
+	</Button>
+	<hr />
 	<Button
 		variant="ghost"
 		size="icon"

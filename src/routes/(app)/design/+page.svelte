@@ -29,8 +29,8 @@
 	import * as Accordion from "$lib/components/ui/accordion";
 	import LayersPanel from "$lib/design/panels/layers-panel.svelte";
 	import CellPropsPanel from "$lib/design/panels/cell-props-panel.svelte";
-    import type { CellIndex } from "$lib/Cell";
-    import { Set } from "typescript-collections";
+	import type { CellIndex } from "$lib/Cell";
+	import { Set } from "typescript-collections";
 
 	let selected_model_id: string | undefined = $state();
 	let layers: Layer[] = $state([]);
@@ -52,9 +52,7 @@
 
 	function propertyChangedCallback() {}
 
-	let bottomPanels = $state([
-		{ id: "log", title: "Log", visible: true },
-	]);
+	let bottomPanels = $state([{ id: "log", title: "Log", visible: true }]);
 	let selectedBottomPanelId: string = $state("log");
 
 	design.subscribe((cur_design_file) => {
@@ -186,46 +184,52 @@
 		<Resizable.Pane defaultSize={15}>
 			<!-- Left side area -->
 			<ScrollArea class="h-full bg-sidebar px-2">
-			<Accordion.Root type="multiple" value={["layers", "cell-props"]}>
-				<LayersPanel
-					bind:layers
-					bind:selectedLayer
-					bind:cell_architectures
-				/>
-				<CellPropsPanel
-					bind:layers
-					{selectedCells}
-					bind:this={cellPropsPanel}
-					{propertyChangedCallback}
-				/>
-			</Accordion.Root>
+				<Accordion.Root
+					type="multiple"
+					value={["layers", "cell-props"]}
+				>
+					<LayersPanel
+						bind:layers
+						bind:selectedLayer
+						bind:cell_architectures
+					/>
+					<CellPropsPanel
+						bind:layers
+						{selectedCells}
+						bind:this={cellPropsPanel}
+						{propertyChangedCallback}
+					/>
+				</Accordion.Root>
 			</ScrollArea>
 		</Resizable.Pane>
 		<Resizable.Handle />
 		<Resizable.Pane>
 			<!-- Center area -->
-				<Resizable.PaneGroup direction="vertical">
-					<Resizable.Pane defaultSize={80}>
-						<Designer
-							bind:this={designer}
-							bind:designViewProps
-							bind:selected_model_id
-							bind:layers
-							bind:simulation_models
-							bind:cell_architectures
-							bind:selectedLayer
-							bind:selectedCells
-							cellPropsPanel={cellPropsPanel}
-							propertyChangedCallback={propertyChangedCallback}
+			<Resizable.PaneGroup direction="vertical">
+				<Resizable.Pane defaultSize={80}>
+					<Designer
+						bind:this={designer}
+						bind:designViewProps
+						bind:selected_model_id
+						bind:layers
+						bind:simulation_models
+						bind:cell_architectures
+						bind:selectedLayer
+						bind:selectedCells
+						{cellPropsPanel}
+						{propertyChangedCallback}
+					/>
+				</Resizable.Pane>
+				<Resizable.Handle />
+				{#if bottomPanels.some((panel) => panel.visible)}
+					<Resizable.Pane>
+						<PanelContainer
+							bind:panels={bottomPanels}
+							bind:selectedPanelId={selectedBottomPanelId}
 						/>
 					</Resizable.Pane>
-					<Resizable.Handle />
-					{#if bottomPanels.some(panel => panel.visible)}
-						<Resizable.Pane>
-							<PanelContainer bind:panels={bottomPanels} bind:selectedPanelId={selectedBottomPanelId} />
-						</Resizable.Pane>
-					{/if}
-				</Resizable.PaneGroup>
+				{/if}
+			</Resizable.PaneGroup>
 		</Resizable.Pane>
 		<Resizable.Handle />
 		<Resizable.Pane defaultSize={0}>

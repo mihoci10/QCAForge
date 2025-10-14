@@ -2,7 +2,10 @@
 	import { EVENT_SIMULATION_PROGRESS } from "$lib/utils/events";
 	import { listen } from "@tauri-apps/api/event";
 	import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-	import { getCurrentWindow, ProgressBarStatus } from "@tauri-apps/api/window";
+	import {
+		getCurrentWindow,
+		ProgressBarStatus,
+	} from "@tauri-apps/api/window";
 	import { onMount } from "svelte";
 
 	let progress = $state(NaN);
@@ -20,7 +23,10 @@
 		const unlisten = listen<number>(EVENT_SIMULATION_PROGRESS, (event) => {
 			let new_progress = event.payload;
 			progress = Math.round((new_progress + Number.EPSILON) * 100) / 100;
-			getCurrentWindow().setProgressBar({status: ProgressBarStatus.Normal, progress: Math.round(progress)})
+			getCurrentWindow().setProgressBar({
+				status: ProgressBarStatus.Normal,
+				progress: Math.round(progress),
+			});
 
 			progress_history.push(progress);
 			time_history.push(Date.now());

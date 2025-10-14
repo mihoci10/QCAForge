@@ -1,3 +1,1 @@
-<div>
-    General Settings
-</div>
+<div>General Settings</div>
