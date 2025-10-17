@@ -71,6 +71,10 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 - Write tests for new functionality
 - Update documentation as needed
 
+## Acknowledgements
+
+- Special thanks to @adolenc for his invaluable testing support and tips on improving the user experience.
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
