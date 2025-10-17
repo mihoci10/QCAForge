@@ -73,7 +73,7 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 
 ## Acknowledgements
 
-- Special thanks to @adolenc for his invaluable testing support and tips on improving the user experience.
+- Special thanks to [@adolenc](https://github.com/adolenc)  for his invaluable testing support and tips on improving the user experience.
 
 ## License
 
