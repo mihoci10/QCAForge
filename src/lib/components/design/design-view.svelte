@@ -18,7 +18,11 @@
 	import type { ICellGeometry } from "./theme/theme";
 	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
 	import { emit } from "@tauri-apps/api/event";
-	import { PRINT_OPTIONS, printDesign } from "./print/print-design";
+	import {
+		PRINT_OPTIONS,
+		designToSVG,
+		printDesign,
+	} from "./print/print-design";
 	import PrintDesignModal from "./print/print-design-modal.svelte";
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -1078,7 +1082,20 @@
 	<PrintDesignModal
 		bind:isOpen={isPrintDesignModalOpen}
 		applyCallback={(printOptions) =>
-			printDesign(renderToOffscreenCanvas, printOptions)}
-		designPrintOptions={PRINT_OPTIONS[0]}
+			printDesign(
+				renderToOffscreenCanvas,
+				(selectionOnly, showGrid) =>
+					Promise.resolve(
+						designToSVG(
+							layers,
+							cell_architectures,
+							selectedCells,
+							selectionOnly,
+							showGrid,
+						),
+					),
+				printOptions,
+			)}
+		designPrintOptions={PRINT_OPTIONS}
 	/>
 </div>
