@@ -6,7 +6,7 @@
 	interface Props {
 		isOpen: boolean;
 		applyCallback: (printOptions: DesignPrintOptions) => void;
-		designPrintOptions: DesignPrintOptions;
+		designPrintOptions: DesignPrintOptions[];
 	}
 
 	let {
@@ -15,11 +15,16 @@
 		designPrintOptions,
 	}: Props = $props();
 
-	let designOptionValues = $state(designPrintOptions.optionValues);
+	let selectedFormatId = $state(designPrintOptions[0].id);
+	let selectedFormat = $derived(
+		designPrintOptions.find((option) => option.id === selectedFormatId) ??
+			designPrintOptions[0],
+	);
+	let designOptionValues = $state(designPrintOptions[0].optionValues);
 
 	function applyCallbackWrapper() {
-		designPrintOptions.optionValues = designOptionValues;
-		applyCallback(designPrintOptions);
+		selectedFormat.optionValues = designOptionValues;
+		applyCallback(selectedFormat);
 	}
 </script>
 
@@ -29,14 +34,25 @@
 	applyCallback={applyCallbackWrapper}
 >
 	{#snippet title()}
-		{designPrintOptions.name}
+		Export Design Figure
 	{/snippet}
 	{#snippet description()}
-		{designPrintOptions.description}
+		Choose an image format for the circuit figure.
 	{/snippet}
 	<div class="flex flex-col gap-2">
+		<label for="print-format">Format</label>
+		<select
+			id="print-format"
+			class="rounded-md border bg-background px-2 py-1"
+			bind:value={selectedFormatId}
+			onchange={() => (designOptionValues = selectedFormat.optionValues)}
+		>
+			{#each designPrintOptions as printOption}
+				<option value={printOption.id}>{printOption.name}</option>
+			{/each}
+		</select>
 		<CustomOptions
-			optionList={designPrintOptions.options}
+			optionList={selectedFormat.options}
 			bind:optionValues={designOptionValues}
 		></CustomOptions>
 	</div>
