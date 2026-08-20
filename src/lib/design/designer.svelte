@@ -49,6 +49,10 @@
 
 	let designView: DesignView | undefined = $state();
 
+	export function openPrintDesignModal() {
+		designView?.openPrintDesignModal();
+	}
+
 	export function redraw() {
 		designView!.drawCurrentLayer();
 	}

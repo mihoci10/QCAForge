@@ -7,7 +7,11 @@
 		type SimulationModel,
 	} from "$lib/SimulationModel";
 	import { listen } from "@tauri-apps/api/event";
-	import { EVENT_SAVE_FILE, EVENT_SAVE_FILE_AS } from "$lib/utils/events";
+	import {
+		EVENT_EXPORT_FIGURE,
+		EVENT_SAVE_FILE,
+		EVENT_SAVE_FILE_AS,
+	} from "$lib/utils/events";
 	import {
 		createDefaultDesignViewProps,
 		createDesign,
@@ -142,10 +146,14 @@
 				});
 			});
 		});
+		const unlistenExportFigure = listen(EVENT_EXPORT_FIGURE, () => {
+			designer?.openPrintDesignModal();
+		});
 
 		return () => {
 			unlistenSave.then((f) => f());
 			unlistenSaveAs.then((f) => f());
+			unlistenExportFigure.then((f) => f());
 		};
 	});
 

@@ -18,8 +18,10 @@
 	import type { ICellGeometry } from "./theme/theme";
 	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
 	import { emit } from "@tauri-apps/api/event";
+	import { listen } from "@tauri-apps/api/event";
 	import {
 		PRINT_OPTIONS,
+		designToPDF,
 		designToSVG,
 		printDesign,
 	} from "./print/print-design";
@@ -930,6 +932,10 @@
 		}
 	}
 
+	export function openPrintDesignModal() {
+		isPrintDesignModalOpen = true;
+	}
+
 	async function showContextMenu() {
 		const menu = await Menu.new({
 			items: [
@@ -1019,7 +1025,7 @@
 			{
 				shortcut: "F",
 				callback: () => {
-					isPrintDesignModalOpen = true;
+					openPrintDesignModal();
 				},
 			},
 		]);
@@ -1087,6 +1093,16 @@
 				(selectionOnly, showGrid) =>
 					Promise.resolve(
 						designToSVG(
+							layers,
+							cell_architectures,
+							selectedCells,
+							selectionOnly,
+							showGrid,
+						),
+					),
+				(selectionOnly, showGrid) =>
+					Promise.resolve(
+						designToPDF(
 							layers,
 							cell_architectures,
 							selectedCells,
