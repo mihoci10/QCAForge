@@ -28,6 +28,11 @@ fn create_file_menu(app: &mut App) -> Submenu<Wry> {
         .accelerator("CmdOrCtrl+Shift+S")
         .build(app)
         .unwrap();
+    let file_export_figure = MenuItemBuilder::new("Export figure")
+        .id("exportFigure")
+        .accelerator("F")
+        .build(app)
+        .unwrap();
     let settings = MenuItemBuilder::new("Settings")
         .id("appSettings")
         .build(app)
@@ -43,6 +48,7 @@ fn create_file_menu(app: &mut App) -> Submenu<Wry> {
             &PredefinedMenuItem::separator(app).unwrap(),
             &file_save_file,
             &file_save_file_as,
+            &file_export_figure,
             &PredefinedMenuItem::separator(app).unwrap(),
             &settings,
             &PredefinedMenuItem::separator(app).unwrap(),

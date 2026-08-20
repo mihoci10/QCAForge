@@ -11,6 +11,7 @@ import { CellType, getPolarization, type Cell } from "$lib/Cell";
 import type { CellArchitecture } from "$lib/CellArchitecture";
 import type { Layer } from "$lib/Layer";
 import { Set } from "typescript-collections";
+import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 
 type DesignPrintFormat = "png" | "jpeg" | "svg" | "pdf";
 
@@ -56,6 +57,14 @@ export const PRINT_OPTIONS: DesignPrintOptions[] = [
 		options: COMMON_OPTIONS.filter((option) => option.id !== "resolutionScale"),
 		optionValues: new Map([]),
 	},
+	{
+		id: "pdf",
+		name: "PDF Vector Document",
+		description: "Export the design as a vector PDF document.",
+		format: "pdf",
+		options: COMMON_OPTIONS.filter((option) => option.id !== "resolutionScale"),
+		optionValues: new Map([]),
+	},
 ];
 
 export async function printDesign(
@@ -66,6 +75,10 @@ export async function printDesign(
 		clearColor?: THREE.Color,
 	) => Promise<HTMLCanvasElement>,
 	renderSvgFunc: (
+		selectionOnly: boolean,
+		showGrid: boolean,
+	) => Promise<Uint8Array>,
+	renderPdfFunc: (
 		selectionOnly: boolean,
 		showGrid: boolean,
 	) => Promise<Uint8Array>,
@@ -100,6 +113,9 @@ export async function printDesign(
 			break;
 		case "svg":
 			binaryData = await renderSvgFunc(selectionOnly, showGrid);
+			break;
+		case "pdf":
+			binaryData = await renderPdfFunc(selectionOnly, showGrid);
 			break;
 		default:
 			throw new Error("Unsupported export format");
@@ -204,6 +220,119 @@ export function designToSVG(
 
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${-maxY} ${width} ${height}" width="${width}" height="${height}"><g transform="scale(1 -1)">${elements.join("")}</g></svg>`;
 	return new TextEncoder().encode(svg);
+}
+
+export async function designToPDF(
+	layers: Layer[],
+	cellArchitectures: Map<string, CellArchitecture>,
+	selectedCells: Set<any>,
+	selectionOnly: boolean,
+	showGrid: boolean,
+): Promise<Uint8Array> {
+	const cells = collectPrintableCells(
+		layers,
+		cellArchitectures,
+		selectedCells,
+		selectionOnly,
+	);
+	const bounds = getDesignBounds(cells);
+	const pdf = await PDFDocument.create();
+	const page = pdf.addPage([bounds.width, bounds.height]);
+	const font = await pdf.embedFont(StandardFonts.Helvetica);
+	const toPdfPoint = (x: number, y: number) => ({
+		x: x - bounds.minX,
+		y: bounds.maxY - y,
+	});
+
+	page.drawRectangle({
+		x: 0,
+		y: 0,
+		width: bounds.width,
+		height: bounds.height,
+		color: rgb(1, 1, 1),
+	});
+	if (showGrid) {
+		const gridSize = bounds.maxSide;
+		for (let x = Math.floor(bounds.minX / gridSize) * gridSize; x <= bounds.maxX; x += gridSize) {
+			const start = toPdfPoint(x, bounds.minY);
+			const end = toPdfPoint(x, bounds.maxY);
+			page.drawLine({ start, end, thickness: 0.5, color: rgb(0.82, 0.84, 0.86) });
+		}
+		for (let y = Math.floor(bounds.minY / gridSize) * gridSize; y <= bounds.maxY; y += gridSize) {
+			const start = toPdfPoint(bounds.minX, y);
+			const end = toPdfPoint(bounds.maxX, y);
+			page.drawLine({ start, end, thickness: 0.5, color: rgb(0.82, 0.84, 0.86) });
+		}
+	}
+
+	for (const { cell, architecture, index, layer } of cells) {
+		const selected = isSelected(selectedCells, layer, index);
+		const color = pdfColor(selected ? "#ff0000" : cellColor(cell));
+		const half = architecture.side_length / 2;
+		const center = toPdfPoint(cell.position[0], cell.position[1]);
+		page.drawRectangle({
+			x: center.x - half,
+			y: center.y - half,
+			width: architecture.side_length,
+			height: architecture.side_length,
+			rotate: degrees(cell.rotation || 0),
+			borderColor: color,
+			borderWidth: 1.5,
+		});
+
+		const polarization = getPolarization(cell.dot_probability_distribution);
+		const count = architecture.dot_count === 8 ? 2 : 1;
+		const polarizationSum = polarization.reduce((sum, value) => sum + Math.abs(value), 0);
+		const offset = (1 - polarizationSum) / (2 * count);
+		for (let i = 0; i < count * 2; i++) {
+			const angle = Math.PI / 4 + (Math.PI / (count * 2)) * (Math.floor(i / 2) + (i % 2) * count) + ((cell.rotation || 0) % 180 === 90 ? Math.PI / 4 : 0);
+			const x = Math.cos(angle) * architecture.side_length * 0.3;
+			const y = Math.sin(angle) * architecture.side_length * 0.3;
+			const dot = toPdfPoint(cell.position[0] + x, cell.position[1] + y);
+			const opposite = toPdfPoint(cell.position[0] - x, cell.position[1] - y);
+			const radius = architecture.side_length * 0.075;
+			page.drawCircle({ x: dot.x, y: dot.y, size: radius, borderColor: color, borderWidth: 1 });
+			page.drawCircle({ x: opposite.x, y: opposite.y, size: Math.max(0.5, radius * (Math.max(0, (polarization[Math.floor(i / 2)] ?? 0) * (i % 2 ? -1 : 1)) + offset) / 0.15), color });
+		}
+		if ([CellType.Input, CellType.Output, CellType.Fixed].includes(cell.typ) && cell.label) {
+			page.drawText(cell.label, { x: center.x - font.widthOfTextAtSize(cell.label, architecture.side_length / 5) / 2, y: center.y - architecture.side_length / 10, size: architecture.side_length / 5, font, color });
+		}
+	}
+	return pdf.save();
+}
+
+function collectPrintableCells(
+	layers: Layer[],
+	cellArchitectures: Map<string, CellArchitecture>,
+	selectedCells: Set<any>,
+	selectionOnly: boolean,
+) {
+	const cells: { cell: Cell; architecture: CellArchitecture; index: number; layer: number }[] = [];
+	for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+		const layer = layers[layerIndex];
+		if (!layer.visible) continue;
+		const architecture = cellArchitectures.get(layer.cell_architecture_id);
+		if (!architecture) continue;
+		layer.cells.forEach((cell, index) => {
+			if (!selectionOnly || isSelected(selectedCells, layerIndex, index))
+				cells.push({ cell, architecture, index, layer: layerIndex });
+		});
+	}
+	return cells;
+}
+
+function getDesignBounds(cells: ReturnType<typeof collectPrintableCells>) {
+	const margin = 10;
+	const maxSide = Math.max(...cells.map(({ architecture }) => architecture.side_length), 20);
+	const minX = cells.length ? Math.min(...cells.map(({ cell }) => cell.position[0])) - maxSide / 2 - margin : -50;
+	const maxX = cells.length ? Math.max(...cells.map(({ cell }) => cell.position[0])) + maxSide / 2 + margin : 50;
+	const minY = cells.length ? Math.min(...cells.map(({ cell }) => cell.position[1])) - maxSide / 2 - margin : -50;
+	const maxY = cells.length ? Math.max(...cells.map(({ cell }) => cell.position[1])) + maxSide / 2 + margin : 50;
+	return { minX, maxX, minY, maxY, maxSide, width: maxX - minX, height: maxY - minY };
+}
+
+function pdfColor(hex: string) {
+	return rgb(parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255);
 }
 
 function cellColor(cell: Cell): string {
