@@ -241,7 +241,7 @@ export async function designToPDF(
 	const font = await pdf.embedFont(StandardFonts.Helvetica);
 	const toPdfPoint = (x: number, y: number) => ({
 		x: x - bounds.minX,
-		y: bounds.maxY - y,
+		y: y - bounds.minY,
 	});
 
 	page.drawRectangle({
