@@ -28,7 +28,7 @@
 		type NewDesignConfig,
 	} from "$lib/qca-design";
 	import { readTextFile } from "@tauri-apps/plugin-fs";
-	import { basename } from "@tauri-apps/api/path";
+	import { basename, dirname } from "@tauri-apps/api/path";
 	import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
 	import Sidebar from "$lib/components/sidebar.svelte";
@@ -85,20 +85,29 @@
 		});
 	});
 	listen(EVENT_OPEN_SIMULATION, () => {
-		open({
-			title: "Load siimulation",
-			filters: [{ name: "Simulation", extensions: ["qcs"] }],
-		}).then((filename) => {
-			if (!filename) return;
-			loadSimulationFromFile(filename)
-				.then((qcaSimulation) => {
-					simulation_filename.set(filename);
-					simulation.set(qcaSimulation);
-					goto("/analysis");
-				})
-				.catch((err) => {
-					console.error(err);
-				});
+		const mostRecentSimulationFile =
+			recentFilesManager.getMostRecentSimulationFile();
+		const defaultPathPromise = mostRecentSimulationFile
+			? dirname(mostRecentSimulationFile.fullPath).catch(() => undefined)
+			: Promise.resolve(undefined);
+
+		defaultPathPromise.then((defaultPath) => {
+			open({
+				title: "Load simulation",
+				filters: [{ name: "Simulation", extensions: ["qcs"] }],
+				defaultPath,
+			}).then((filename) => {
+				if (!filename) return;
+				loadSimulationFromFile(filename)
+					.then((qcaSimulation) => {
+						simulation_filename.set(filename);
+						simulation.set(qcaSimulation);
+						goto("/analysis");
+					})
+					.catch((err) => {
+						console.error(err);
+					});
+			});
 		});
 	});
 

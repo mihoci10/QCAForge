@@ -98,6 +98,10 @@ export class RecentFilesManager {
 		return this.recentSimulationFiles;
 	}
 
+	getMostRecentSimulationFile(): RecentFile | undefined {
+		return this.recentSimulationFiles[0];
+	}
+
 	getAllRecentFiles(): RecentFile[] {
 		const allRecentFiles = [
 			...this.recentDesignFiles,
