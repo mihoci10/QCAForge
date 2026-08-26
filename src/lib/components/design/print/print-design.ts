@@ -6,6 +6,8 @@ import {
 } from "$lib/custom-options/custom-options";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
+import { join } from "@tauri-apps/api/path";
+import { lastDirectoryManager } from "$lib/last-directory";
 import * as THREE from "three";
 import { CellType, getPolarization, type Cell } from "$lib/Cell";
 import type { CellArchitecture } from "$lib/CellArchitecture";
@@ -142,8 +144,13 @@ export async function printDesign(
 			throw new Error("Unsupported export format");
 	}
 
+	const figureDir = await lastDirectoryManager.getDirectory("figure");
+	const defaultPath = figureDir
+		? await join(figureDir, `design_print.${options.format}`)
+		: `design_print.${options.format}`;
+
 	const fileName = await save({
-		defaultPath: `design_print.${options.format}`,
+		defaultPath,
 		title: "Save design as",
 		filters: [{ name: "Image", extensions: [options.format] }],
 	});
@@ -151,6 +158,7 @@ export async function printDesign(
 	if (!fileName) return;
 
 	await writeFile(fileName, binaryData);
+	await lastDirectoryManager.setDirectoryFromFilePath("figure", fileName);
 }
 
 async function printDesignAsJPEG(
