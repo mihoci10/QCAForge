@@ -24,6 +24,8 @@
 	import { save } from "@tauri-apps/plugin-dialog";
 	import { design, design_filename, visibleBottomPanels } from "$lib/globals";
 	import { get } from "svelte/store";
+	import { lastDirectoryManager } from "$lib/last-directory";
+	import { join } from "@tauri-apps/api/path";
 	import { type Layer } from "$lib/Layer.js";
 	import { type CellArchitecture } from "$lib/CellArchitecture";
 	import type { DesignViewProps } from "$lib/components/design/design-view.svelte";
@@ -89,13 +91,21 @@
 			new Promise((resolve: (value: string) => void, reject) => {
 				let filename = get(design_filename);
 				if (!filename) {
-					save({
-						defaultPath: "New design.qcd",
-						title: "Save design as",
-						filters: [{ name: "Design", extensions: ["qcd"] }],
-					}).then((filename) =>
-						filename ? resolve(filename as string) : reject(),
-					);
+					lastDirectoryManager
+						.getDirectory("design")
+						.then((dir) =>
+							dir ? join(dir, "New design.qcd") : "New design.qcd",
+						)
+						.then((defaultPath) =>
+							save({
+								defaultPath,
+								title: "Save design as",
+								filters: [{ name: "Design", extensions: ["qcd"] }],
+							}),
+						)
+						.then((filename) =>
+							filename ? resolve(filename as string) : reject(),
+						);
 				} else resolve(filename);
 			}).then((filename) => {
 				new Promise(async (resolve: (value: QCADesignFile) => void) => {
@@ -113,38 +123,54 @@
 				}).then((designFile) => {
 					saveDesignToFile(filename, designFile);
 					design_filename.set(filename);
+					lastDirectoryManager.setDirectoryFromFilePath(
+						"design",
+						filename,
+					);
 				});
 			});
 		});
 		const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, () => {
-			save({
-				defaultPath: "New design.qcd",
-				title: "Save design as",
-				filters: [{ name: "Design", extensions: ["qcd"] }],
-			}).then((filename) => {
-				if (!filename) return;
+			lastDirectoryManager
+				.getDirectory("design")
+				.then((dir) =>
+					dir ? join(dir, "New design.qcd") : "New design.qcd",
+				)
+				.then((defaultPath) =>
+					save({
+						defaultPath,
+						title: "Save design as",
+						filters: [{ name: "Design", extensions: ["qcd"] }],
+					}),
+				)
+				.then((filename) => {
+					if (!filename) return;
 
-				new Promise(async (resolve: (value: QCADesignFile) => void) => {
-					const design = await createDesign(
-						layers,
-						selected_model_id,
-						simulation_models,
-						cell_architectures,
-					);
-					const designFile = await createQCADesignFile(
-						design,
-						designViewProps,
-					);
-					resolve(designFile);
-				}).then((designFile) => {
-					writeTextFile(
-						filename,
-						serializeQCADesignFile(designFile),
-						{ baseDir: BaseDirectory.Desktop },
-					);
-					design_filename.set(filename);
+					new Promise(async (resolve: (value: QCADesignFile) => void) => {
+						const design = await createDesign(
+							layers,
+							selected_model_id,
+							simulation_models,
+							cell_architectures,
+						);
+						const designFile = await createQCADesignFile(
+							design,
+							designViewProps,
+						);
+						resolve(designFile);
+					}).then((designFile) => {
+						writeTextFile(
+							filename,
+							serializeQCADesignFile(designFile),
+							{ baseDir: BaseDirectory.Desktop },
+						);
+						design_filename.set(filename);
+						lastDirectoryManager.setDirectoryFromFilePath(
+							"design",
+							filename,
+						);
+					});
 				});
-			});
 		});
 		const unlistenExportFigure = listen(EVENT_EXPORT_FIGURE, () => {
 			designer?.openPrintDesignModal();

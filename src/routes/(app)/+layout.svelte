@@ -28,11 +28,12 @@
 		type NewDesignConfig,
 	} from "$lib/qca-design";
 	import { readTextFile } from "@tauri-apps/plugin-fs";
-	import { basename, dirname } from "@tauri-apps/api/path";
+	import { basename } from "@tauri-apps/api/path";
 	import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
 	import Sidebar from "$lib/components/sidebar.svelte";
 	import NewDesignSetup from "$lib/modals/new-design-setup.svelte";
+	import { lastDirectoryManager } from "$lib/last-directory";
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow();
@@ -72,26 +73,27 @@
 	});
 
 	listen(EVENT_OPEN_DESIGN, () => {
-		open({
-			title: "Load design",
-			filters: [{ name: "Design", extensions: ["qcd"] }],
-		}).then((filename) => {
-			if (!filename) return;
-			readTextFile(filename as string).then((contents) => {
-				design_filename.set(filename as string);
-				design.set(deserializeQCADesignFile(contents));
-				goto(`/design`);
+		lastDirectoryManager.getDirectory("design").then((defaultPath) => {
+			open({
+				title: "Load design",
+				filters: [{ name: "Design", extensions: ["qcd"] }],
+				defaultPath,
+			}).then((filename) => {
+				if (!filename) return;
+				readTextFile(filename as string).then((contents) => {
+					design_filename.set(filename as string);
+					design.set(deserializeQCADesignFile(contents));
+					lastDirectoryManager.setDirectoryFromFilePath(
+						"design",
+						filename as string,
+					);
+					goto(`/design`);
+				});
 			});
 		});
 	});
 	listen(EVENT_OPEN_SIMULATION, () => {
-		const mostRecentSimulationFile =
-			recentFilesManager.getMostRecentSimulationFile();
-		const defaultPathPromise = mostRecentSimulationFile
-			? dirname(mostRecentSimulationFile.fullPath).catch(() => undefined)
-			: Promise.resolve(undefined);
-
-		defaultPathPromise.then((defaultPath) => {
+		lastDirectoryManager.getDirectory("simulation").then((defaultPath) => {
 			open({
 				title: "Load simulation",
 				filters: [{ name: "Simulation", extensions: ["qcs"] }],
@@ -102,6 +104,10 @@
 					.then((qcaSimulation) => {
 						simulation_filename.set(filename);
 						simulation.set(qcaSimulation);
+						lastDirectoryManager.setDirectoryFromFilePath(
+							"simulation",
+							filename,
+						);
 						goto("/analysis");
 					})
 					.catch((err) => {
@@ -117,6 +123,7 @@
 			.then((designFile) => {
 				design_filename.set(filename);
 				design.set(designFile);
+				lastDirectoryManager.setDirectoryFromFilePath("design", filename);
 				goto(`/design`);
 			})
 			.catch(() => {
@@ -130,6 +137,10 @@
 			.then((qcaSimulation) => {
 				simulation_filename.set(filename);
 				simulation.set(qcaSimulation);
+				lastDirectoryManager.setDirectoryFromFilePath(
+					"simulation",
+					filename,
+				);
 				goto("/analysis");
 			})
 			.catch((err) => {
