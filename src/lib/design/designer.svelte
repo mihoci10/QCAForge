@@ -57,6 +57,10 @@
 		designView!.drawCurrentLayer();
 	}
 
+	export function centerCamera() {
+		designView?.centerCamera();
+	}
+
 	function onGetNewCellProps(): Cell {
 		const layer = layers[selectedLayer];
 		const architecture_id = layer.cell_architecture_id;

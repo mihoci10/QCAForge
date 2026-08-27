@@ -10,6 +10,6 @@
 	});
 </script>
 
-<div class="w-full flex flex-col">
+<div class="h-full w-full flex flex-col">
 	<Analyzer {qcaSimulation} />
 </div>
