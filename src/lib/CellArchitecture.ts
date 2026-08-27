@@ -63,22 +63,8 @@ export function getDotRadius(cell_architecture: CellArchitecture): number {
 const DEFAULT_CELL_ARCHITECTURES: CellArchitecture[] = [
 	createCellArchitecture("Two state", 20, 5, 4, 6.36, "two_state"),
 	createCellArchitecture("Tri state 60", 60, 10, 8, 14, "tri_state_60"),
-	createCellArchitecture(
-		"Tri state 72",
-		72,
-		10,
-		8,
-		(72 * 2) / 3 / (2 * Math.sin(Math.PI / 8)),
-		"tri_state_72",
-	),
-	createCellArchitecture(
-		"Tri state 110",
-		110,
-		10,
-		8,
-		110 / (2 * Math.sin(Math.PI / 8)),
-		"tri_state_110",
-	),
+	createCellArchitecture("Tri state 72", 72, 10, 8, 18, "tri_state_72"),
+	createCellArchitecture("Tri state 110", 110, 10, 8, 26, "tri_state_110"),
 ];
 
 export function generate_default_cell_architectures(): Map<

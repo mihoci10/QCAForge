@@ -34,11 +34,21 @@
 	import Sidebar from "$lib/components/sidebar.svelte";
 	import NewDesignSetup from "$lib/modals/new-design-setup.svelte";
 	import { lastDirectoryManager } from "$lib/last-directory";
+	import DesignPage from "$lib/design/design-page.svelte";
+	import AnalysisPage from "$lib/analysis/analysis-page.svelte";
 
 	let { children } = $props();
 	const appWindow = getCurrentWebviewWindow();
 
 	let isNewDesignOpen: boolean = $state(false);
+
+	// The design/analysis views are mounted here (once a design/simulation first
+	// exists) rather than by the /design and /analysis routes themselves, and kept
+	// alive - only their visibility toggles with the route - so that switching
+	// between them never tears down and rebuilds camera position, selection, and
+	// panel state.
+	let isDesignRoute = $derived(page.url.pathname.startsWith("/design"));
+	let isAnalysisRoute = $derived(page.url.pathname.startsWith("/analysis"));
 
 	design_filename.subscribe((value) => {
 		const DESIGN_MODE = page.url.pathname.startsWith("/design");
@@ -123,7 +133,10 @@
 			.then((designFile) => {
 				design_filename.set(filename);
 				design.set(designFile);
-				lastDirectoryManager.setDirectoryFromFilePath("design", filename);
+				lastDirectoryManager.setDirectoryFromFilePath(
+					"design",
+					filename,
+				);
 				goto(`/design`);
 			})
 			.catch(() => {
@@ -156,6 +169,24 @@
 
 	<div class="flex h-full w-full overflow-auto">
 		{@render children()}
+
+		{#if $design}
+			<div
+				class="h-full w-full flex flex-col"
+				style:display={isDesignRoute ? "flex" : "none"}
+			>
+				<DesignPage />
+			</div>
+		{/if}
+
+		{#if $simulation}
+			<div
+				class="h-full w-full flex flex-col"
+				style:display={isAnalysisRoute ? "flex" : "none"}
+			>
+				<AnalysisPage />
+			</div>
+		{/if}
 	</div>
 </div>
 

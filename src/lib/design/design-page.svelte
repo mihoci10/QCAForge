@@ -61,7 +61,34 @@
 	let bottomPanels = $state([{ id: "log", title: "Log", visible: true }]);
 	let selectedBottomPanelId: string = $state("log");
 
+	// The bottom (Log) pane defaults to roughly 3 text lines tall rather than a fixed
+	// percentage of the window (which could be huge on a large display), while staying
+	// freely resizable by dragging the handle. paneforge's Pane only takes a percentage
+	// `defaultSize`, so we compute that percentage from the vertical pane group's actual
+	// pixel height once it's known, then apply it via the pane's imperative `resize`.
+	const LOG_PANE_DEFAULT_PX = 96; // ~3 lines of log text plus the tab strip/toolbar row
+	let verticalPaneGroupEl: HTMLElement | undefined = $state();
+	let logPane: { resize: (size: number) => void } | undefined = $state();
+
+	$effect(() => {
+		if (!logPane || !verticalPaneGroupEl) return;
+		const groupHeight = verticalPaneGroupEl.clientHeight;
+		if (groupHeight <= 0) return;
+		const percent = Math.min(50, (LOG_PANE_DEFAULT_PX / groupHeight) * 100);
+		logPane.resize(percent);
+	});
+
+	// This component is mounted once (the first time a design is loaded) and then kept
+	// alive for the rest of the session, so switching to the Analysis view and back no
+	// longer tears down/rebuilds the designer - camera position, selection, and panel
+	// state all just stay as they were. Because of that, this subscription only fires
+	// when a design is genuinely (re)loaded (new/open), never on a mere view switch, so
+	// it's safe to re-fit the camera here every time it runs.
+	let pendingCenterCamera = false;
+
 	design.subscribe((cur_design_file) => {
+		if (!cur_design_file) return;
+
 		console.log("Design file updated:", cur_design_file);
 		const cur_design = cur_design_file.design;
 		designViewProps = cur_design_file.designer_properties;
@@ -83,10 +110,20 @@
 			);
 			simulation_models = new Map(simulation_models);
 		});
-		if (designer) designer.redraw();
+		if (designer) {
+			designer.redraw();
+			designer.centerCamera();
+		} else {
+			pendingCenterCamera = true;
+		}
 	});
 
 	onMount(() => {
+		if (pendingCenterCamera) {
+			designer?.centerCamera();
+			pendingCenterCamera = false;
+		}
+
 		const unlistenSave = listen(EVENT_SAVE_FILE, () => {
 			new Promise((resolve: (value: string) => void, reject) => {
 				let filename = get(design_filename);
@@ -94,13 +131,17 @@
 					lastDirectoryManager
 						.getDirectory("design")
 						.then((dir) =>
-							dir ? join(dir, "New design.qcd") : "New design.qcd",
+							dir
+								? join(dir, "New design.qcd")
+								: "New design.qcd",
 						)
 						.then((defaultPath) =>
 							save({
 								defaultPath,
 								title: "Save design as",
-								filters: [{ name: "Design", extensions: ["qcd"] }],
+								filters: [
+									{ name: "Design", extensions: ["qcd"] },
+								],
 							}),
 						)
 						.then((filename) =>
@@ -146,19 +187,21 @@
 				.then((filename) => {
 					if (!filename) return;
 
-					new Promise(async (resolve: (value: QCADesignFile) => void) => {
-						const design = await createDesign(
-							layers,
-							selected_model_id,
-							simulation_models,
-							cell_architectures,
-						);
-						const designFile = await createQCADesignFile(
-							design,
-							designViewProps,
-						);
-						resolve(designFile);
-					}).then((designFile) => {
+					new Promise(
+						async (resolve: (value: QCADesignFile) => void) => {
+							const design = await createDesign(
+								layers,
+								selected_model_id,
+								simulation_models,
+								cell_architectures,
+							);
+							const designFile = await createQCADesignFile(
+								design,
+								designViewProps,
+							);
+							resolve(designFile);
+						},
+					).then((designFile) => {
 						writeTextFile(
 							filename,
 							serializeQCADesignFile(designFile),
@@ -206,7 +249,7 @@
 	}
 </script>
 
-<div class="w-full flex flex-col">
+<div class="h-full w-full flex flex-col">
 	<DesignToolbar
 		bind:selected_model_id
 		bind:simulation_models
@@ -239,31 +282,33 @@
 		<Resizable.Handle />
 		<Resizable.Pane>
 			<!-- Center area -->
-			<Resizable.PaneGroup direction="vertical">
-				<Resizable.Pane defaultSize={80}>
-					<Designer
-						bind:this={designer}
-						bind:designViewProps
-						bind:selected_model_id
-						bind:layers
-						bind:simulation_models
-						bind:cell_architectures
-						bind:selectedLayer
-						bind:selectedCells
-						{cellPropsPanel}
-						{propertyChangedCallback}
-					/>
-				</Resizable.Pane>
-				<Resizable.Handle />
-				{#if bottomPanels.some((panel) => panel.visible)}
-					<Resizable.Pane>
-						<PanelContainer
-							bind:panels={bottomPanels}
-							bind:selectedPanelId={selectedBottomPanelId}
+			<div class="h-full w-full" bind:this={verticalPaneGroupEl}>
+				<Resizable.PaneGroup direction="vertical">
+					<Resizable.Pane defaultSize={90}>
+						<Designer
+							bind:this={designer}
+							bind:designViewProps
+							bind:selected_model_id
+							bind:layers
+							bind:simulation_models
+							bind:cell_architectures
+							bind:selectedLayer
+							bind:selectedCells
+							{cellPropsPanel}
+							{propertyChangedCallback}
 						/>
 					</Resizable.Pane>
-				{/if}
-			</Resizable.PaneGroup>
+					<Resizable.Handle />
+					{#if bottomPanels.some((panel) => panel.visible)}
+						<Resizable.Pane bind:this={logPane}>
+							<PanelContainer
+								bind:panels={bottomPanels}
+								bind:selectedPanelId={selectedBottomPanelId}
+							/>
+						</Resizable.Pane>
+					{/if}
+				</Resizable.PaneGroup>
+			</div>
 		</Resizable.Pane>
 		<Resizable.Handle />
 		<Resizable.Pane defaultSize={0}>

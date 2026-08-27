@@ -830,7 +830,24 @@
 		centerCameraOnCells(selectedCells, margin);
 	}
 
-	export function centerCamera(margin: number = 1.2) {
+	/** Largest cell side length among the given cells' architectures, used as the unit for camera padding. */
+	function getRepresentativeCellSize(cells: Set<CellIndex>): number {
+		let maxSide = 0;
+		cells.forEach((id) => {
+			maxSide = Math.max(
+				maxSide,
+				get_cell_architecture(id.layer).side_length,
+			);
+		});
+		return maxSide;
+	}
+
+	/**
+	 * Fits the camera to show every cell in the design, padded on each edge by roughly
+	 * `paddingCells` cell-widths of empty space (rather than a proportional margin), so
+	 * the whole design is visible with some breathing room regardless of its size.
+	 */
+	export function centerCamera(paddingCells: number = 2) {
 		let all_cells = new Set<CellIndex>();
 		for (let i = 0; i < layers.length; i++) {
 			for (let j = 0; j < layers[i].cells.length; j++) {
@@ -838,7 +855,29 @@
 			}
 		}
 
-		centerCameraOnCells(all_cells, margin);
+		if (all_cells.isEmpty()) return;
+
+		const cell_extents = getCellsPosExtents(all_cells);
+		const padding = paddingCells * getRepresentativeCellSize(all_cells);
+		const padded_extents = {
+			min: new THREE.Vector2(
+				cell_extents.min.x - padding,
+				cell_extents.min.y - padding,
+			),
+			max: new THREE.Vector2(
+				cell_extents.max.x + padding,
+				cell_extents.max.y + padding,
+			),
+		};
+
+		const zoom = getCellsZoomToFit(padded_extents, 1);
+		const camera_pos = new THREE.Vector2(
+			(cell_extents.min.x + cell_extents.max.x) / 2,
+			(cell_extents.min.y + cell_extents.max.y) / 2,
+		);
+		const camera_dist = Math.max(zoom.zoom_x, zoom.zoom_y, 20);
+
+		centerCameraOnPos(camera_pos, camera_dist);
 	}
 
 	export async function renderToOffscreenCanvas(
