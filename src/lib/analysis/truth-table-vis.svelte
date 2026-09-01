@@ -107,7 +107,7 @@
 </script>
 
 <BaseDataVis {qcaSimulation} {title} {inputs} needDataLoad={false}>
-	<div class="my-4 overflow-x-auto">
+	<div class="my-4 flex-1 min-h-0 overflow-auto pb-10">
 		<Table.Root>
 			<Table.Header>
 				<Table.Row>

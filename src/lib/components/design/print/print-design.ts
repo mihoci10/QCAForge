@@ -9,18 +9,16 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 import { lastDirectoryManager } from "$lib/last-directory";
 import * as THREE from "three";
-import { CellType, getPolarization, type Cell } from "$lib/Cell";
+import {
+	CellType,
+	getPolarization,
+	polarizationToString,
+	type Cell,
+} from "$lib/Cell";
 import type { CellArchitecture } from "$lib/CellArchitecture";
 import type { Layer } from "$lib/Layer";
 import { Set } from "typescript-collections";
-import {
-	PDFDocument,
-	PDFFont,
-	PDFPage,
-	StandardFonts,
-	degrees,
-	rgb,
-} from "pdf-lib";
+import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 
 type DesignPrintFormat = "png" | "jpeg" | "svg" | "pdf";
 
@@ -307,17 +305,18 @@ export function designToSVG(
 				);
 			}
 		}
-		if (
-			[CellType.Input, CellType.Output, CellType.Fixed].includes(
-				cell.typ,
-			) &&
-			cell.label
-		) {
+		const labelLines = getCellLabelLines(cell);
+		if (labelLines.length) {
 			const fontSize = architecture.side_length / 5;
-			const haloWidth = fontSize * 0.12;
-			elements.push(
-				`<text x="0" y="0" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}" fill="${color}" stroke="#ffffff" stroke-width="${haloWidth}" stroke-linejoin="round" paint-order="stroke fill">${escapeXml(cell.label)}</text>`,
-			);
+			const lineHeight = fontSize * 1.15;
+			const totalHeight = (labelLines.length - 1) * lineHeight;
+			const labelColor = lightenColor(color, 0.45);
+			labelLines.forEach((line, i) => {
+				const dy = totalHeight / 2 - i * lineHeight;
+				elements.push(
+					`<text x="0" y="${dy}" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}" fill="${labelColor}">${escapeXml(line)}</text>`,
+				);
+			});
 		}
 		elements.push(`</g>`);
 	}
@@ -389,7 +388,8 @@ export async function designToPDF(
 
 	for (const { cell, architecture, index, layer } of cells) {
 		const selected = isSelected(selectedCells, layer, index);
-		const color = pdfColor(selected ? SELECTED_COLOR_HEX : cellColor(cell));
+		const colorHex = selected ? SELECTED_COLOR_HEX : cellColor(cell);
+		const color = pdfColor(colorHex);
 		const center = toPdfPoint(cell.position[0], cell.position[1]);
 		const filledSide = architecture.side_length * CELL_FILL_SCALE;
 		const half = filledSide / 2;
@@ -445,19 +445,23 @@ export async function designToPDF(
 				});
 			}
 		}
-		if (
-			[CellType.Input, CellType.Output, CellType.Fixed].includes(
-				cell.typ,
-			) &&
-			cell.label
-		) {
+		const labelLines = getCellLabelLines(cell);
+		if (labelLines.length) {
 			const size = architecture.side_length / 5;
-			drawHaloText(page, cell.label, {
-				x: center.x - font.widthOfTextAtSize(cell.label, size) / 2,
-				y: center.y - size / 2,
-				size,
-				font,
-				color,
+			const lineHeight = size * 1.15;
+			const totalHeight = (labelLines.length - 1) * lineHeight;
+			const labelColor = pdfColor(lightenColor(colorHex, 0.45));
+			labelLines.forEach((line, i) => {
+				const width = font.widthOfTextAtSize(line, size);
+				const y =
+					center.y + totalHeight / 2 - i * lineHeight - size / 2;
+				page.drawText(line, {
+					x: center.x - width / 2,
+					y,
+					size,
+					font,
+					color: labelColor,
+				});
 			});
 		}
 	}
@@ -526,38 +530,22 @@ function getDesignBounds(cells: ReturnType<typeof collectPrintableCells>) {
 	};
 }
 
-/** Draws text with a white halo (faux outline, since pdf-lib text has no native stroke) so cell-colored labels stay readable against the cell's fill. */
-function drawHaloText(
-	page: PDFPage,
-	text: string,
-	options: {
-		x: number;
-		y: number;
-		size: number;
-		font: PDFFont;
-		color: ReturnType<typeof rgb>;
-	},
-) {
-	const haloOffset = options.size * 0.045;
-	const offsets: [number, number][] = [
-		[-haloOffset, -haloOffset],
-		[0, -haloOffset],
-		[haloOffset, -haloOffset],
-		[-haloOffset, 0],
-		[haloOffset, 0],
-		[-haloOffset, haloOffset],
-		[0, haloOffset],
-		[haloOffset, haloOffset],
-	];
-	const white = rgb(1, 1, 1);
-	for (const [dx, dy] of offsets)
-		page.drawText(text, {
-			...options,
-			x: options.x + dx,
-			y: options.y + dy,
-			color: white,
-		});
-	page.drawText(text, options);
+/** Lines of text to show inside a cell, matching paper-geometry.ts's getLabels(): Fixed cells always show their polarization value, Input/Output cells show their custom label. */
+function getCellLabelLines(cell: Cell): string[] {
+	if (cell.typ === CellType.Fixed)
+		return polarizationToString(
+			getPolarization(cell.dot_probability_distribution),
+		).split("\n");
+	if ([CellType.Input, CellType.Output].includes(cell.typ) && cell.label)
+		return [cell.label];
+	return [];
+}
+
+/** Lightens a hex color by mixing it toward white, for label text that must stay legible against its own cell's fill. */
+function lightenColor(hex: string, amount: number): string {
+	const mix = (c: number) => Math.round(c + (255 - c) * amount);
+	const toHex = (c: number) => c.toString(16).padStart(2, "0");
+	return `#${toHex(mix(parseInt(hex.slice(1, 3), 16)))}${toHex(mix(parseInt(hex.slice(3, 5), 16)))}${toHex(mix(parseInt(hex.slice(5, 7), 16)))}`;
 }
 
 /** SVG path (y-down, centered on origin) for a square of half-size `half` with rounded corners of `radius`. Usable directly in an SVG <path> and in pdf-lib's drawSvgPath (which flips the Y axis to match SVG conventions). */
