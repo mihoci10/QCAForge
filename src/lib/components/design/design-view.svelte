@@ -218,6 +218,19 @@
 	});
 
 	function windowResize() {
+		// The design view mounts (and its ResizeObserver starts observing) while
+		// its containing panel can still be `display:none` - the parent toggles
+		// visibility by CSS display rather than by mounting/unmounting, so camera
+		// position, selection, etc. survive switching to the Analysis view and
+		// back. A resize callback firing at that point sees a 0x0 container,
+		// which sets camera.aspect to NaN; centerCamera()'s zoom math then
+		// computes a NaN camera position that persists (nothing re-centers the
+		// camera on its own) until something explicitly re-centers it again,
+		// leaving the view blank until the user does something like reopening
+		// the file. Skip the resize while genuinely hidden instead, so the
+		// camera is only ever sized against real dimensions.
+		if (container.clientWidth === 0 || container.clientHeight === 0) return;
+
 		renderer.setSize(
 			container.clientWidth * devicePixelRatio,
 			container.clientHeight * devicePixelRatio,
