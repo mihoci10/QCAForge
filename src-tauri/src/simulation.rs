@@ -53,7 +53,11 @@ pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelT
 }
 
 #[tauri::command(async)]
-pub fn run_sim_model(app: AppHandle, qca_design: QCADesign) -> Result<String, String> {
+pub fn run_sim_model(
+    app: AppHandle,
+    qca_design: QCADesign,
+    result_filename: String,
+) -> Result<String, String> {
     let sim_model_id = qca_design
         .simulation_settings
         .selected_simulation_model_id
@@ -74,7 +78,8 @@ pub fn run_sim_model(app: AppHandle, qca_design: QCADesign) -> Result<String, St
                 .deserialize_clock_generator_settings(&clock_generator_settings.to_string())
                 .map_err(|e| format!("Error parsing clock generator settings: {}", e))?;
 
-            let file = File::create("output.qcs").unwrap();
+            let file = File::create(&result_filename)
+                .map_err(|e| format!("Could not create result file: {}", e))?;
 
             let (sim_handle, progress_rx, _) = run_simulation_async(model, layers, architectures);
 
@@ -92,8 +97,9 @@ pub fn run_sim_model(app: AppHandle, qca_design: QCADesign) -> Result<String, St
             }
 
             let simulation_data = sim_handle.join().unwrap();
-            let _ = write_to_file(file, &qca_design, &simulation_data);
-            Ok("".into())
+            write_to_file(file, &qca_design, &simulation_data)
+                .map_err(|e| format!("Could not write result file: {}", e))?;
+            Ok(result_filename)
         }
         None => Err("No model with such id exists".into()),
     }
