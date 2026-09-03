@@ -17,6 +17,12 @@
 		ProgressBarStatus,
 	} from "@tauri-apps/api/window";
 	import { AppControl } from "$lib/utils/app-control";
+	import { save } from "@tauri-apps/plugin-dialog";
+	import { basename, join } from "@tauri-apps/api/path";
+	import { get } from "svelte/store";
+	import { design_filename, recentFilesManager } from "$lib/globals";
+	import { lastDirectoryManager } from "$lib/last-directory";
+	import { QCA_SIMULATION_FILE_EXTENSION } from "$lib/qca-simulation";
 
 	interface Props {
 		selected_model_id: string | undefined;
@@ -82,11 +88,47 @@
 		);
 	}
 
-	function executeSimulation() {
-		if (!selected_model_id) console.error("invalid simulation model id!");
+	async function getDefaultResultFilename(): Promise<string> {
+		const currentDesignFilename = get(design_filename);
+		if (currentDesignFilename) {
+			const name = await basename(currentDesignFilename);
+			return (
+				name.replace(/\.[^./\\]+$/, "") +
+				"." +
+				QCA_SIMULATION_FILE_EXTENSION
+			);
+		}
+		return `New design.${QCA_SIMULATION_FILE_EXTENSION}`;
+	}
 
-		if (!simulation_models.has(selected_model_id!))
+	async function executeSimulation() {
+		if (!selected_model_id) {
+			console.error("invalid simulation model id!");
+			return;
+		}
+
+		if (!simulation_models.has(selected_model_id!)) {
 			console.error("invalid simulation model!");
+			return;
+		}
+
+		const defaultName = await getDefaultResultFilename();
+		const dir = await lastDirectoryManager.getDirectory("simulation");
+		const defaultPath = dir ? await join(dir, defaultName) : defaultName;
+
+		const resultFilename = await save({
+			defaultPath,
+			title: "Save simulation results as",
+			filters: [
+				{ name: "Simulation", extensions: [QCA_SIMULATION_FILE_EXTENSION] },
+			],
+		});
+		if (!resultFilename) return;
+
+		lastDirectoryManager.setDirectoryFromFilePath(
+			"simulation",
+			resultFilename,
+		);
 
 		let simulation_toast = toast(SimulationProgressToast, {
 			duration: Infinity,
@@ -100,9 +142,9 @@
 			cell_architectures,
 		)
 			.then((design) => {
-				startSimulation(design)
-					.then((res) => {
-						onSimulationCompleted();
+				startSimulation(design, resultFilename)
+					.then((filename) => {
+						onSimulationCompleted(filename);
 						toast.success("Simulation finished successfully.", {
 							id: simulation_toast,
 							duration: 5000,
@@ -132,8 +174,9 @@
 
 	function cancelSimulation() {}
 
-	function onSimulationCompleted() {
+	function onSimulationCompleted(resultFilename: string) {
 		getCurrentWindow().setProgressBar({ status: ProgressBarStatus.None });
+		recentFilesManager.fileOpened(resultFilename);
 		AppControl.sendSystemNotification(
 			"Simulation Completed",
 			"The simulation has finished successfully.",
