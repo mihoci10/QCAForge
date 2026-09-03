@@ -36,7 +36,14 @@
 
 	let status: "loading" | "success" | "error" | "empty" = $state("empty");
 
+	// Explicitly read `inputs` here (not just inside loadData()) so this effect
+	// is unambiguously re-run whenever the caller's selection changes, not only
+	// when `qcaSimulation` itself does - otherwise a panel whose selection was
+	// reset to empty while its qcaSimulation reference happened not to change
+	// in the same tick could keep showing whatever was loaded for its previous
+	// selection.
 	$effect(() => {
+		void inputs;
 		if (qcaSimulation) {
 			loadData();
 		}
