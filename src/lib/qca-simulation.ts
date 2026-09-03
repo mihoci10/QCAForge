@@ -234,7 +234,14 @@ export class QCASimulation {
 					cellName = `Cell ${cellIndex.layer}-${cellIndex.cell}`;
 				}
 				if (polarization_n > 1) {
-					cellName += ` ${"ABCDE"[j]}`;
+					// "P1"/"P2" for the cell's two independent polarization
+					// components (this architecture's dot_count/4), not to be
+					// confused with the A/B/C/D *logic state* labels used
+					// elsewhere (Truth Table, etc.) - those are derived from
+					// thresholding a component's sign, not the component index
+					// itself, and reusing the same letters here read as if they
+					// were that.
+					cellName += ` P${j + 1}`;
 				}
 				signals.push({
 					index: { type: SignalType.CELL, index: i, subindex: j },
