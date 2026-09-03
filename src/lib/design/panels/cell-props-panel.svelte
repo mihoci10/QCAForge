@@ -291,7 +291,7 @@
 						{#each polarizationInput as polarization, i}
 							<div class="flex items-center gap-2">
 								{#if polarizationInput.length > 1}
-									<span>{"ABCDE".at(i)}</span>
+									<span>P{i + 1}</span>
 								{/if}
 								<Input
 									type="number"
