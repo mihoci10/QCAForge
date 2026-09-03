@@ -79,11 +79,11 @@ export function getInputLabel(
 		case InputType.CELL:
 			const cellIndex = input.index as CellIndex;
 			const cell = qcaSimulation.getCell(cellIndex);
-			return cell.label || `Cell ${cellIndex.toString()}`;
+			return cell?.label || `Cell ${cellIndex.toString()}`;
 		case InputType.SIGNAL:
 			const signalIndex = input.index as SignalIndex;
 			const signal = qcaSimulation.getSignal(signalIndex);
-			return signal.name;
+			return signal?.name ?? "Unknown signal";
 		default:
 			throw new Error("Invalid input type");
 	}
@@ -246,16 +246,21 @@ export class QCASimulation {
 		return signals;
 	}
 
-	public getCell(cellIndex: CellIndex): Cell {
+	// Returns undefined (rather than throwing) when `cellIndex` doesn't
+	// resolve against this simulation's design - a panel can still be
+	// holding onto a cell/signal selection made against a *previously*
+	// loaded, structurally different simulation for the one render cycle
+	// between a new simulation being set and that panel's own effect
+	// catching up and clearing its stale selection. Throwing here would
+	// crash that render (Svelte doesn't recover from a template-time
+	// exception), permanently wedging the view instead of just briefly
+	// showing a stale label.
+	public getCell(cellIndex: CellIndex): Cell | undefined {
 		const layer = this._design.layers[cellIndex.layer];
-		const cell = layer.cells[cellIndex.cell];
-		if (!cell) {
-			throw new Error(`Cell not found!}`);
-		}
-		return cell;
+		return layer?.cells[cellIndex.cell];
 	}
 
-	public getSignal(signalIndex: SignalIndex): Signal {
+	public getSignal(signalIndex: SignalIndex): Signal | undefined {
 		const signals = this.getSignals();
 		for (const signal of signals) {
 			if (
@@ -270,7 +275,7 @@ export class QCASimulation {
 				}
 			}
 		}
-		throw new Error("Signal not found");
+		return undefined;
 	}
 
 	public loadData(): Promise<void> {

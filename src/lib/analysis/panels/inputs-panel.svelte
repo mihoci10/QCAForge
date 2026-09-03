@@ -73,10 +73,10 @@
 
 		switch (input.type) {
 			case InputType.SIGNAL:
-				return qcaSimulation.getSignal(input.index).name;
+				return qcaSimulation.getSignal(input.index)?.name ?? "Unknown signal";
 			case InputType.CELL:
 				return (
-					qcaSimulation.getCell(input.index).label ||
+					qcaSimulation.getCell(input.index)?.label ||
 					`Cell ${input.index}`
 				);
 			default:
