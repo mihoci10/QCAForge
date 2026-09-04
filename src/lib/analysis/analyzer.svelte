@@ -153,7 +153,10 @@
 			resetGeneration++;
 			currentSample = 0;
 			visuals = [];
+			addPanel("truthTable");
 			addPanel("linePlot");
+			addPanel("designView");
+			updateActiveTab("0");
 		}
 	});
 
