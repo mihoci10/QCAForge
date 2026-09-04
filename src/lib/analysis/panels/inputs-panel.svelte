@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Input from "$lib/components/ui/input/input.svelte";
 	import Label from "$lib/components/ui/label/label.svelte";
+	import Button from "$lib/components/ui/button/button.svelte";
 	import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 	import {
 		inputsEqual,
@@ -95,8 +96,18 @@
 		<Label for="inputs-list" class="text-lg font-medium"
 			>Input Selector</Label
 		>
-		<div class="text-sm">
-			{selectedInputs.length} selected
+		<div class="flex items-center gap-2">
+			<Button
+				variant="link"
+				class="h-auto p-0 text-sm"
+				disabled={selectedInputs.length === 0}
+				onclick={() => (selectedInputs = [])}
+			>
+				Clear all
+			</Button>
+			<div class="text-sm">
+				{selectedInputs.length} selected
+			</div>
 		</div>
 	</div>
 
