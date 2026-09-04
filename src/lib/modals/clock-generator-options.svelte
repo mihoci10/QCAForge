@@ -63,6 +63,11 @@
 								<span>{option.descriptor.unit}</span>
 							{/if}
 						</div>
+						{#if option.description}
+							<p class="text-xs text-muted-foreground">
+								{option.description}
+							</p>
+						{/if}
 					</div>
 				{/if}
 			{/if}
