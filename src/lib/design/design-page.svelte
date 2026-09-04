@@ -25,6 +25,7 @@
 	import { design, design_filename, visibleBottomPanels } from "$lib/globals";
 	import { get } from "svelte/store";
 	import { lastDirectoryManager } from "$lib/last-directory";
+	import { lastSimulationModelManager } from "$lib/last-simulation-model";
 	import { join } from "@tauri-apps/api/path";
 	import { type Layer } from "$lib/Layer.js";
 	import { type CellArchitecture } from "$lib/CellArchitecture";
@@ -95,8 +96,20 @@
 		layers = cur_design.layers;
 		cell_architectures = cur_design.cell_architectures;
 		setSimulationModels().then(() => {
-			selected_model_id =
+			const designModelId =
 				cur_design.simulation_settings.selected_simulation_model_id;
+			if (designModelId) {
+				selected_model_id = designModelId;
+			} else {
+				// This design was never explicitly simulated (e.g. it's brand
+				// new), so default to whichever model the user picked last
+				// instead of leaving the selector blank every time.
+				lastSimulationModelManager.getModelId().then((lastModelId) => {
+					if (lastModelId && simulation_models.has(lastModelId)) {
+						selected_model_id = lastModelId;
+					}
+				});
+			}
 			cur_design.simulation_settings.simulation_model_settings.forEach(
 				(val, key, map) => {
 					const model = simulation_models.get(key);

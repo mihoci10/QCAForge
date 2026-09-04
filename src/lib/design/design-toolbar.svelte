@@ -22,6 +22,7 @@
 	import { get } from "svelte/store";
 	import { design_filename, recentFilesManager } from "$lib/globals";
 	import { lastDirectoryManager } from "$lib/last-directory";
+	import { lastSimulationModelManager } from "$lib/last-simulation-model";
 	import { QCA_SIMULATION_FILE_EXTENSION } from "$lib/qca-simulation";
 
 	interface Props {
@@ -81,6 +82,15 @@
 		openClockGeneratorOptionsModal = true;
 	}
 
+	// Remember whatever model is currently selected so the next design that
+	// doesn't have its own saved selection (see design-page.svelte) defaults
+	// to it instead of showing a blank "Select model" picker.
+	$effect(() => {
+		if (selected_model_id) {
+			lastSimulationModelManager.setModelId(selected_model_id);
+		}
+	});
+
 	function applyCallback() {
 		if (!selectedModel) throw new Error("Invalid simulation model!");
 		simulation_models = new Map(
@@ -88,17 +98,25 @@
 		);
 	}
 
+	// Model ids aren't consistently named (e.g. "bistable" vs "icha_model"),
+	// so normalize away a trailing "_model" rather than hardcoding a
+	// per-model display suffix.
+	function getModelFilenameSuffix(model: SimulationModel): string {
+		return model.id.replace(/_model$/i, "").toLowerCase();
+	}
+
 	async function getDefaultResultFilename(): Promise<string> {
 		const currentDesignFilename = get(design_filename);
-		if (currentDesignFilename) {
-			const name = await basename(currentDesignFilename);
-			return (
-				name.replace(/\.[^./\\]+$/, "") +
-				"." +
-				QCA_SIMULATION_FILE_EXTENSION
-			);
-		}
-		return `New design.${QCA_SIMULATION_FILE_EXTENSION}`;
+		const baseName = currentDesignFilename
+			? (await basename(currentDesignFilename)).replace(
+					/\.[^./\\]+$/,
+					"",
+				)
+			: "New design";
+		const modelSuffix = selectedModel
+			? "_" + getModelFilenameSuffix(selectedModel)
+			: "";
+		return baseName + modelSuffix + "." + QCA_SIMULATION_FILE_EXTENSION;
 	}
 
 	async function executeSimulation() {
