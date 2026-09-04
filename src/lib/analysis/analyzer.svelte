@@ -99,6 +99,7 @@
 				: [];
 
 		visuals.push({
+			id: panelId,
 			Component: component,
 			PropsPanel: propsPanel,
 			props: {
@@ -185,6 +186,21 @@
 		if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
 			return visuals[selectedIdx].inputMode;
 		}
+	}
+
+	// The Design View panel colors the whole design from the simulation data
+	// directly - it has no notion of a per-panel input/output selection - so
+	// the Input Selector sidebar (and the input selection it drives) is only
+	// meaningful for the Line Plot and Truth Table panels.
+	function getActivePanelId(): string | undefined {
+		if (!activeTab) {
+			return undefined;
+		}
+		const selectedIdx = parseInt(activeTab);
+		if (!isNaN(selectedIdx) && visuals[selectedIdx]) {
+			return visuals[selectedIdx].id;
+		}
+		return undefined;
 	}
 </script>
 
@@ -280,20 +296,24 @@
 					{/each}
 				</div>
 			</Tabs.Root>
-			<TimelineControl {qcaSimulation} bind:currentSample
-			></TimelineControl>
+			{#if getActivePanelId() === "designView"}
+				<TimelineControl {qcaSimulation} bind:currentSample
+				></TimelineControl>
+			{/if}
 		</div>
 	</Resizable.Pane>
-	<Resizable.Handle />
-	<Resizable.Pane defaultSize={15} minSize={10}>
-		<div class="h-full overflow-y-auto p-2 bg-sidebar">
-			<Accordion.Root type="multiple">
-				<InputsPanel
-					{qcaSimulation}
-					bind:selectedInputs
-					inputType={getInputMode()}
-				/>
-			</Accordion.Root>
-		</div>
-	</Resizable.Pane>
+	{#if getActivePanelId() !== "designView"}
+		<Resizable.Handle />
+		<Resizable.Pane defaultSize={15} minSize={10}>
+			<div class="h-full overflow-y-auto p-2 bg-sidebar">
+				<Accordion.Root type="multiple">
+					<InputsPanel
+						{qcaSimulation}
+						bind:selectedInputs
+						inputType={getInputMode()}
+					/>
+				</Accordion.Root>
+			</div>
+		</Resizable.Pane>
+	{/if}
 </Resizable.PaneGroup>
