@@ -33,6 +33,12 @@
 	let selection_rect: HTMLElement;
 	let canvas: HTMLCanvasElement;
 	let resizeObserver: ResizeObserver;
+	// Set once this instance has ever seen a real (non-zero) container size,
+	// so the very first time that happens we can fit the camera to the
+	// design automatically - covering callers (like an Analysis "Design
+	// View" panel that isn't the active tab yet) that never get a chance to
+	// call centerCamera() themselves while the container is still 0x0.
+	let hasCenteredOnce = false;
 
 	let globalScene: THREE.Scene;
 	let cellScene: CellScene;
@@ -238,6 +244,12 @@
 		);
 		camera.aspect = container.clientWidth / container.clientHeight;
 		camera.updateProjectionMatrix();
+
+		if (!hasCenteredOnce) {
+			hasCenteredOnce = true;
+			centerCamera();
+		}
+
 		render();
 	}
 
