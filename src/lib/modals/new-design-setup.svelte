@@ -13,6 +13,7 @@
 	import * as Select from "$lib/components/ui/select";
 	import { onMount } from "svelte";
 	import type { NewDesignConfig } from "$lib/qca-design";
+	import { lastSimulationModelManager } from "$lib/last-simulation-model";
 
 	interface Props {
 		isOpen: boolean;
@@ -26,11 +27,21 @@
 	let selectedSimulationModel: string = $state("");
 	let selectedCellArchitecture: string = $state("");
 
+	// Default to whichever model the user picked last (if it's still
+	// available) rather than always resetting to the first model in the list.
+	async function defaultSimulationModelId(): Promise<string> {
+		const lastModelId = await lastSimulationModelManager.getModelId();
+		if (lastModelId && simulationModels.some((m) => m.id === lastModelId)) {
+			return lastModelId;
+		}
+		return simulationModels[0]?.id ?? "";
+	}
+
 	onMount(async () => {
 		try {
 			simulationModels = await loadSimulationModels();
 			if (simulationModels.length > 0) {
-				selectedSimulationModel = simulationModels[0].id;
+				selectedSimulationModel = await defaultSimulationModelId();
 			}
 
 			cellArchitectures = generate_default_cell_architectures();
@@ -53,7 +64,9 @@
 	$effect(() => {
 		if (isOpen) {
 			if (simulationModels.length > 0) {
-				selectedSimulationModel = simulationModels[0].id;
+				defaultSimulationModelId().then((id) => {
+					selectedSimulationModel = id;
+				});
 			}
 			if (cellArchitectures.size > 0) {
 				selectedCellArchitecture = get_default_cell_architecture_id();
