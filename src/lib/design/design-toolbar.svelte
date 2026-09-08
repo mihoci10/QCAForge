@@ -11,6 +11,7 @@
 	import Icon from "@iconify/svelte";
 	import SimModelOptions from "$lib/modals/sim-model-options.svelte";
 	import ClockGeneratorOptions from "$lib/modals/clock-generator-options.svelte";
+	import InputSequenceSettings from "$lib/modals/input-sequence-settings.svelte";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 	import {
 		getCurrentWindow,
@@ -30,6 +31,8 @@
 		simulation_models: Map<string, SimulationModel>;
 		layers: Layer[];
 		cell_architectures: Map<string, CellArchitecture>;
+		useCustomInputSequence: boolean;
+		customInputSequence: number[][];
 	}
 
 	let {
@@ -37,11 +40,14 @@
 		simulation_models = $bindable(),
 		layers = $bindable(),
 		cell_architectures = $bindable(),
+		useCustomInputSequence = $bindable(),
+		customInputSequence = $bindable(),
 	}: Props = $props();
 
 	// Modal state for simulation settings
 	let openSimOptionsModal: boolean = $state(false);
 	let openClockGeneratorOptionsModal: boolean = $state(false);
+	let openInputSequenceModal: boolean = $state(false);
 	let selectedModel: SimulationModel | undefined = $derived(
 		selected_model_id
 			? simulation_models.get(selected_model_id)
@@ -82,6 +88,15 @@
 		openClockGeneratorOptionsModal = true;
 	}
 
+	function openInputSequenceOptions() {
+		openInputSequenceModal = true;
+	}
+
+	function applyInputSequence(useCustom: boolean, sequence: number[][]) {
+		useCustomInputSequence = useCustom;
+		customInputSequence = sequence;
+	}
+
 	// Remember whatever model is currently selected so the next design that
 	// doesn't have its own saved selection (see design-page.svelte) defaults
 	// to it instead of showing a blank "Select model" picker.
@@ -108,10 +123,7 @@
 	async function getDefaultResultFilename(): Promise<string> {
 		const currentDesignFilename = get(design_filename);
 		const baseName = currentDesignFilename
-			? (await basename(currentDesignFilename)).replace(
-					/\.[^./\\]+$/,
-					"",
-				)
+			? (await basename(currentDesignFilename)).replace(/\.[^./\\]+$/, "")
 			: "New design";
 		const modelSuffix = selectedModel
 			? "_" + getModelFilenameSuffix(selectedModel)
@@ -138,7 +150,10 @@
 			defaultPath,
 			title: "Save simulation results as",
 			filters: [
-				{ name: "Simulation", extensions: [QCA_SIMULATION_FILE_EXTENSION] },
+				{
+					name: "Simulation",
+					extensions: [QCA_SIMULATION_FILE_EXTENSION],
+				},
 			],
 		});
 		if (!resultFilename) return;
@@ -158,6 +173,8 @@
 			selected_model_id,
 			simulation_models,
 			cell_architectures,
+			useCustomInputSequence,
+			customInputSequence,
 		)
 			.then((design) => {
 				startSimulation(design, resultFilename)
@@ -238,6 +255,9 @@
 						<DropdownMenu.Item onclick={openClockGeneratorOptions}
 							>Clock generator settings</DropdownMenu.Item
 						>
+						<DropdownMenu.Item onclick={openInputSequenceOptions}
+							>Input sequence settings</DropdownMenu.Item
+						>
 					</DropdownMenu.Group>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
@@ -273,4 +293,13 @@
 	bind:isOpen={openClockGeneratorOptionsModal}
 	model={selectedModel!}
 	{applyCallback}
+/>
+
+<InputSequenceSettings
+	bind:isOpen={openInputSequenceModal}
+	{layers}
+	{cell_architectures}
+	{useCustomInputSequence}
+	{customInputSequence}
+	onApply={applyInputSequence}
 />
