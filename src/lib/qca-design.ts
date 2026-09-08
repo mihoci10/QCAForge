@@ -24,6 +24,8 @@ export interface SimulationModelSettings {
 export interface SimulationSettings {
 	selected_simulation_model_id: string | undefined;
 	simulation_model_settings: Map<string, SimulationModelSettings>;
+	use_custom_input_sequence: boolean;
+	custom_input_sequence: number[][];
 }
 
 export interface QCADesign {
@@ -89,6 +91,8 @@ export async function createDesign(
 	selected_simulation_model_id: string | undefined,
 	simulation_models: Map<string, SimulationModel>,
 	cell_architectures: Map<string, CellArchitecture>,
+	use_custom_input_sequence: boolean = false,
+	custom_input_sequence: number[][] = [],
 ): Promise<QCADesign> {
 	let simulation_model_settings: Map<string, SimulationModelSettings> =
 		new Map();
@@ -108,6 +112,8 @@ export async function createDesign(
 		simulation_settings: {
 			selected_simulation_model_id: selected_simulation_model_id,
 			simulation_model_settings: simulation_model_settings,
+			use_custom_input_sequence: use_custom_input_sequence,
+			custom_input_sequence: custom_input_sequence,
 		},
 	};
 }

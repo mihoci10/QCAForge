@@ -41,6 +41,8 @@
 
 	let selected_model_id: string | undefined = $state();
 	let layers: Layer[] = $state([]);
+	let useCustomInputSequence: boolean = $state(false);
+	let customInputSequence: number[][] = $state([]);
 
 	let simulation_models: Map<string, SimulationModel> = $state(
 		new Map<string, SimulationModel>(),
@@ -95,6 +97,10 @@
 		designViewProps = cur_design_file.designer_properties;
 		layers = cur_design.layers;
 		cell_architectures = cur_design.cell_architectures;
+		useCustomInputSequence =
+			cur_design.simulation_settings.use_custom_input_sequence ?? false;
+		customInputSequence =
+			cur_design.simulation_settings.custom_input_sequence ?? [];
 		setSimulationModels().then(() => {
 			const designModelId =
 				cur_design.simulation_settings.selected_simulation_model_id;
@@ -168,6 +174,8 @@
 						selected_model_id,
 						simulation_models,
 						cell_architectures,
+						useCustomInputSequence,
+						customInputSequence,
 					);
 					const designFile = await createQCADesignFile(
 						design,
@@ -268,6 +276,8 @@
 		bind:simulation_models
 		bind:layers
 		bind:cell_architectures
+		bind:useCustomInputSequence
+		bind:customInputSequence
 	/>
 
 	<Resizable.PaneGroup direction="horizontal">
