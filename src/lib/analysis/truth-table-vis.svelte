@@ -27,6 +27,16 @@
 		$props();
 
 	let displayData: string[][] = $state([]);
+	// calculate() can be triggered twice for what's semantically the same
+	// input selection - e.g. a freshly-created panel's `inputs` prop gets
+	// reassigned to a new (but equal) array shortly after mount as
+	// Analyzer's selectedInputs/updatePanelProps round-trip settles - and
+	// both invocations' async `calculate_truth_table` calls can end up in
+	// flight together. Each resolution only ever appends, never replaces,
+	// so an overlapping pair doubles every row instead of the second one
+	// superseding the first. Track which call is the latest one and ignore
+	// any result that arrives after it's been superseded.
+	let calculationId = 0;
 
 	$effect(() => {
 		if (qcaSimulation) {
@@ -55,6 +65,7 @@
 
 	function calculate() {
 		if (!qcaSimulation) return;
+		const thisCalculationId = ++calculationId;
 		displayData = [];
 
 		const params = {
@@ -70,11 +81,14 @@
 
 		invoke("calculate_truth_table", params)
 			.then((result) => {
+				if (thisCalculationId !== calculationId) return;
+
 				const truth_table = result.entries as [string, number[]][];
 				const max_len = Math.max(
 					...truth_table.map((row) => row[1].length),
 				);
 
+				const rows: string[][] = [];
 				for (let i = 0; i < max_len; i++) {
 					const row: string[] = truth_table.map(([_, values]) => {
 						if (i >= values.length) return "";
@@ -82,8 +96,9 @@
 						if (value === undefined || value === null) return "NaN";
 						return value.toString();
 					});
-					displayData.push(row);
+					rows.push(row);
 				}
+				displayData = rows;
 			})
 			.catch((error) => {
 				console.error("Error calculating truth table:", error);
