@@ -39,6 +39,11 @@
 	// View" panel that isn't the active tab yet) that never get a chance to
 	// call centerCamera() themselves while the container is still 0x0.
 	let hasCenteredOnce = false;
+	// Render on demand rather than every animation frame: a continuous 60fps
+	// render loop was keeping the GPU busy the whole time the design view was
+	// open, even while nothing on screen was changing. Anything that mutates
+	// the scene sets this to request the next loop tick actually render.
+	let needsRender = true;
 
 	let globalScene: THREE.Scene;
 	let cellScene: CellScene;
@@ -125,7 +130,7 @@
 		if (false) initDebugStats();
 		initKeyboardShortcuts();
 
-		renderer.setAnimationLoop(render);
+		renderer.setAnimationLoop(renderIfNeeded);
 		drawCurrentLayer();
 	});
 
@@ -168,7 +173,9 @@
 			cameraPosition[2],
 		);
 
-		cellScene = new CellScene(renderer, camera);
+		cellScene = new CellScene(renderer, camera, () => {
+			needsRender = true;
+		});
 		cellScene.addLayer(0);
 
 		infinite_grid = new InfiniteGrid(
@@ -199,6 +206,9 @@
 		controls.minDistance = 10;
 		controls.maxDistance = 1000;
 		controls.target.set(camera.position.x, camera.position.y, 0);
+		controls.addEventListener("change", () => {
+			needsRender = true;
+		});
 	}
 
 	function initDebugStats() {
@@ -253,6 +263,12 @@
 		render();
 	}
 
+	function renderIfNeeded() {
+		if (!needsRender) return;
+		needsRender = false;
+		render();
+	}
+
 	function render() {
 		controls.update();
 		renderer.setRenderTarget(null);
@@ -303,6 +319,7 @@
 			get_cell_architecture(),
 		);
 		globalScene.add(ghostGeometry.getDrawObject());
+		needsRender = true;
 	}
 
 	function removeGhostMesh() {
@@ -311,6 +328,7 @@
 
 		ghostGeometry.update([], new Set(), get_cell_architecture());
 		globalScene.remove(ghostGeometry.getDrawObject());
+		needsRender = true;
 	}
 
 	function shouldMouseDrag(mouse_x: number, mouse_y: number): boolean {
@@ -493,6 +511,7 @@
 					get_cell_architecture(),
 				);
 		}
+		needsRender = true;
 	}
 
 	function layersVisibilityChanged() {
@@ -662,6 +681,7 @@
 			new Set(),
 			cell_architecture,
 		);
+		needsRender = true;
 	}
 
 	function inputModeChanged(newInputModeIdx: number) {
@@ -1130,6 +1150,7 @@
 			size;
 		(infinite_grid.material as THREE.ShaderMaterial).uniforms.uSize2.value =
 			size * 5;
+		needsRender = true;
 	});
 </script>
 

@@ -75,7 +75,9 @@ class CellSceneLayer {
 			label.text = data.text;
 			label.position.set(data.position.x, data.position.y, 0);
 			label.color = data.color;
-			label.sync();
+			// troika lays out glyphs asynchronously; ask for another render once
+			// it's actually ready instead of assuming a render happens soon anyway.
+			label.sync(() => this.parent.requestRender());
 		}
 	}
 
@@ -101,21 +103,30 @@ export class CellScene {
 	private camera: THREE.Camera;
 	private layers: CellSceneLayer[] = [];
 	private themeManager: ThemeManager;
+	private onNeedsRender?: () => void;
 
 	constructor(
 		renderer: THREE.WebGLRenderer,
 		camera: THREE.Camera,
+		onNeedsRender?: () => void,
 		themeManagerInstance?: ThemeManager,
 	) {
 		this.renderer = renderer;
 		this.camera = camera;
 		this.layers = [];
+		this.onNeedsRender = onNeedsRender;
 		this.themeManager = themeManagerInstance ?? themeManager;
 
 		// Rebuild layers when theme changes
 		this.themeManager.onChange(() => {
 			for (const layer of this.layers) layer.rebuildGeometry();
+			this.requestRender();
 		});
+	}
+
+	/** Lets layers (and their async-laid-out text labels) ask for another render. */
+	requestRender() {
+		this.onNeedsRender?.();
 	}
 
 	getLayersCount() {
