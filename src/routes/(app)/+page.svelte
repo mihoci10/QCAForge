@@ -2,7 +2,7 @@
 	import { invoke } from "@tauri-apps/api/core";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/ui/button/button.svelte";
-	import { design, recentFilesManager, simulation } from "$lib/globals";
+	import { recentFilesManager, simulation } from "$lib/globals";
 	import type { RecentFile } from "$lib/recent-files";
 	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 	import { openUrl } from "@tauri-apps/plugin-opener";
@@ -10,18 +10,13 @@
 	import { AppControl } from "$lib/utils/app-control";
 	import { goto } from "$app/navigation";
 	import { emit } from "@tauri-apps/api/event";
-	import { EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION } from "$lib/utils/events";
+	import { EVENT_OPEN_SIMULATION } from "$lib/utils/events";
 	import { QCA_DESIGN_FILE_EXTENSION } from "$lib/qca-design";
 	import { get } from "svelte/store";
 
 	const GITHUB_URL = "https://github.com/mihajanez/QCAForge";
 
 	let recentFiles: RecentFile[] = $state([]);
-
-	function goToDesign() {
-		if (get(design)) goto("/design");
-		else emit(EVENT_OPEN_DESIGN);
-	}
 
 	function goToAnalysis() {
 		if (get(simulation)) goto("/analysis");
@@ -86,11 +81,18 @@
 		}
 	}
 
+	function clearRecentFiles() {
+		recentFilesManager.clear().then(() => {
+			recentFiles = [];
+		});
+	}
+
 	onMount(() => {
 		invoke("startup_frontend_ready");
 
-		// Load recent files
-		recentFiles = recentFilesManager.getAllRecentFiles();
+		recentFilesManager.getAllRecentFiles().then((files) => {
+			recentFiles = files;
+		});
 	});
 </script>
 
@@ -138,14 +140,24 @@
 		<div class="mb-16 grid lg:grid-cols-2 gap-4">
 			<!-- Recent Files Section -->
 			<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
-				<h3
-					class="text-lg font-semibold mb-4 text-slate-900 dark:text-white"
-				>
-					Recent Files
-				</h3>
+				<div class="flex items-center justify-between mb-4">
+					<h3
+						class="text-lg font-semibold text-slate-900 dark:text-white"
+					>
+						Recent Files
+					</h3>
+					{#if recentFiles.length > 0}
+						<button
+							onclick={clearRecentFiles}
+							class="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+						>
+							Clear recent files
+						</button>
+					{/if}
+				</div>
 				{#if recentFiles.length > 0}
 					<div class="space-y-2">
-						{#each recentFiles.slice(0, 5) as file}
+						{#each recentFiles as file}
 							<button
 								class="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group w-full text-left"
 								onclick={() =>
@@ -188,7 +200,7 @@
 				</h3>
 				<div class="space-y-3">
 					<button
-						onclick={goToDesign}
+						onclick={() => AppControl.newDesign()}
 						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group w-full text-left"
 					>
 						<div

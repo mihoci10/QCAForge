@@ -26,6 +26,8 @@
 		printDesign,
 	} from "./print/print-design";
 	import PrintDesignModal from "./print/print-design-modal.svelte";
+	import Button from "$lib/components/ui/button/button.svelte";
+	import Icon from "@iconify/svelte";
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
 	let controls: OrbitControls;
@@ -266,7 +268,12 @@
 	function renderIfNeeded() {
 		if (!needsRender) return;
 		needsRender = false;
-		render();
+		try {
+			render();
+		} catch (err) {
+			// An uncaught error here would silently kill setAnimationLoop's render loop for good.
+			console.error("Design view render failed:", err);
+		}
 	}
 
 	function render() {
@@ -1020,6 +1027,14 @@
 		isPrintDesignModalOpen = true;
 	}
 
+	// Re-arms the animation loop in case a prior render error silently killed it, and forces an immediate redraw.
+	export function forceRender() {
+		renderer.setAnimationLoop(renderIfNeeded);
+		drawCurrentLayer();
+		needsRender = true;
+		renderIfNeeded();
+	}
+
 	async function showContextMenu() {
 		const menu = await Menu.new({
 			items: [
@@ -1170,6 +1185,17 @@
 		class="absolute hidden border-2 pointer-events-none border-slate-500 bg-slate-500 bg-opacity-50"
 	></div>
 	<canvas tabindex="0" bind:this={canvas} class=""></canvas>
+	<div class="absolute top-2 right-2 z-10">
+		<Button
+			variant="ghost"
+			size="icon"
+			class="bg-background"
+			onclick={forceRender}
+			title="Refresh design view"
+		>
+			<Icon width={24} icon="material-symbols:refresh" />
+		</Button>
+	</div>
 	<PrintDesignModal
 		bind:isOpen={isPrintDesignModalOpen}
 		applyCallback={(printOptions) =>
