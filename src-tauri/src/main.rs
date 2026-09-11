@@ -63,6 +63,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             get_build_info,
             get_sim_version,
+            get_examples_dir,
             get_sim_models,
             run_sim_model,
             load_design_file,
@@ -103,6 +104,15 @@ fn main() {
 #[tauri::command]
 fn get_sim_version() -> String {
     qca_core::QCA_CORE_VERSION.to_string()
+}
+
+#[tauri::command]
+fn get_examples_dir() -> String {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("examples")
+        .to_string_lossy()
+        .to_string()
 }
 
 #[tauri::command]
