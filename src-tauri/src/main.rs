@@ -49,11 +49,9 @@ fn main() {
         })
         .setup(|app| {
             QCAForgeLogger::init(app.handle().clone());
-            let _ = app
-                .handle()
-                .get_webview_window("main")
-                .unwrap()
-                .set_shadow(true);
+            let main_window = app.handle().get_webview_window("main").unwrap();
+            let _ = main_window.set_shadow(true);
+            disable_browser_accelerator_keys(&main_window);
             let menu = create_menu_bar(app);
             let _ = app.set_menu(menu);
             spawn(backend_startup(app.handle().clone()));
@@ -101,6 +99,28 @@ fn main() {
         .expect("error while running tauri application");
 }
 
+// Without this, WebView2 intercepts shortcuts like Ctrl+F/N/O/S as its own browser accelerators before our native menu ever sees them.
+#[cfg(windows)]
+fn disable_browser_accelerator_keys(window: &tauri::WebviewWindow) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings3;
+    use windows::core::Interface;
+
+    let _ = window.with_webview(|webview| unsafe {
+        let Ok(core) = webview.controller().CoreWebView2() else {
+            return;
+        };
+        let Ok(settings) = core.Settings() else {
+            return;
+        };
+        if let Ok(settings3) = settings.cast::<ICoreWebView2Settings3>() {
+            let _ = settings3.SetAreBrowserAcceleratorKeysEnabled(false);
+        }
+    });
+}
+
+#[cfg(not(windows))]
+fn disable_browser_accelerator_keys(_window: &tauri::WebviewWindow) {}
+
 #[tauri::command]
 fn get_sim_version() -> String {
     qca_core::QCA_CORE_VERSION.to_string()
@@ -109,7 +129,8 @@ fn get_sim_version() -> String {
 #[tauri::command]
 fn get_examples_dir() -> String {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
+        .parent()
+        .expect("src-tauri directory should have a parent")
         .join("examples")
         .to_string_lossy()
         .to_string()

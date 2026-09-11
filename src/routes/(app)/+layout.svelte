@@ -2,15 +2,19 @@
 	import "../../app.css";
 	import { Toaster } from "$lib/components/ui/sonner";
 	import { ModeWatcher } from "mode-watcher";
+	import { onMount, onDestroy } from "svelte";
 
 	import { page } from "$app/state";
-	import { listen } from "@tauri-apps/api/event";
+	import { emit, listen } from "@tauri-apps/api/event";
 	import {
 		EVENT_NEW_FILE,
 		EVENT_OPEN_DESIGN,
 		EVENT_OPEN_DESIGN_FILE,
 		EVENT_OPEN_SIMULATION,
 		EVENT_OPEN_SIMULATION_FILE,
+		EVENT_SAVE_FILE,
+		EVENT_SAVE_FILE_AS,
+		EVENT_EXPORT_FIGURE,
 	} from "$lib/utils/events";
 	import { goto } from "$app/navigation";
 	import { open } from "@tauri-apps/plugin-dialog";
@@ -159,6 +163,34 @@
 			.catch((err) => {
 				console.error(err);
 			});
+	});
+
+	// Native menu accelerators don't reliably fire while the webview has focus (a Tauri/WebView2 issue), so mirror window_menu.rs's shortcuts here.
+	const MENU_SHORTCUTS: { key: string; shift?: boolean; event: string }[] = [
+		{ key: "n", event: EVENT_NEW_FILE },
+		{ key: "o", event: EVENT_OPEN_DESIGN },
+		{ key: "s", event: EVENT_SAVE_FILE },
+		{ key: "s", shift: true, event: EVENT_SAVE_FILE_AS },
+		{ key: "e", event: EVENT_EXPORT_FIGURE },
+	];
+
+	function handleMenuShortcut(e: KeyboardEvent) {
+		if (!(e.ctrlKey || e.metaKey) || e.repeat) return;
+		const key = e.key.toLowerCase();
+		const match = MENU_SHORTCUTS.find(
+			(s) => s.key === key && !!s.shift === e.shiftKey,
+		);
+		if (!match) return;
+		e.preventDefault();
+		emit(match.event);
+	}
+
+	onMount(() => {
+		window.addEventListener("keydown", handleMenuShortcut);
+	});
+
+	onDestroy(() => {
+		window.removeEventListener("keydown", handleMenuShortcut);
 	});
 </script>
 

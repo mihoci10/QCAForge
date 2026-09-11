@@ -30,7 +30,7 @@ fn create_file_menu(app: &mut App) -> Submenu<Wry> {
         .unwrap();
     let file_export_figure = MenuItemBuilder::new("Export figure")
         .id("exportFigure")
-        .accelerator("CmdOrCtrl+F")
+        .accelerator("CmdOrCtrl+E")
         .build(app)
         .unwrap();
     let settings = MenuItemBuilder::new("Settings")

@@ -12,16 +12,17 @@ export interface RecentFile {
 }
 
 const MAX_RECENT_FILES = 10;
+const MAX_DISPLAYED_RECENT_FILES = 6;
 const RECENT_FILES_STORE = "recent-files.json";
 
 export class RecentFilesManager {
-	private store: Store;
+	private store: Store | null = null;
 	private recentDesignFiles: RecentFile[] = [];
 	private recentSimulationFiles: RecentFile[] = [];
+	private ready: Promise<void>;
 
 	constructor() {
-		this.store = null as any;
-		this.init();
+		this.ready = this.init();
 	}
 
 	private async init() {
@@ -56,13 +57,17 @@ export class RecentFilesManager {
 		return "other";
 	}
 
-	private save() {
-		this.store.set("recentDesignFiles", this.recentDesignFiles);
-		this.store.set("recentSimulationFiles", this.recentSimulationFiles);
-		this.store.save();
+	private async save() {
+		await this.store!.set("recentDesignFiles", this.recentDesignFiles);
+		await this.store!.set(
+			"recentSimulationFiles",
+			this.recentSimulationFiles,
+		);
+		await this.store!.save();
 	}
 
-	fileOpened(filename: string) {
+	async fileOpened(filename: string) {
+		await this.ready;
 		const fileType = this.getFileType(filename);
 		const baseName = filename.split(/[/\\]/).pop() || filename;
 		const recentFile: RecentFile = {
@@ -87,24 +92,34 @@ export class RecentFilesManager {
 		} else if (fileType === "simulation") {
 			this.recentSimulationFiles = recentFilesList;
 		}
-		this.save();
+		await this.save();
 	}
 
-	getRecentDesignFiles(): RecentFile[] {
+	async getRecentDesignFiles(): Promise<RecentFile[]> {
+		await this.ready;
 		return this.recentDesignFiles;
 	}
 
-	getRecentSimulationFiles(): RecentFile[] {
+	async getRecentSimulationFiles(): Promise<RecentFile[]> {
+		await this.ready;
 		return this.recentSimulationFiles;
 	}
 
-	getAllRecentFiles(): RecentFile[] {
+	async getAllRecentFiles(): Promise<RecentFile[]> {
+		await this.ready;
 		const allRecentFiles = [
 			...this.recentDesignFiles,
 			...this.recentSimulationFiles,
 		];
-		return allRecentFiles.sort(
-			(a, b) => b.lastOpened.getTime() - a.lastOpened.getTime(),
-		);
+		return allRecentFiles
+			.sort((a, b) => b.lastOpened.getTime() - a.lastOpened.getTime())
+			.slice(0, MAX_DISPLAYED_RECENT_FILES);
+	}
+
+	async clear() {
+		await this.ready;
+		this.recentDesignFiles = [];
+		this.recentSimulationFiles = [];
+		await this.save();
 	}
 }

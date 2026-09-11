@@ -33,6 +33,10 @@ log = {version="0.4.27", features= ["std"] }
 chrono = "0.4"
 tauri-plugin-notification = "2"
 
+[target.'cfg(windows)'.dependencies]
+webview2-com = "0.38"
+windows = "0.61"
+
 [profile.dev]
 debug = "line-tables-only"
 
