@@ -2,13 +2,42 @@
 	import { invoke } from "@tauri-apps/api/core";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/ui/button/button.svelte";
-	import { recentFilesManager } from "$lib/globals";
+	import { design, recentFilesManager, simulation } from "$lib/globals";
 	import type { RecentFile } from "$lib/recent-files";
 	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 	import { openUrl } from "@tauri-apps/plugin-opener";
+	import { open } from "@tauri-apps/plugin-dialog";
 	import { AppControl } from "$lib/utils/app-control";
+	import { goto } from "$app/navigation";
+	import { emit } from "@tauri-apps/api/event";
+	import { EVENT_OPEN_DESIGN, EVENT_OPEN_SIMULATION } from "$lib/utils/events";
+	import { QCA_DESIGN_FILE_EXTENSION } from "$lib/qca-design";
+	import { get } from "svelte/store";
+
+	const GITHUB_URL = "https://github.com/mihajanez/QCAForge";
 
 	let recentFiles: RecentFile[] = $state([]);
+
+	function goToDesign() {
+		if (get(design)) goto("/design");
+		else emit(EVENT_OPEN_DESIGN);
+	}
+
+	function goToAnalysis() {
+		if (get(simulation)) goto("/analysis");
+		else emit(EVENT_OPEN_SIMULATION);
+	}
+
+	async function openExample() {
+		const examplesDir = await invoke<string>("get_examples_dir");
+		const filename = await open({
+			title: "Open example",
+			filters: [{ name: "Design", extensions: [QCA_DESIGN_FILE_EXTENSION] }],
+			defaultPath: examplesDir,
+		});
+		if (!filename) return;
+		AppControl.loadDesignFile(filename as string);
+	}
 
 	function formatDate(date: Date): string {
 		const now = new Date();
@@ -96,7 +125,7 @@
 					🔧 Start Designing
 				</Button>
 				<Button
-					href="/analysis"
+					onclick={goToAnalysis}
 					variant="outline"
 					class="px-8 py-3 text-lg border-slate-300 dark:border-slate-600 min-w-[200px]"
 				>
@@ -158,9 +187,9 @@
 					Getting Started
 				</h3>
 				<div class="space-y-3">
-					<a
-						href="/design"
-						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group"
+					<button
+						onclick={goToDesign}
+						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group w-full text-left"
 					>
 						<div
 							class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mr-3"
@@ -181,11 +210,11 @@
 								Learn to create QCA designs
 							</p>
 						</div>
-					</a>
+					</button>
 
-					<a
-						href="/analysis"
-						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group"
+					<button
+						onclick={goToAnalysis}
+						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group w-full text-left"
 					>
 						<div
 							class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mr-3"
@@ -206,11 +235,11 @@
 								Interpret your simulation data
 							</p>
 						</div>
-					</a>
+					</button>
 
-					<a
-						href="/examples"
-						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group"
+					<button
+						onclick={openExample}
+						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group w-full text-left"
 					>
 						<div
 							class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mr-3"
@@ -231,10 +260,10 @@
 								Explore sample circuits
 							</p>
 						</div>
-					</a>
+					</button>
 
 					<button
-						onclick={() => openUrl("https://missing.docs.com")}
+						onclick={() => openUrl(GITHUB_URL)}
 						class="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group w-full text-left"
 					>
 						<div
