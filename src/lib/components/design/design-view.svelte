@@ -28,6 +28,14 @@
 	import PrintDesignModal from "./print/print-design-modal.svelte";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import Icon from "@iconify/svelte";
+	import { basename } from "@tauri-apps/api/path";
+	import { design_filename } from "$lib/globals";
+
+	async function getDesignFileBaseName(): Promise<string | undefined> {
+		if (!$design_filename) return undefined;
+		const name = await basename($design_filename);
+		return name.replace(/\.[^./\\]+$/, "");
+	}
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
 	let controls: OrbitControls;
@@ -1198,7 +1206,8 @@
 	</div>
 	<PrintDesignModal
 		bind:isOpen={isPrintDesignModalOpen}
-		applyCallback={(printOptions) =>
+		applyCallback={async (printOptions) => {
+			const designName = await getDesignFileBaseName();
 			printDesign(
 				renderToOffscreenCanvas,
 				(selectionOnly, showGrid) =>
@@ -1222,7 +1231,9 @@
 						),
 					),
 				printOptions,
-			)}
+				designName,
+			);
+		}}
 		designPrintOptions={PRINT_OPTIONS}
 	/>
 </div>
