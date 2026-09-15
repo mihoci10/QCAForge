@@ -28,7 +28,7 @@ const DOT_COLOR_RGB = rgb(0.216, 0.255, 0.318);
 // Softer red used by the paper theme to mark a selected cell (see paper-geometry.ts getCellColor).
 const SELECTED_COLOR_HEX = "#e51919";
 // Fraction of the cell pitch the filled square occupies, leaving a small gap between adjacent cells.
-const CELL_FILL_SCALE = 0.88;
+const CELL_FILL_SCALE = 0.97;
 // Corner radius as a fraction of the (already scaled-down) filled cell size.
 const CELL_CORNER_RATIO = 0.1;
 
@@ -104,6 +104,7 @@ export async function printDesign(
 		showGrid: boolean,
 	) => Promise<Uint8Array>,
 	options: DesignPrintOptions,
+	designName: string = "design_print",
 ) {
 	const showGrid = options.optionValues.get("showGrid") as boolean;
 	const selectionOnly = options.optionValues.get("selectionOnly") as boolean;
@@ -144,8 +145,8 @@ export async function printDesign(
 
 	const figureDir = await lastDirectoryManager.getDirectory("figure");
 	const defaultPath = figureDir
-		? await join(figureDir, `design_print.${options.format}`)
-		: `design_print.${options.format}`;
+		? await join(figureDir, `${designName}.${options.format}`)
+		: `${designName}.${options.format}`;
 
 	const fileName = await save({
 		defaultPath,
