@@ -8,6 +8,18 @@
 	import * as Select from "$lib/components/ui/select";
 	import { Button } from "$lib/components/ui/button";
 	import Icon from "@iconify/svelte";
+	import { get } from "svelte/store";
+	import { toast } from "svelte-sonner";
+	import { open, save } from "@tauri-apps/plugin-dialog";
+	import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+	import { basename, join } from "@tauri-apps/api/path";
+	import { design_filename } from "$lib/globals";
+	import { lastDirectoryManager } from "$lib/last-directory";
+	import {
+		INPUT_SEQUENCE_FILE_EXTENSIONS,
+		parseInputSequence,
+		serializeInputSequence,
+	} from "$lib/input-sequence-file";
 
 	interface Props {
 		isOpen: boolean;
@@ -93,6 +105,59 @@
 
 	function setValue(rowIndex: number, cellIndex: number, value: string) {
 		workingSequence[rowIndex][cellIndex] = parseInt(value);
+	}
+
+	const FILE_FILTERS = [
+		{ name: "Input sequence (CSV)", extensions: INPUT_SEQUENCE_FILE_EXTENSIONS },
+	];
+
+	async function openSequenceFile() {
+		const filename = await open({
+			title: "Open input sequence",
+			filters: FILE_FILTERS,
+			defaultPath: await lastDirectoryManager.getDirectory("design"),
+		});
+		if (!filename) return;
+		try {
+			const sequence = parseInputSequence(
+				await readTextFile(filename as string),
+				inputCells,
+			);
+			workingSequence = sequence;
+			workingUseCustom = true;
+			lastDirectoryManager.setDirectoryFromFilePath("design", filename as string);
+			toast.success(
+				`Loaded ${sequence.length} vector${sequence.length === 1 ? "" : "s"} from ${await basename(filename as string)}`,
+			);
+		} catch (error) {
+			toast.error(
+				`Could not open input sequence: ${error instanceof Error ? error.message : error}`,
+			);
+		}
+	}
+
+	async function saveSequenceFile() {
+		const designFile = get(design_filename);
+		const defaultName = designFile
+			? (await basename(designFile)).replace(/\.[^./\\]+$/, "") + "_inputs.csv"
+			: "inputs.csv";
+		const dir = await lastDirectoryManager.getDirectory("design");
+		const filename = await save({
+			title: "Save input sequence",
+			defaultPath: dir ? await join(dir, defaultName) : defaultName,
+			filters: FILE_FILTERS,
+		});
+		if (!filename) return;
+		try {
+			await writeTextFile(
+				filename,
+				serializeInputSequence(inputCells, workingSequence),
+			);
+			lastDirectoryManager.setDirectoryFromFilePath("design", filename);
+			toast.success(`Saved input sequence to ${await basename(filename)}`);
+		} catch (error) {
+			toast.error(`Could not save input sequence: ${error}`);
+		}
 	}
 
 	function handleApply() {
@@ -222,10 +287,30 @@
 				</table>
 			</div>
 
-			<Button variant="outline" onclick={addVector} class="self-start">
-				<Icon icon="material-symbols:add" class="mr-1 h-4 w-4" />
-				Add vector
-			</Button>
+			<div class="flex flex-wrap items-center gap-2">
+				<Button variant="outline" onclick={addVector}>
+					<Icon icon="material-symbols:add" class="mr-1 h-4 w-4" />
+					Add vector
+				</Button>
+				<div class="grow"></div>
+				<Button
+					variant="ghost"
+					onclick={openSequenceFile}
+					title="Replace the sequence with one read from a CSV file"
+				>
+					<Icon icon="material-symbols:folder-open-outline" class="mr-1 h-4 w-4" />
+					Open…
+				</Button>
+				<Button
+					variant="ghost"
+					onclick={saveSequenceFile}
+					disabled={workingSequence.length === 0}
+					title="Save the sequence to a CSV file"
+				>
+					<Icon icon="material-symbols:save-outline" class="mr-1 h-4 w-4" />
+					Save…
+				</Button>
+			</div>
 
 			{#if workingSequence.length === 0}
 				<p class="text-sm text-destructive">
