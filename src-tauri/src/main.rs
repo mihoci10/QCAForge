@@ -126,14 +126,25 @@ fn get_sim_version() -> String {
     qca_core::QCA_CORE_VERSION.to_string()
 }
 
+/// Directory with the example designs. Installed builds ship them as bundle
+/// resources (`bundle.resources` in tauri.conf.json); development builds read
+/// them straight from the source tree, which is also the fallback.
 #[tauri::command]
-fn get_examples_dir() -> String {
-    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+fn get_examples_dir(app: tauri::AppHandle) -> String {
+    let source_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("src-tauri directory should have a parent")
-        .join("examples")
-        .to_string_lossy()
-        .to_string()
+        .join("examples");
+    if cfg!(debug_assertions) && source_dir.is_dir() {
+        return source_dir.to_string_lossy().to_string();
+    }
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let bundled = resource_dir.join("examples");
+        if bundled.is_dir() {
+            return bundled.to_string_lossy().to_string();
+        }
+    }
+    source_dir.to_string_lossy().to_string()
 }
 
 #[tauri::command]
