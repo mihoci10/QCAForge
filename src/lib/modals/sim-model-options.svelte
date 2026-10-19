@@ -45,7 +45,24 @@
 			{:else if option.type === "Break"}
 				<hr />
 			{:else if option.type === "Input"}
-				{#if option.descriptor.type === "NumberInput"}
+				{#if option.descriptor.type === "NumberInput" && option.descriptor.choices}
+					<!-- A whole-number option that encodes a choice: value = index of the label -->
+					<div class="flex flex-col gap-1.5">
+						<Label for={option.unique_id}>{option.name}</Label>
+						<select
+							id={option.unique_id}
+							name={option.unique_id}
+							class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+							value={String(
+								model.model_settings[option.unique_id] ?? 0,
+							)}
+						>
+							{#each option.descriptor.choices as label, index}
+								<option value={String(index)}>{label}</option>
+							{/each}
+						</select>
+					</div>
+				{:else if option.descriptor.type === "NumberInput"}
 					<div class="flex flex-col gap-1.5">
 						<Label for={option.unique_id}>{option.name}</Label>
 						<div class="flex items-center gap-2">
