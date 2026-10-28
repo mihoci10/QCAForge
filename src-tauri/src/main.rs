@@ -99,7 +99,7 @@ fn main() {
         .expect("error while running tauri application");
 }
 
-// Without this, WebView2 intercepts shortcuts like Ctrl+F/N/O/S as its own browser accelerators before our native menu ever sees them.
+// Otherwise WebView2 swallows Ctrl+F/N/O/S before the native menu sees them.
 #[cfg(windows)]
 fn disable_browser_accelerator_keys(window: &tauri::WebviewWindow) {
     use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings3;
@@ -126,9 +126,7 @@ fn get_sim_version() -> String {
     qca_core::QCA_CORE_VERSION.to_string()
 }
 
-/// Directory with the example designs. Installed builds ship them as bundle
-/// resources (`bundle.resources` in tauri.conf.json); development builds read
-/// them straight from the source tree, which is also the fallback.
+/// Bundled examples in release builds; the source tree in dev and as fallback.
 #[tauri::command]
 fn get_examples_dir(app: tauri::AppHandle) -> String {
     let source_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

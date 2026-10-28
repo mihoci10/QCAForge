@@ -469,8 +469,7 @@
 		stroke-dasharray: 10, 2;
 		opacity: 0;
 	}
-	/* Scoped to the invisible mouse-capture overlay; a bare `rect` selector
-	   leaked into every other SVG in the app. */
+	/* A bare `rect` selector leaked into every SVG in the app. */
 	:global(.interaction-rect) {
 		pointer-events: all;
 		fill-opacity: 0;

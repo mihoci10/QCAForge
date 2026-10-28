@@ -46,11 +46,7 @@
 
 	let isNewDesignOpen: boolean = $state(false);
 
-	// The design/analysis views are mounted here (once a design/simulation first
-	// exists) rather than by the /design and /analysis routes themselves, and kept
-	// alive - only their visibility toggles with the route - so that switching
-	// between them never tears down and rebuilds camera position, selection, and
-	// panel state.
+	// Views are mounted here and only hidden on route change, so their state survives.
 	let isDesignRoute = $derived(page.url.pathname.startsWith("/design"));
 	let isAnalysisRoute = $derived(page.url.pathname.startsWith("/analysis"));
 
@@ -137,7 +133,8 @@
 			});
 	});
 
-	// Native menu accelerators don't reliably fire while a WebView2 webview has focus, so on Windows mirror window_menu.rs's shortcuts here. Elsewhere the native accelerators already fire and a mirror would emit every event twice.
+	// WebView2 can swallow native accelerators, so mirror window_menu.rs on Windows only
+	// (elsewhere this would emit every event twice).
 	const MENU_SHORTCUTS: { key: string; shift?: boolean; event: string }[] = [
 		{ key: "n", event: EVENT_NEW_FILE },
 		{ key: "o", event: EVENT_OPEN_DESIGN },

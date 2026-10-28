@@ -36,16 +36,9 @@
 	let selection_rect: HTMLElement;
 	let canvas: HTMLCanvasElement;
 	let resizeObserver: ResizeObserver;
-	// Set once this instance has ever seen a real (non-zero) container size,
-	// so the very first time that happens we can fit the camera to the
-	// design automatically - covering callers (like an Analysis "Design
-	// View" panel that isn't the active tab yet) that never get a chance to
-	// call centerCamera() themselves while the container is still 0x0.
+	// Fit the camera on the first non-zero size; hidden panels can't do it themselves.
 	let hasCenteredOnce = false;
-	// Render on demand rather than every animation frame: a continuous 60fps
-	// render loop was keeping the GPU busy the whole time the design view was
-	// open, even while nothing on screen was changing. Anything that mutates
-	// the scene sets this to request the next loop tick actually render.
+	// Render on demand; a continuous loop keeps the GPU busy while idle.
 	let needsRender = true;
 
 	let globalScene: THREE.Scene;
@@ -237,17 +230,7 @@
 	});
 
 	function windowResize() {
-		// The design view mounts (and its ResizeObserver starts observing) while
-		// its containing panel can still be `display:none` - the parent toggles
-		// visibility by CSS display rather than by mounting/unmounting, so camera
-		// position, selection, etc. survive switching to the Analysis view and
-		// back. A resize callback firing at that point sees a 0x0 container,
-		// which sets camera.aspect to NaN; centerCamera()'s zoom math then
-		// computes a NaN camera position that persists (nothing re-centers the
-		// camera on its own) until something explicitly re-centers it again,
-		// leaving the view blank until the user does something like reopening
-		// the file. Skip the resize while genuinely hidden instead, so the
-		// camera is only ever sized against real dimensions.
+		// Skip while hidden: a 0x0 size gives a NaN aspect and a broken camera.
 		if (container.clientWidth === 0 || container.clientHeight === 0) return;
 
 		renderer.setSize(
@@ -272,7 +255,7 @@
 		try {
 			render();
 		} catch (err) {
-			// An uncaught error here would silently kill setAnimationLoop's render loop for good.
+			// An uncaught error would stop setAnimationLoop for good.
 			console.error("Design view render failed:", err);
 		}
 	}
@@ -861,11 +844,10 @@
 		camera.updateProjectionMatrix();
 		controls.target.set(camera.position.x, camera.position.y, 0);
 
-		// Moving the camera doesn't change the cell geometry, only the frame.
 		needsRender = true;
 	}
 
-	/** Fits the camera to `cells`, scaled by `margin` after padding each edge by `padding` design units. */
+	/** `padding` is added to each edge in design units before applying `margin`. */
 	function centerCameraOnCells(
 		cells: Set<CellIndex>,
 		margin: number = 1.2,
@@ -901,7 +883,6 @@
 		centerCameraOnCells(selectedCells, margin);
 	}
 
-	/** Largest cell side length among the given cells' architectures, used as the unit for camera padding. */
 	function getRepresentativeCellSize(cells: Set<CellIndex>): number {
 		let maxSide = 0;
 		cells.forEach((id) => {
@@ -913,11 +894,7 @@
 		return maxSide;
 	}
 
-	/**
-	 * Fits the camera to show every cell in the design, padded on each edge by roughly
-	 * `paddingCells` cell-widths of empty space (rather than a proportional margin), so
-	 * the whole design is visible with some breathing room regardless of its size.
-	 */
+	/** Fits all cells with `paddingCells` cell widths of margin on each edge. */
 	export function centerCamera(paddingCells: number = 2) {
 		let all_cells = new Set<CellIndex>();
 		for (let i = 0; i < layers.length; i++) {
@@ -1028,7 +1005,7 @@
 		isPrintDesignModalOpen = true;
 	}
 
-	// Re-arms the animation loop in case a prior render error silently killed it, and forces an immediate redraw.
+	// Re-arms the render loop in case an error stopped it.
 	export function forceRender() {
 		renderer.setAnimationLoop(renderIfNeeded);
 		drawCurrentLayer();

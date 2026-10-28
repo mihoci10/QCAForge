@@ -71,8 +71,7 @@ pub fn run_sim_model(
         .join()
         .map_err(|_| "The simulation stopped unexpectedly".to_string())?;
 
-    // Write next to the target and rename, so a failed write leaves an
-    // existing result file intact.
+    // Write then rename so a failed write keeps any existing result file.
     let partial_filename = format!("{}.part", result_filename);
     let file = File::create(&partial_filename)
         .map_err(|e| format!("Could not create result file: {}", e))?;

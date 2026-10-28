@@ -27,10 +27,8 @@
 		$props();
 
 	let displayData: string[][] = $state([]);
-	// calculate() is re-triggered with an equal selection whenever the
-	// Analyzer reassigns `inputs` to a new but equal array. Skip a request
-	// identical to the last one, and ignore a result that arrives after a
-	// newer request was made.
+	// The Analyzer reassigns `inputs` to equal arrays; skip repeated requests
+	// and ignore stale results.
 	let calculationId = 0;
 	let lastParamsKey: string | undefined;
 

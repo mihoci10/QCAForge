@@ -12,7 +12,6 @@ export class LastDirectoryManager {
 		return (await this.store.get<string>(category)) ?? undefined;
 	}
 
-	/** `filename` inside the last directory used for `category`, for a save dialog's defaultPath. */
 	async defaultPath(
 		category: DirectoryCategory,
 		filename: string,

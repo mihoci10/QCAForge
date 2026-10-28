@@ -46,7 +46,7 @@
 				<hr />
 			{:else if option.type === "Input"}
 				{#if option.descriptor.type === "NumberInput" && option.descriptor.choices}
-					<!-- A whole-number option that encodes a choice: value = index of the label -->
+					<!-- Integer option whose value is the label index -->
 					<div class="flex flex-col gap-1.5">
 						<Label for={option.unique_id}>{option.name}</Label>
 						<select

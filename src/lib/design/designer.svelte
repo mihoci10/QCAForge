@@ -22,7 +22,7 @@
 	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 
 	interface Props {
-		// False while the Design view is hidden; edit commands are ignored then.
+		// False while the Design view is hidden.
 		active: boolean;
 		selected_model_id: string | undefined;
 		layers: Layer[];
