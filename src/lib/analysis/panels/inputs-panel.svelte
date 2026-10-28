@@ -4,6 +4,7 @@
 	import Button from "$lib/components/ui/button/button.svelte";
 	import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 	import {
+		getInputLabel,
 		inputsEqual,
 		InputType,
 		type PanelInput,
@@ -71,21 +72,7 @@
 		if (!qcaSimulation) {
 			throw new Error("QCASimulation is not defined");
 		}
-
-		switch (input.type) {
-			case InputType.SIGNAL:
-				return (
-					qcaSimulation.getSignal(input.index)?.name ??
-					"Unknown signal"
-				);
-			case InputType.CELL:
-				return (
-					qcaSimulation.getCell(input.index)?.label ||
-					`Cell ${input.index}`
-				);
-			default:
-				return "Unknown Input";
-		}
+		return getInputLabel(qcaSimulation, input);
 	}
 
 	$effect(() => {

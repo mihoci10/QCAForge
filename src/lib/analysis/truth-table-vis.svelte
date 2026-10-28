@@ -27,16 +27,12 @@
 		$props();
 
 	let displayData: string[][] = $state([]);
-	// calculate() can be triggered twice for what's semantically the same
-	// input selection - e.g. a freshly-created panel's `inputs` prop gets
-	// reassigned to a new (but equal) array shortly after mount as
-	// Analyzer's selectedInputs/updatePanelProps round-trip settles - and
-	// both invocations' async `calculate_truth_table` calls can end up in
-	// flight together. Each resolution only ever appends, never replaces,
-	// so an overlapping pair doubles every row instead of the second one
-	// superseding the first. Track which call is the latest one and ignore
-	// any result that arrives after it's been superseded.
+	// calculate() is re-triggered with an equal selection whenever the
+	// Analyzer reassigns `inputs` to a new but equal array. Skip a request
+	// identical to the last one, and ignore a result that arrives after a
+	// newer request was made.
 	let calculationId = 0;
+	let lastParamsKey: string | undefined;
 
 	$effect(() => {
 		if (qcaSimulation) {
@@ -65,8 +61,6 @@
 
 	function calculate() {
 		if (!qcaSimulation) return;
-		const thisCalculationId = ++calculationId;
-		displayData = [];
 
 		const params = {
 			filename: qcaSimulation.filename,
@@ -78,6 +72,11 @@
 			logicalThreshold: props.logicalThreshold,
 			valueThreshold: props.valueThreshold,
 		};
+		const paramsKey = JSON.stringify(params);
+		if (paramsKey === lastParamsKey) return;
+		lastParamsKey = paramsKey;
+		const thisCalculationId = ++calculationId;
+		displayData = [];
 
 		invoke("calculate_truth_table", params)
 			.then((result) => {
@@ -101,6 +100,8 @@
 				displayData = rows;
 			})
 			.catch((error) => {
+				if (thisCalculationId === calculationId)
+					lastParamsKey = undefined;
 				console.error("Error calculating truth table:", error);
 			});
 	}

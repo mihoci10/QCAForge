@@ -51,14 +51,19 @@ pub fn run_sim_model(
     let (sim_handle, progress_rx, _) =
         run_simulation_async(model, layers, architectures, custom_input_sequence);
 
+    // Report whole-percent steps only; one event per sample floods the webview.
+    let mut last_percent = None;
     for progress in progress_rx {
         if let SimulationProgress::Running {
             current_sample,
             total_samples,
         } = progress
         {
-            let percent = (current_sample as f32 / total_samples as f32) * 100.0;
-            let _ = app.emit("simulationProgress", percent);
+            let percent = (current_sample * 100 / total_samples.max(1)) as u32;
+            if last_percent != Some(percent) {
+                last_percent = Some(percent);
+                let _ = app.emit("simulationProgress", percent as f32);
+            }
         }
     }
 
