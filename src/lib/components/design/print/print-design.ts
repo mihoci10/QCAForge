@@ -174,10 +174,14 @@ export function designToSVG(
 	for (const printable of cells) {
 		const { cell } = printable;
 		const figure = cellFigure(printable);
+		// Dot positions already account for the rotation (cellFigure), so only
+		// the outline is rotated, like the PDF export does.
 		elements.push(
-			`<g transform="translate(${cell.position[0]} ${cell.position[1]}) rotate(${figure.rotation})">`,
+			`<g transform="translate(${cell.position[0]} ${cell.position[1]})">`,
 		);
-		elements.push(`<path d="${figure.outline}" fill="${figure.color}"/>`);
+		elements.push(
+			`<path d="${figure.outline}" transform="rotate(${figure.rotation})" fill="${figure.color}"/>`,
+		);
 		for (const dot of figure.dots) {
 			elements.push(
 				`<circle cx="${dot.x}" cy="${dot.y}" r="${figure.holeRadius}" fill="#ffffff"/>`,
@@ -186,9 +190,10 @@ export function designToSVG(
 				`<circle cx="${dot.x}" cy="${dot.y}" r="${dot.radius}" fill="${DOT_COLOR_HEX}"/>`,
 			);
 		}
+		// The whole drawing is flipped to a y-up frame; flip text back upright.
 		for (const label of figure.labels)
 			elements.push(
-				`<text x="0" y="${label.y}" text-anchor="middle" dominant-baseline="middle" font-size="${figure.fontSize}" fill="${figure.labelColor}">${escapeXml(label.text)}</text>`,
+				`<text x="0" y="${-label.y}" transform="scale(1 -1)" text-anchor="middle" dominant-baseline="middle" font-size="${figure.fontSize}" fill="${figure.labelColor}">${escapeXml(label.text)}</text>`,
 			);
 		elements.push(`</g>`);
 	}
