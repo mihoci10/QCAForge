@@ -115,6 +115,7 @@ export class QCASimulation {
 		| [Float64Array, Float64Array, Float64Array, Float64Array]
 		| undefined;
 	private _cellData: Map<string, Float64Array[]>;
+	private _loading: Promise<void> | undefined;
 
 	constructor(
 		filename: string,
@@ -145,7 +146,7 @@ export class QCASimulation {
 
 	public async getClockData(index: number): Promise<Float64Array> {
 		if (this._clockData === undefined) {
-			await this.loadData();
+			await this.ensureLoaded();
 		}
 		return this._clockData![index];
 	}
@@ -155,7 +156,7 @@ export class QCASimulation {
 		polarizationIndex: number,
 	): Promise<Float64Array> {
 		if (!this._cellData.has(cell.toString())) {
-			await this.loadData();
+			await this.ensureLoaded();
 		}
 		return this._cellData.get(cell.toString())![polarizationIndex];
 	}
@@ -283,6 +284,15 @@ export class QCASimulation {
 			}
 		}
 		return undefined;
+	}
+
+	/** Loads the simulation data once, sharing one request between concurrent callers. */
+	private ensureLoaded(): Promise<void> {
+		this._loading ??= this.loadData().catch((error) => {
+			this._loading = undefined;
+			throw error;
+		});
+		return this._loading;
 	}
 
 	public loadData(): Promise<void> {
