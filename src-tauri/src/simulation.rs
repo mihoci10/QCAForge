@@ -1,10 +1,13 @@
-use std::fs::File;
+use std::fs::{self, File};
 
 use qca_core::{
     design::file::QCADesign,
     simulation::{
-        file::write_to_file, icha::ICHAModel, model::SimulationModelTrait, run_simulation_async,
-        settings::OptionsList, SimulationProgress,
+        file::write_to_file,
+        models::{available_models, prepare_simulation},
+        run_simulation_async,
+        settings::OptionsList,
+        SimulationProgress,
     },
 };
 use serde::Serialize;
@@ -20,16 +23,9 @@ pub struct SimulationModelDescriptor {
     clock_generator_settings: String,
 }
 
-fn get_available_sim_models() -> Vec<Box<dyn SimulationModelTrait>> {
-    vec![
-        //Box::new(BistableModel::new()),
-        Box::new(ICHAModel::new()),
-    ]
-}
-
 #[tauri::command]
 pub fn get_sim_models() -> Vec<SimulationModelDescriptor> {
-    get_available_sim_models()
+    available_models()
         .iter()
         .map(|model| SimulationModelDescriptor {
             model_id: model.get_unique_id(),
@@ -42,65 +38,45 @@ pub fn get_sim_models() -> Vec<SimulationModelDescriptor> {
         .collect()
 }
 
-pub fn create_sim_model(sim_model_id: String) -> Option<Box<dyn SimulationModelTrait>> {
-    let models = get_available_sim_models();
-    for model in models {
-        if model.get_unique_id() == sim_model_id {
-            return Some(model);
-        }
-    }
-    None
-}
-
 #[tauri::command(async)]
 pub fn run_sim_model(
     app: AppHandle,
     qca_design: QCADesign,
     result_filename: String,
 ) -> Result<String, String> {
-    let sim_model_id = qca_design
-        .simulation_settings
-        .selected_simulation_model_id
-        .clone()
-        .unwrap();
-    let sim_settings = &qca_design.simulation_settings.simulation_model_settings[&sim_model_id];
-    let sim_model_settings = sim_settings.model_settings.clone();
-    let clock_generator_settings = sim_settings.clock_generator_settings.clone();
+    let (model, custom_input_sequence) = prepare_simulation(&qca_design)?;
     let layers = qca_design.layers.clone();
     let architectures = qca_design.cell_architectures.clone();
 
-    match create_sim_model(sim_model_id) {
-        Some(mut model) => {
-            model
-                .deserialize_model_settings(&sim_model_settings.to_string())
-                .map_err(|e| format!("Error parsing model settings: {}", e))?;
-            model
-                .deserialize_clock_generator_settings(&clock_generator_settings.to_string())
-                .map_err(|e| format!("Error parsing clock generator settings: {}", e))?;
+    let (sim_handle, progress_rx, _) =
+        run_simulation_async(model, layers, architectures, custom_input_sequence);
 
-            let file = File::create(&result_filename)
-                .map_err(|e| format!("Could not create result file: {}", e))?;
-
-            let (sim_handle, progress_rx, _) = run_simulation_async(model, layers, architectures);
-
-            for progress in progress_rx {
-                match progress {
-                    SimulationProgress::Running {
-                        current_sample,
-                        total_samples,
-                    } => {
-                        let percent = (current_sample as f32 / total_samples as f32) * 100.0;
-                        app.emit("simulationProgress", percent).unwrap();
-                    }
-                    _ => {}
-                }
-            }
-
-            let simulation_data = sim_handle.join().unwrap();
-            write_to_file(file, &qca_design, &simulation_data)
-                .map_err(|e| format!("Could not write result file: {}", e))?;
-            Ok(result_filename)
+    for progress in progress_rx {
+        if let SimulationProgress::Running {
+            current_sample,
+            total_samples,
+        } = progress
+        {
+            let percent = (current_sample as f32 / total_samples as f32) * 100.0;
+            let _ = app.emit("simulationProgress", percent);
         }
-        None => Err("No model with such id exists".into()),
     }
+
+    let simulation_data = sim_handle
+        .join()
+        .map_err(|_| "The simulation stopped unexpectedly".to_string())?;
+
+    // Write next to the target and rename, so a failed write leaves an
+    // existing result file intact.
+    let partial_filename = format!("{}.part", result_filename);
+    let file = File::create(&partial_filename)
+        .map_err(|e| format!("Could not create result file: {}", e))?;
+    write_to_file(file, &qca_design, &simulation_data).map_err(|e| {
+        let _ = fs::remove_file(&partial_filename);
+        format!("Could not write result file: {}", e)
+    })?;
+    fs::rename(&partial_filename, &result_filename)
+        .map_err(|e| format!("Could not save result file: {}", e))?;
+
+    Ok(result_filename)
 }
