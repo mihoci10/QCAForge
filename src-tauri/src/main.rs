@@ -45,7 +45,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .on_menu_event(|app, event| {
-            let _ = app.emit(event.id().0.as_str(), {});
+            let _ = app.emit(event.id().0.as_str(), ());
         })
         .setup(|app| {
             QCAForgeLogger::init(app.handle().clone());
@@ -153,7 +153,7 @@ fn get_build_info() -> BuildInfo {
     let git_sha = env!("VERGEN_GIT_SHA").to_string();
     let git_branch = env!("VERGEN_GIT_BRANCH").to_string();
     let version = env!("VERGEN_GIT_DESCRIBE").to_string();
-    let debug = env!("VERGEN_CARGO_DEBUG").to_string() == "true";
+    let debug = env!("VERGEN_CARGO_DEBUG") == "true";
 
     BuildInfo {
         timestamp: build_time,

@@ -39,7 +39,7 @@ fn f64_vec_to_u8_vec(floats: Vec<f64>) -> Vec<u8> {
 
 pub fn handle_load_sim(request: Request<Vec<u8>>) -> Result<Vec<u8>, String> {
     let query = request.uri().query().ok_or("Missing query parameters")?;
-    let query_decoded = decode(query).map_err(|err| "Decoding failed")?;
+    let query_decoded = decode(query).map_err(|_| "Decoding failed")?;
     let query_params = parse_query_params(query_decoded.as_ref());
 
     let filename = query_params
@@ -51,10 +51,10 @@ pub fn handle_load_sim(request: Request<Vec<u8>>) -> Result<Vec<u8>, String> {
     let mut data_indices = vec![];
     if let Some(data_indices_str) = data_indices_str {
         data_indices = serde_json::from_str::<Vec<usize>>(data_indices_str)
-            .map_err(|err| "Invalid indices formatting")?;
+            .map_err(|_| "Invalid indices formatting")?;
     }
 
-    let file = File::open(filename).map_err(|err| "File cannot be opened")?;
+    let file = File::open(filename).map_err(|_| "File cannot be opened")?;
 
     let (design, data) = read_from_file(file)?;
 
@@ -76,10 +76,10 @@ pub fn handle_load_sim(request: Request<Vec<u8>>) -> Result<Vec<u8>, String> {
     let mut result: Vec<f64> = Vec::with_capacity(num_samples * num_floats);
 
     for clock in &data.clock_data {
-        result.extend_from_slice(&clock);
+        result.extend_from_slice(clock);
     }
 
-    if data_indices.len() == 0 {
+    if data_indices.is_empty() {
         data_indices = (0..data.metadata.stored_cells.len()).collect();
     }
     for i in data_indices {
@@ -94,7 +94,7 @@ pub fn handle_load_sim(request: Request<Vec<u8>>) -> Result<Vec<u8>, String> {
 pub fn load_simulation_file(
     filename: String,
 ) -> Result<(QCADesign, QCASimulationMetadata), String> {
-    let file = File::open(filename).map_err(|err| "File cannot be opened")?;
+    let file = File::open(filename).map_err(|_| "File cannot be opened")?;
     let (design, data) = read_from_file(file)?;
 
     Ok((design, data.metadata))
@@ -109,7 +109,7 @@ pub fn calculate_truth_table(
     logical_threshold: f64,
     value_threshold: f64,
 ) -> Result<TruthTable, String> {
-    let file = File::open(filename).map_err(|err| "File cannot be opened")?;
+    let file = File::open(filename).map_err(|_| "File cannot be opened")?;
     let (design, simulation) = read_from_file(file)?;
 
     let cell_clock_delay = cell_clock_delay
