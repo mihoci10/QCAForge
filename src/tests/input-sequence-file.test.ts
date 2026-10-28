@@ -50,12 +50,12 @@ test("errors name the line and the problem", () => {
 	expect(() => parseInputSequence("A,B\n", inputs)).toThrow(
 		/Line 1: expected 3 value/,
 	);
-	expect(() =>
-		parseInputSequence("In,X,Y\n", inputs),
-	).toThrow(/header must list the input cells/);
-	expect(() =>
-		parseInputSequence("In,X,Flip Flop\nA,B,E\n", inputs),
-	).toThrow(/Line 2: "E" is not a valid state for input Flip Flop/);
+	expect(() => parseInputSequence("In,X,Y\n", inputs)).toThrow(
+		/header must list the input cells/,
+	);
+	expect(() => parseInputSequence("In,X,Flip Flop\nA,B,E\n", inputs)).toThrow(
+		/Line 2: "E" is not a valid state for input Flip Flop/,
+	);
 	expect(() =>
 		parseInputSequence("C\n", [{ label: "In", numStates: 2 }]),
 	).toThrow(/use A\/B/);

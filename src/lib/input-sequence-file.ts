@@ -31,7 +31,9 @@ export function serializeInputSequence(
 ): string {
 	const lines = [inputs.map((input) => csvField(input.label)).join(",")];
 	for (const vector of sequence) {
-		lines.push(inputs.map((_, i) => STATE_LETTERS[vector[i] ?? 0]).join(","));
+		lines.push(
+			inputs.map((_, i) => STATE_LETTERS[vector[i] ?? 0]).join(","),
+		);
 	}
 	return lines.join("\n") + "\n";
 }
@@ -116,7 +118,8 @@ export function parseInputSequence(
 		}
 	}
 
-	if (rows.length === 0) throw new Error("The file contains no input vectors.");
+	if (rows.length === 0)
+		throw new Error("The file contains no input vectors.");
 
 	return rows.map(({ fields, number }) => {
 		if (fields.length !== inputs.length) {
@@ -129,7 +132,10 @@ export function parseInputSequence(
 			const input = columnToInput[column];
 			const state = parseState(field);
 			if (state === undefined || state >= inputs[input].numStates) {
-				const allowed = STATE_LETTERS.slice(0, inputs[input].numStates).join("/");
+				const allowed = STATE_LETTERS.slice(
+					0,
+					inputs[input].numStates,
+				).join("/");
 				throw new Error(
 					`Line ${number}: "${field}" is not a valid state for input ${inputs[input].label} (use ${allowed}).`,
 				);
