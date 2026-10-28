@@ -18,23 +18,16 @@
 	import type { ICellGeometry } from "./theme/theme";
 	import { LegacyCellGeometry } from "./theme/legacy/legacy-geometry";
 	import { emit } from "@tauri-apps/api/event";
-	import { listen } from "@tauri-apps/api/event";
-	import {
-		PRINT_OPTIONS,
-		designToPDF,
-		designToSVG,
-		printDesign,
-	} from "./print/print-design";
+	import { PRINT_OPTIONS, printDesign } from "./print/print-design";
 	import PrintDesignModal from "./print/print-design-modal.svelte";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import Icon from "@iconify/svelte";
-	import { basename } from "@tauri-apps/api/path";
+	import { fileStem } from "$lib/utils/file-name";
 	import { design_filename } from "$lib/globals";
 
 	async function getDesignFileBaseName(): Promise<string | undefined> {
 		if (!$design_filename) return undefined;
-		const name = await basename($design_filename);
-		return name.replace(/\.[^./\\]+$/, "");
+		return fileStem($design_filename);
 	}
 	let camera: THREE.PerspectiveCamera;
 	let renderer: THREE.WebGLRenderer;
@@ -868,14 +861,32 @@
 		camera.updateProjectionMatrix();
 		controls.target.set(camera.position.x, camera.position.y, 0);
 
-		drawCurrentLayer();
+		// Moving the camera doesn't change the cell geometry, only the frame.
+		needsRender = true;
 	}
 
-	function centerCameraOnCells(cells: Set<CellIndex>, margin: number = 1.2) {
+	/** Fits the camera to `cells`, scaled by `margin` after padding each edge by `padding` design units. */
+	function centerCameraOnCells(
+		cells: Set<CellIndex>,
+		margin: number = 1.2,
+		padding: number = 0,
+	) {
 		if (cells.isEmpty()) return;
 
 		const cell_extents = getCellsPosExtents(cells);
-		const zoom = getCellsZoomToFit(cell_extents, margin);
+		const zoom = getCellsZoomToFit(
+			{
+				min: new THREE.Vector2(
+					cell_extents.min.x - padding,
+					cell_extents.min.y - padding,
+				),
+				max: new THREE.Vector2(
+					cell_extents.max.x + padding,
+					cell_extents.max.y + padding,
+				),
+			},
+			margin,
+		);
 
 		const camera_pos = new THREE.Vector2(
 			(cell_extents.min.x + cell_extents.max.x) / 2,
@@ -915,29 +926,11 @@
 			}
 		}
 
-		if (all_cells.isEmpty()) return;
-
-		const cell_extents = getCellsPosExtents(all_cells);
-		const padding = paddingCells * getRepresentativeCellSize(all_cells);
-		const padded_extents = {
-			min: new THREE.Vector2(
-				cell_extents.min.x - padding,
-				cell_extents.min.y - padding,
-			),
-			max: new THREE.Vector2(
-				cell_extents.max.x + padding,
-				cell_extents.max.y + padding,
-			),
-		};
-
-		const zoom = getCellsZoomToFit(padded_extents, 1);
-		const camera_pos = new THREE.Vector2(
-			(cell_extents.min.x + cell_extents.max.x) / 2,
-			(cell_extents.min.y + cell_extents.max.y) / 2,
+		centerCameraOnCells(
+			all_cells,
+			1,
+			paddingCells * getRepresentativeCellSize(all_cells),
 		);
-		const camera_dist = Math.max(zoom.zoom_x, zoom.zoom_y, 20);
-
-		centerCameraOnPos(camera_pos, camera_dist);
 	}
 
 	export async function renderToOffscreenCanvas(
@@ -1208,28 +1201,13 @@
 		bind:isOpen={isPrintDesignModalOpen}
 		applyCallback={async (printOptions) => {
 			const designName = await getDesignFileBaseName();
-			printDesign(
+			await printDesign(
 				renderToOffscreenCanvas,
-				(selectionOnly, showGrid) =>
-					Promise.resolve(
-						designToSVG(
-							layers,
-							cell_architectures,
-							selectedCells,
-							selectionOnly,
-							showGrid,
-						),
-					),
-				(selectionOnly, showGrid) =>
-					Promise.resolve(
-						designToPDF(
-							layers,
-							cell_architectures,
-							selectedCells,
-							selectionOnly,
-							showGrid,
-						),
-					),
+				{
+					layers,
+					cellArchitectures: cell_architectures,
+					selectedCells,
+				},
 				printOptions,
 				designName,
 			);
