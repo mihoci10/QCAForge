@@ -38,8 +38,11 @@ export function serializeInputSequence(
 	return lines.join("\n") + "\n";
 }
 
+/** Quotes a label if it contains a separator or could be read as a state, so the header row can't be mistaken for a vector. */
 function csvField(value: string): string {
-	return /[",;\s]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+	return /[",;\s]/.test(value) || parseState(value) !== undefined
+		? `"${value.replace(/"/g, '""')}"`
+		: value;
 }
 
 /** Splits on commas, semicolons or tabs if the line has any, else on spaces. */
@@ -96,7 +99,11 @@ export function parseInputSequence(
 		.split(/\r?\n/)
 		.map((line, index) => ({ line: line.trim(), number: index + 1 }))
 		.filter(({ line }) => line !== "" && !line.startsWith("#"))
-		.map(({ line, number }) => ({ fields: splitLine(line), number }));
+		.map(({ line, number }) => ({
+			fields: splitLine(line),
+			quoted: line.includes('"'),
+			number,
+		}));
 
 	// Column i of the file feeds input columnToInput[i].
 	let columnToInput = inputs.map((_, i) => i);
@@ -107,7 +114,10 @@ export function parseInputSequence(
 			header.length === inputs.length &&
 			header.every((field) => labels.includes(field)) &&
 			new Set(header).size === header.length &&
-			!header.every((field) => parseState(field) !== undefined);
+			// Vectors are never quoted, so a quoted row is a header even when
+			// its labels also read as states.
+			(rows[0].quoted ||
+				!header.every((field) => parseState(field) !== undefined));
 		if (isHeader) {
 			columnToInput = header.map((field) => labels.indexOf(field));
 			rows.shift();
