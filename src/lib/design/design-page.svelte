@@ -23,6 +23,7 @@
 	import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs";
 	import { save } from "@tauri-apps/plugin-dialog";
 	import { design, design_filename, visibleBottomPanels } from "$lib/globals";
+	import { page } from "$app/state";
 	import { get } from "svelte/store";
 	import { lastDirectoryManager } from "$lib/last-directory";
 	import { lastSimulationModelManager } from "$lib/last-simulation-model";
@@ -237,6 +238,8 @@
 				});
 		});
 		const unlistenExportFigure = listen(EVENT_EXPORT_FIGURE, () => {
+			// This page stays mounted while other views are shown.
+			if (!page.url.pathname.startsWith("/design")) return;
 			designer?.openPrintDesignModal();
 		});
 
