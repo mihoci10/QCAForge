@@ -46,6 +46,16 @@ test("labels that look like states are still read as data without a match", () =
 	]);
 });
 
+test("a saved file round-trips when labels look like states", () => {
+	const twoInputs = [
+		{ label: "A", numStates: 2 },
+		{ label: "B", numStates: 2 },
+	];
+	const content = serializeInputSequence(twoInputs, [[1, 1]]);
+	expect(content).toBe('"A","B"\nB,B\n');
+	expect(parseInputSequence(content, twoInputs)).toEqual([[1, 1]]);
+});
+
 test("errors name the line and the problem", () => {
 	expect(() => parseInputSequence("A,B\n", inputs)).toThrow(
 		/Line 1: expected 3 value/,

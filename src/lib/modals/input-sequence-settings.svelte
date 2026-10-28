@@ -78,7 +78,13 @@
 		if (isOpen) {
 			inputCells = getInputCells();
 			workingUseCustom = useCustomInputSequence;
-			workingSequence = customInputSequence.map((vector) => [...vector]);
+			// Fit saved vectors to the current inputs (cells may have been
+			// added or removed since), showing what will actually be applied.
+			workingSequence = customInputSequence.map((vector) =>
+				inputCells.map((input, i) =>
+					Math.min(vector[i] ?? 0, input.numStates - 1),
+				),
+			);
 		}
 	});
 
