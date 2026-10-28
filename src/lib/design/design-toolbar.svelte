@@ -19,7 +19,7 @@
 	} from "@tauri-apps/api/window";
 	import { AppControl } from "$lib/utils/app-control";
 	import { save } from "@tauri-apps/plugin-dialog";
-	import { basename, join } from "@tauri-apps/api/path";
+	import { fileStem } from "$lib/utils/file-name";
 	import { get } from "svelte/store";
 	import { design_filename, recentFilesManager } from "$lib/globals";
 	import { lastDirectoryManager } from "$lib/last-directory";
@@ -123,7 +123,7 @@
 	async function getDefaultResultFilename(): Promise<string> {
 		const currentDesignFilename = get(design_filename);
 		const baseName = currentDesignFilename
-			? (await basename(currentDesignFilename)).replace(/\.[^./\\]+$/, "")
+			? await fileStem(currentDesignFilename)
 			: "New design";
 		const modelSuffix = selectedModel
 			? "_" + getModelFilenameSuffix(selectedModel)
@@ -142,12 +142,11 @@
 			return;
 		}
 
-		const defaultName = await getDefaultResultFilename();
-		const dir = await lastDirectoryManager.getDirectory("simulation");
-		const defaultPath = dir ? await join(dir, defaultName) : defaultName;
-
 		const resultFilename = await save({
-			defaultPath,
+			defaultPath: await lastDirectoryManager.defaultPath(
+				"simulation",
+				await getDefaultResultFilename(),
+			),
 			title: "Save simulation results as",
 			filters: [
 				{

@@ -27,17 +27,17 @@
 	} from "$lib/globals";
 	import {
 		createDefaultQCADesignFile,
-		deserializeQCADesignFile,
 		loadDesignFromFile,
 		type NewDesignConfig,
 	} from "$lib/qca-design";
-	import { readTextFile } from "@tauri-apps/plugin-fs";
 	import { basename } from "@tauri-apps/api/path";
 	import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 	import { loadSimulationFromFile } from "$lib/qca-simulation";
 	import Sidebar from "$lib/components/sidebar.svelte";
 	import NewDesignSetup from "$lib/modals/new-design-setup.svelte";
 	import { lastDirectoryManager } from "$lib/last-directory";
+	import { AppControl } from "$lib/utils/app-control";
+	import { platform } from "@tauri-apps/plugin-os";
 	import DesignPage from "$lib/design/design-page.svelte";
 	import AnalysisPage from "$lib/analysis/analysis-page.svelte";
 
@@ -86,49 +86,21 @@
 		isNewDesignOpen = true;
 	});
 
-	listen(EVENT_OPEN_DESIGN, () => {
-		lastDirectoryManager.getDirectory("design").then((defaultPath) => {
-			open({
-				title: "Load design",
-				filters: [{ name: "Design", extensions: ["qcd"] }],
-				defaultPath,
-			}).then((filename) => {
-				if (!filename) return;
-				readTextFile(filename as string).then((contents) => {
-					design_filename.set(filename as string);
-					design.set(deserializeQCADesignFile(contents));
-					lastDirectoryManager.setDirectoryFromFilePath(
-						"design",
-						filename as string,
-					);
-					goto(`/design`);
-				});
-			});
+	listen(EVENT_OPEN_DESIGN, async () => {
+		const filename = await open({
+			title: "Load design",
+			filters: [{ name: "Design", extensions: ["qcd"] }],
+			defaultPath: await lastDirectoryManager.getDirectory("design"),
 		});
+		if (filename) AppControl.loadDesignFile(filename);
 	});
-	listen(EVENT_OPEN_SIMULATION, () => {
-		lastDirectoryManager.getDirectory("simulation").then((defaultPath) => {
-			open({
-				title: "Load simulation",
-				filters: [{ name: "Simulation", extensions: ["qcs"] }],
-				defaultPath,
-			}).then((filename) => {
-				if (!filename) return;
-				loadSimulationFromFile(filename)
-					.then((qcaSimulation) => {
-						simulation_filename.set(filename);
-						simulation.set(qcaSimulation);
-						lastDirectoryManager.setDirectoryFromFilePath(
-							"simulation",
-							filename,
-						);
-						goto("/analysis");
-					})
-					.catch((err) => {
-						console.error(err);
-					});
-			});
+	listen(EVENT_OPEN_SIMULATION, async () => {
+		const filename = await open({
+			title: "Load simulation",
+			filters: [{ name: "Simulation", extensions: ["qcs"] }],
+			defaultPath: await lastDirectoryManager.getDirectory("simulation"),
 		});
+		if (filename) AppControl.loadSimulationFile(filename);
 	});
 
 	listen(EVENT_OPEN_DESIGN_FILE, (event) => {
@@ -165,7 +137,7 @@
 			});
 	});
 
-	// Native menu accelerators don't reliably fire while the webview has focus (a Tauri/WebView2 issue), so mirror window_menu.rs's shortcuts here.
+	// Native menu accelerators don't reliably fire while a WebView2 webview has focus, so on Windows mirror window_menu.rs's shortcuts here. Elsewhere the native accelerators already fire and a mirror would emit every event twice.
 	const MENU_SHORTCUTS: { key: string; shift?: boolean; event: string }[] = [
 		{ key: "n", event: EVENT_NEW_FILE },
 		{ key: "o", event: EVENT_OPEN_DESIGN },
@@ -186,7 +158,8 @@
 	}
 
 	onMount(() => {
-		window.addEventListener("keydown", handleMenuShortcut);
+		if (platform() === "windows")
+			window.addEventListener("keydown", handleMenuShortcut);
 	});
 
 	onDestroy(() => {
