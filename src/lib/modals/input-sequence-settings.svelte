@@ -108,7 +108,10 @@
 	}
 
 	const FILE_FILTERS = [
-		{ name: "Input sequence (CSV)", extensions: INPUT_SEQUENCE_FILE_EXTENSIONS },
+		{
+			name: "Input sequence (CSV)",
+			extensions: INPUT_SEQUENCE_FILE_EXTENSIONS,
+		},
 	];
 
 	async function openSequenceFile() {
@@ -125,7 +128,10 @@
 			);
 			workingSequence = sequence;
 			workingUseCustom = true;
-			lastDirectoryManager.setDirectoryFromFilePath("design", filename as string);
+			lastDirectoryManager.setDirectoryFromFilePath(
+				"design",
+				filename as string,
+			);
 			toast.success(
 				`Loaded ${sequence.length} vector${sequence.length === 1 ? "" : "s"} from ${await basename(filename as string)}`,
 			);
@@ -139,7 +145,8 @@
 	async function saveSequenceFile() {
 		const designFile = get(design_filename);
 		const defaultName = designFile
-			? (await basename(designFile)).replace(/\.[^./\\]+$/, "") + "_inputs.csv"
+			? (await basename(designFile)).replace(/\.[^./\\]+$/, "") +
+				"_inputs.csv"
 			: "inputs.csv";
 		const dir = await lastDirectoryManager.getDirectory("design");
 		const filename = await save({
@@ -154,7 +161,9 @@
 				serializeInputSequence(inputCells, workingSequence),
 			);
 			lastDirectoryManager.setDirectoryFromFilePath("design", filename);
-			toast.success(`Saved input sequence to ${await basename(filename)}`);
+			toast.success(
+				`Saved input sequence to ${await basename(filename)}`,
+			);
 		} catch (error) {
 			toast.error(`Could not save input sequence: ${error}`);
 		}
@@ -298,7 +307,10 @@
 					onclick={openSequenceFile}
 					title="Replace the sequence with one read from a CSV file"
 				>
-					<Icon icon="material-symbols:folder-open-outline" class="mr-1 h-4 w-4" />
+					<Icon
+						icon="material-symbols:folder-open-outline"
+						class="mr-1 h-4 w-4"
+					/>
 					Open…
 				</Button>
 				<Button
@@ -307,7 +319,10 @@
 					disabled={workingSequence.length === 0}
 					title="Save the sequence to a CSV file"
 				>
-					<Icon icon="material-symbols:save-outline" class="mr-1 h-4 w-4" />
+					<Icon
+						icon="material-symbols:save-outline"
+						class="mr-1 h-4 w-4"
+					/>
 					Save…
 				</Button>
 			</div>
