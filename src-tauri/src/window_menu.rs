@@ -129,7 +129,7 @@ pub fn create_menu_bar(app: &mut App) -> Menu<Wry> {
     let help_menu = create_help_menu(app);
 
     // On macOS, put Help menu first; on other platforms, put it last
-    return if cfg!(target_os = "macos") {
+    if cfg!(target_os = "macos") {
         MenuBuilder::new(app)
             .items(&[&help_menu, &file_menu, &edit_menu])
             .build()
@@ -139,5 +139,5 @@ pub fn create_menu_bar(app: &mut App) -> Menu<Wry> {
             .items(&[&file_menu, &edit_menu, &help_menu])
             .build()
             .unwrap()
-    };
+    }
 }
