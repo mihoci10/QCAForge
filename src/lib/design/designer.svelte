@@ -22,6 +22,8 @@
 	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 
 	interface Props {
+		// False while the Design view is hidden; edit commands are ignored then.
+		active: boolean;
 		selected_model_id: string | undefined;
 		layers: Layer[];
 		simulation_models: Map<string, SimulationModel>;
@@ -35,6 +37,7 @@
 	}
 
 	let {
+		active,
 		selected_model_id = $bindable(),
 		layers = $bindable(),
 		simulation_models = $bindable(),
@@ -85,22 +88,22 @@
 	}
 
 	listen("cut", () => {
-		if (!designView) return;
+		if (!designView || !active) return;
 		designView.cutSelectedCells();
 	});
 
 	listen("copy", () => {
-		if (!designView) return;
+		if (!designView || !active) return;
 		designView.copySelectedCells();
 	});
 
 	listen("paste", () => {
-		if (!designView) return;
+		if (!designView || !active) return;
 		designView.pasteCells();
 	});
 
 	listen("delete", () => {
-		if (!designView) return;
+		if (!designView || !active) return;
 		designView.deleteSelectedCells();
 	});
 </script>

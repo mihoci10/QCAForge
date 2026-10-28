@@ -180,7 +180,7 @@
 				class="h-full w-full flex flex-col"
 				style:display={isDesignRoute ? "flex" : "none"}
 			>
-				<DesignPage />
+				<DesignPage active={isDesignRoute} />
 			</div>
 		{/if}
 

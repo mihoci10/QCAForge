@@ -21,7 +21,6 @@
 	} from "$lib/qca-design";
 	import { save } from "@tauri-apps/plugin-dialog";
 	import { design, design_filename, visibleBottomPanels } from "$lib/globals";
-	import { page } from "$app/state";
 	import { get } from "svelte/store";
 	import { lastDirectoryManager } from "$lib/last-directory";
 	import { lastSimulationModelManager } from "$lib/last-simulation-model";
@@ -36,6 +35,10 @@
 	import CellPropsPanel from "$lib/design/panels/cell-props-panel.svelte";
 	import type { CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
+
+	// This page stays mounted while other views are shown; menu commands
+	// only apply while it's the visible one.
+	let { active }: { active: boolean } = $props();
 
 	let selected_model_id: string | undefined = $state();
 	let layers: Layer[] = $state([]);
@@ -142,16 +145,17 @@
 		}
 
 		const unlistenSave = listen(EVENT_SAVE_FILE, async () => {
+			if (!active) return;
 			const filename = get(design_filename) ?? (await pickDesignPath());
 			if (filename) await writeDesign(filename);
 		});
 		const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, async () => {
+			if (!active) return;
 			const filename = await pickDesignPath();
 			if (filename) await writeDesign(filename);
 		});
 		const unlistenExportFigure = listen(EVENT_EXPORT_FIGURE, () => {
-			// This page stays mounted while other views are shown.
-			if (!page.url.pathname.startsWith("/design")) return;
+			if (!active) return;
 			designer?.openPrintDesignModal();
 		});
 
@@ -255,6 +259,7 @@
 					<Resizable.Pane defaultSize={90}>
 						<Designer
 							bind:this={designer}
+							{active}
 							bind:designViewProps
 							bind:selected_model_id
 							bind:layers
