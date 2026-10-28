@@ -97,9 +97,7 @@
 		customInputSequence = sequence;
 	}
 
-	// Remember whatever model is currently selected so the next design that
-	// doesn't have its own saved selection (see design-page.svelte) defaults
-	// to it instead of showing a blank "Select model" picker.
+	// Default for designs without a saved model (see design-page.svelte).
 	$effect(() => {
 		if (selected_model_id) {
 			lastSimulationModelManager.setModelId(selected_model_id);
@@ -113,9 +111,7 @@
 		);
 	}
 
-	// Model ids aren't consistently named (e.g. "bistable" vs "icha_model"),
-	// so normalize away a trailing "_model" rather than hardcoding a
-	// per-model display suffix.
+	// Ids are inconsistent ("bistable" vs "icha_model").
 	function getModelFilenameSuffix(model: SimulationModel): string {
 		return model.id.replace(/_model$/i, "").toLowerCase();
 	}

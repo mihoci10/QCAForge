@@ -42,9 +42,7 @@
 		onApply,
 	}: Props = $props();
 
-	// Must enumerate input cells in exactly the same order qca-core's
-	// get_num_inputs does (layer by layer, cell index order within a layer)
-	// so a vector's positions line up with the right inputs.
+	// Must match qca-core's get_num_inputs order.
 	function getInputCells(): InputSequenceColumn[] {
 		const result: InputSequenceColumn[] = [];
 		layers.forEach((layer) => {
@@ -70,16 +68,12 @@
 	let workingUseCustom: boolean = $state(false);
 	let workingSequence: number[][] = $state([]);
 
-	// Reset the working draft from the current values whenever the modal
-	// opens, so an edit-then-cancel doesn't leak, and so it always reflects
-	// whichever design is currently open (its inputs can differ between
-	// opens).
+	// Reset the draft on open so cancelled edits don't leak.
 	$effect(() => {
 		if (isOpen) {
 			inputCells = getInputCells();
 			workingUseCustom = useCustomInputSequence;
-			// Fit saved vectors to the current inputs (cells may have been
-			// added or removed since), showing what will actually be applied.
+			// Inputs may have changed since the sequence was saved.
 			workingSequence = customInputSequence.map((vector) =>
 				inputCells.map((input, i) =>
 					Math.min(vector[i] ?? 0, input.numStates - 1),
@@ -173,8 +167,7 @@
 	}
 
 	function handleApply() {
-		// An empty sequence can't be simulated - silently fall back to
-		// exhaustive rather than leaving the design in an unrunnable state.
+		// An empty sequence can't be simulated; fall back to exhaustive.
 		const finalUseCustom = workingUseCustom && workingSequence.length > 0;
 		onApply(finalUseCustom, workingSequence);
 		isOpen = false;

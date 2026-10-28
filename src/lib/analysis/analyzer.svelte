@@ -90,9 +90,6 @@
 							}
 						: {};
 
-		// A truth table is most useful with every cell shown right away
-		// rather than starting empty and requiring the user to select each
-		// input/output by hand; other panel types still start unselected.
 		const initialInputs: PanelInput[] =
 			panelId === "truthTable" && qcaSimulation
 				? qcaSimulation.getInputs(InputType.CELL)
@@ -118,32 +115,8 @@
 		updatePanelProps();
 	});
 
-	// This component stays mounted across the whole session (switching to the
-	// Design view and back must not lose panel layout/selection), so it can't
-	// rely on onMount to start each simulation with a clean slate - onMount
-	// only fires once, the first time a simulation is ever loaded. Reset the
-	// panels, selected inputs, and timeline position whenever `qcaSimulation`
-	// actually becomes a *different* simulation (a fresh session_id), so a
-	// newly-opened .qcs file never shows panels/selections left over from
-	// whatever was open before it.
-	//
-	// `visuals = []` immediately followed by `addPanel(...)` collapses to a
-	// single committed change from Svelte's perspective (both happen inside
-	// the same synchronous effect, before the next render), so an unkeyed
-	// #each sees the array go directly from e.g. [oldLinePlot] to
-	// [newLinePlot] and - since both have something at index 0 - reuses the
-	// *same* child component instance across the reset rather than
-	// destroying and recreating it. That leaves it up to every panel type's
-	// own data-loading effect to notice its `inputs` prop went back to empty
-	// and clear itself out, which line-plot-vis.svelte's chart did not
-	// reliably do in testing. `resetGeneration` is mixed into the panels'
-	// #each key below specifically so a reset always forces a real
-	// destroy+recreate instead of an in-place prop update, sidestepping that
-	// per-panel-type reliance entirely. This only affects panels that
-	// *survive* a reset (in practice just the fresh "Line Plot" panel this
-	// creates) - anything the user had added, like a WebGL-backed Design
-	// View panel, is simply removed by `visuals = []` and never
-	// re-created, so this does not add any extra WebGL context churn.
+	// Stays mounted across views, so reset panels when a new simulation loads.
+	// resetGeneration keys the #each so surviving panels are recreated, not reused.
 	let resetGeneration = $state(0);
 
 	let lastSessionId: string | undefined;
@@ -181,8 +154,7 @@
 		}
 	}
 
-	// The Design View panel colors the whole design and has no input
-	// selection, so the Input Selector only applies to the other panels.
+	// The Design View panel has no input selection.
 	let activeVisual = $derived(
 		activeTab ? visuals[parseInt(activeTab)] : undefined,
 	);

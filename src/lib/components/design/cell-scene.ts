@@ -75,8 +75,7 @@ class CellSceneLayer {
 			label.text = data.text;
 			label.position.set(data.position.x, data.position.y, 0);
 			label.color = data.color;
-			// troika lays out glyphs asynchronously; ask for another render once
-			// it's actually ready instead of assuming a render happens soon anyway.
+			// troika lays out glyphs asynchronously.
 			label.sync(() => this.parent.requestRender());
 		}
 	}
@@ -124,7 +123,6 @@ export class CellScene {
 		});
 	}
 
-	/** Lets layers (and their async-laid-out text labels) ask for another render. */
 	requestRender() {
 		this.onNeedsRender?.();
 	}

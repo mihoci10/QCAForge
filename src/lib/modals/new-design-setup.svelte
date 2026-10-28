@@ -27,8 +27,6 @@
 	let selectedSimulationModel: string = $state("");
 	let selectedCellArchitecture: string = $state("");
 
-	// Default to whichever model the user picked last (if it's still
-	// available) rather than always resetting to the first model in the list.
 	async function defaultSimulationModelId(): Promise<string> {
 		const lastModelId = await lastSimulationModelManager.getModelId();
 		if (lastModelId && simulationModels.some((m) => m.id === lastModelId)) {

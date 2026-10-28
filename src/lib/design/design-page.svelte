@@ -36,8 +36,7 @@
 	import type { CellIndex } from "$lib/Cell";
 	import { Set } from "typescript-collections";
 
-	// This page stays mounted while other views are shown; menu commands
-	// only apply while it's the visible one.
+	// Page stays mounted on other routes; ignore commands while hidden.
 	let { active }: { active: boolean } = $props();
 
 	let selected_model_id: string | undefined = $state();
@@ -65,12 +64,8 @@
 	let bottomPanels = $state([{ id: "log", title: "Log", visible: true }]);
 	let selectedBottomPanelId: string = $state("log");
 
-	// The bottom (Log) pane defaults to roughly 3 text lines tall rather than a fixed
-	// percentage of the window (which could be huge on a large display), while staying
-	// freely resizable by dragging the handle. paneforge's Pane only takes a percentage
-	// `defaultSize`, so we compute that percentage from the vertical pane group's actual
-	// pixel height once it's known, then apply it via the pane's imperative `resize`.
-	const LOG_PANE_DEFAULT_PX = 96; // ~3 lines of log text plus the tab strip/toolbar row
+	// paneforge only takes percentages, so size the log pane from its pixel height.
+	const LOG_PANE_DEFAULT_PX = 96; // ~3 log lines plus the tab strip
 	let verticalPaneGroupEl: HTMLElement | undefined = $state();
 	let logPane: { resize: (size: number) => void } | undefined = $state();
 
@@ -82,12 +77,7 @@
 		logPane.resize(percent);
 	});
 
-	// This component is mounted once (the first time a design is loaded) and then kept
-	// alive for the rest of the session, so switching to the Analysis view and back no
-	// longer tears down/rebuilds the designer - camera position, selection, and panel
-	// state all just stay as they were. Because of that, this subscription only fires
-	// when a design is genuinely (re)loaded (new/open), never on a mere view switch, so
-	// it's safe to re-fit the camera here every time it runs.
+	// Fires only when a design is loaded, not on view switches.
 	let pendingCenterCamera = false;
 
 	design.subscribe((cur_design_file) => {
@@ -108,9 +98,6 @@
 			if (designModelId) {
 				selected_model_id = designModelId;
 			} else {
-				// This design was never explicitly simulated (e.g. it's brand
-				// new), so default to whichever model the user picked last
-				// instead of leaving the selector blank every time.
 				lastSimulationModelManager.getModelId().then((lastModelId) => {
 					if (lastModelId && simulation_models.has(lastModelId)) {
 						selected_model_id = lastModelId;

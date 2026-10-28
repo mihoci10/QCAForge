@@ -235,13 +235,7 @@ export class QCASimulation {
 					cellName = `Cell ${cellIndex.layer}-${cellIndex.cell}`;
 				}
 				if (polarization_n > 1) {
-					// "P1"/"P2" for the cell's two independent polarization
-					// components (this architecture's dot_count/4), not to be
-					// confused with the A/B/C/D *logic state* labels used
-					// elsewhere (Truth Table, etc.) - those are derived from
-					// thresholding a component's sign, not the component index
-					// itself, and reusing the same letters here read as if they
-					// were that.
+					// Not A/B/C/D, which are reserved for logic states.
 					cellName += ` P${j + 1}`;
 				}
 				signals.push({
@@ -254,15 +248,8 @@ export class QCASimulation {
 		return signals;
 	}
 
-	// Returns undefined (rather than throwing) when `cellIndex` doesn't
-	// resolve against this simulation's design - a panel can still be
-	// holding onto a cell/signal selection made against a *previously*
-	// loaded, structurally different simulation for the one render cycle
-	// between a new simulation being set and that panel's own effect
-	// catching up and clearing its stale selection. Throwing here would
-	// crash that render (Svelte doesn't recover from a template-time
-	// exception), permanently wedging the view instead of just briefly
-	// showing a stale label.
+	// Panels may briefly hold a selection from a previous simulation; throwing
+	// during render would wedge the view.
 	public getCell(cellIndex: CellIndex): Cell | undefined {
 		const layer = this._design.layers[cellIndex.layer];
 		return layer?.cells[cellIndex.cell];
@@ -286,7 +273,7 @@ export class QCASimulation {
 		return undefined;
 	}
 
-	/** Loads the simulation data once, sharing one request between concurrent callers. */
+	/** Shares one load between concurrent callers. */
 	private ensureLoaded(): Promise<void> {
 		this._loading ??= this.loadData().catch((error) => {
 			this._loading = undefined;

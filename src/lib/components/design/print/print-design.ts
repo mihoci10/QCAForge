@@ -22,14 +22,11 @@ import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 
 type DesignPrintFormat = "jpeg" | "svg" | "pdf";
 
-// Matches the dark dot color baked into the paper theme's cell shader (drawableFragmentSrc).
+// Colors match the paper theme (drawableFragmentSrc, paper-geometry.ts).
 const DOT_COLOR_HEX = "#374151";
 const DOT_COLOR_RGB = pdfColor(DOT_COLOR_HEX);
-// Softer red used by the paper theme to mark a selected cell (see paper-geometry.ts getCellColor).
 const SELECTED_COLOR_HEX = "#e51919";
-// Fraction of the cell pitch the filled square occupies, leaving a small gap between adjacent cells.
 const CELL_FILL_SCALE = 0.97;
-// Corner radius as a fraction of the (already scaled-down) filled cell size.
 const CELL_CORNER_RATIO = 0.1;
 
 export interface DesignPrintOptions {
@@ -174,8 +171,7 @@ export function designToSVG(
 	for (const printable of cells) {
 		const { cell } = printable;
 		const figure = cellFigure(printable);
-		// Dot positions already account for the rotation (cellFigure), so only
-		// the outline is rotated, like the PDF export does.
+		// Dot positions are already rotated; only rotate the outline.
 		elements.push(
 			`<g transform="translate(${cell.position[0]} ${cell.position[1]})">`,
 		);
@@ -343,7 +339,6 @@ function getDesignBounds(cells: PrintableCell[]): DesignBounds {
 	};
 }
 
-/** Grid lines [x1, y1, x2, y2] spaced by the largest cell side across the bounds. */
 function gridLines(bounds: DesignBounds): [number, number, number, number][] {
 	const { minX, maxX, minY, maxY, maxSide: gridSize } = bounds;
 	const lines: [number, number, number, number][] = [];
@@ -362,7 +357,7 @@ function gridLines(bounds: DesignBounds): [number, number, number, number][] {
 	return lines;
 }
 
-/** Everything needed to draw one cell, in the cell's local coordinates (y up, centered on the cell). */
+/** Cell drawing data in local coordinates (y up, centered on the cell). */
 function cellFigure({ cell, architecture, selected }: PrintableCell) {
 	const color = selected ? SELECTED_COLOR_HEX : cellColor(cell);
 	const rotation = cell.rotation || 0;
@@ -416,7 +411,7 @@ function cellFigure({ cell, architecture, selected }: PrintableCell) {
 	};
 }
 
-/** Lines of text to show inside a cell, matching paper-geometry.ts's getLabels(): Fixed cells always show their polarization value, Input/Output cells show their custom label. */
+/** Matches paper-geometry.ts getLabels(). */
 function getCellLabelLines(cell: Cell): string[] {
 	if (cell.typ === CellType.Fixed)
 		return polarizationToString(
@@ -427,14 +422,13 @@ function getCellLabelLines(cell: Cell): string[] {
 	return [];
 }
 
-/** Lightens a hex color by mixing it toward white, for label text that must stay legible against its own cell's fill. */
 function lightenColor(hex: string, amount: number): string {
 	const mix = (c: number) => Math.round(c + (255 - c) * amount);
 	const toHex = (c: number) => c.toString(16).padStart(2, "0");
 	return `#${toHex(mix(parseInt(hex.slice(1, 3), 16)))}${toHex(mix(parseInt(hex.slice(3, 5), 16)))}${toHex(mix(parseInt(hex.slice(5, 7), 16)))}`;
 }
 
-/** SVG path (y-down, centered on origin) for a square of half-size `half` with rounded corners of `radius`. Usable directly in an SVG <path> and in pdf-lib's drawSvgPath (which flips the Y axis to match SVG conventions). */
+/** Y-down path centered on the origin; also valid for pdf-lib's drawSvgPath. */
 function roundedRectPath(half: number, radius: number): string {
 	const r = Math.min(radius, half);
 	return `M ${-half + r} ${-half} H ${half - r} A ${r} ${r} 0 0 1 ${half} ${-half + r} V ${half - r} A ${r} ${r} 0 0 1 ${half - r} ${half} H ${-half + r} A ${r} ${r} 0 0 1 ${-half} ${half - r} V ${-half + r} A ${r} ${r} 0 0 1 ${-half + r} ${-half} Z`;
@@ -448,7 +442,7 @@ function pdfColor(hex: string) {
 	);
 }
 
-// Matches the soft palette used on-canvas by the paper theme (paper-geometry.ts getCellColor/getClockPhaseColor).
+// Matches paper-geometry.ts getCellColor/getClockPhaseColor.
 function cellColor(cell: Cell): string {
 	if (cell.typ === CellType.Input) return "#194ccc";
 	if (cell.typ === CellType.Output) return "#ccb219";

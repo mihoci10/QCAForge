@@ -1,18 +1,7 @@
 /**
- * Reading and writing custom input sequences as CSV files.
- *
- * Saved files have a header row with the input cell labels followed by one
- * vector per row, using the same state letters as the input sequence dialog:
- *
- *     In,X,Y
- *     A,B,A
- *     B,B,C
- *
- * When reading, values may also be state indices (0-3) or lower case,
- * separated by commas, semicolons, tabs or spaces; empty lines and lines
- * starting with `#` are ignored. The header is optional: if present, columns
- * are matched to inputs by label (so their order doesn't matter), otherwise
- * they are taken in input order.
+ * Custom input sequences as CSV: a header row of input labels, then one vector
+ * of state letters (A-D) per row. Reading also accepts indices 0-3, lower case,
+ * `;`/tab/space separators and `#` comments; the header is optional.
  */
 
 export const INPUT_SEQUENCE_FILE_EXTENSIONS = ["csv", "txt"];
@@ -21,7 +10,7 @@ export const STATE_LETTERS = ["A", "B", "C", "D"];
 
 export interface InputSequenceColumn {
 	label: string;
-	/** Number of logic states this input can take (2 or 4). */
+	/** 2 or 4. */
 	numStates: number;
 }
 
@@ -38,14 +27,13 @@ export function serializeInputSequence(
 	return lines.join("\n") + "\n";
 }
 
-/** Quotes a label if it contains a separator or could be read as a state, so the header row can't be mistaken for a vector. */
+/** Quotes labels that could be read as a state, so the header isn't taken for a vector. */
 function csvField(value: string): string {
 	return /[",;\s]/.test(value) || parseState(value) !== undefined
 		? `"${value.replace(/"/g, '""')}"`
 		: value;
 }
 
-/** Splits on commas, semicolons or tabs if the line has any, else on spaces. */
 function splitLine(line: string): string[] {
 	const unquoted = line.replace(/"[^"]*"/g, "");
 	const byWhitespace = !/[,;\t]/.test(unquoted);
@@ -84,11 +72,7 @@ function parseState(value: string): number | undefined {
 	return undefined;
 }
 
-/**
- * Parses a sequence file for a design with the given inputs. Throws an Error
- * with a user-facing message (including the line number) if the file doesn't
- * fit the design.
- */
+/** Throws an Error with a user-facing message if the file doesn't fit the inputs. */
 export function parseInputSequence(
 	content: string,
 	inputs: InputSequenceColumn[],
@@ -114,8 +98,7 @@ export function parseInputSequence(
 			header.length === inputs.length &&
 			header.every((field) => labels.includes(field)) &&
 			new Set(header).size === header.length &&
-			// Vectors are never quoted, so a quoted row is a header even when
-			// its labels also read as states.
+			// Vectors are never quoted, so a quoted row is a header.
 			(rows[0].quoted ||
 				!header.every((field) => parseState(field) !== undefined));
 		if (isHeader) {
