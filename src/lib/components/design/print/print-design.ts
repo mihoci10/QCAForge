@@ -6,10 +6,10 @@ import {
 } from "$lib/custom-options/custom-options";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
-import { join } from "@tauri-apps/api/path";
 import { lastDirectoryManager } from "$lib/last-directory";
 import * as THREE from "three";
 import {
+	CellIndex,
 	CellType,
 	getPolarization,
 	polarizationToString,
@@ -20,11 +20,11 @@ import type { Layer } from "$lib/Layer";
 import { Set } from "typescript-collections";
 import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 
-type DesignPrintFormat = "png" | "jpeg" | "svg" | "pdf";
+type DesignPrintFormat = "jpeg" | "svg" | "pdf";
 
 // Matches the dark dot color baked into the paper theme's cell shader (drawableFragmentSrc).
 const DOT_COLOR_HEX = "#374151";
-const DOT_COLOR_RGB = rgb(0.216, 0.255, 0.318);
+const DOT_COLOR_RGB = pdfColor(DOT_COLOR_HEX);
 // Softer red used by the paper theme to mark a selected cell (see paper-geometry.ts getCellColor).
 const SELECTED_COLOR_HEX = "#e51919";
 // Fraction of the cell pitch the filled square occupies, leaving a small gap between adjacent cells.
@@ -88,6 +88,12 @@ export const PRINT_OPTIONS: DesignPrintOptions[] = [
 	},
 ];
 
+export interface PrintableDesign {
+	layers: Layer[];
+	cellArchitectures: Map<string, CellArchitecture>;
+	selectedCells: Set<CellIndex>;
+}
+
 export async function printDesign(
 	renderCanvasFunc: (
 		resolutionScale?: number,
@@ -95,17 +101,20 @@ export async function printDesign(
 		showGrid?: boolean,
 		clearColor?: THREE.Color,
 	) => Promise<HTMLCanvasElement>,
-	renderSvgFunc: (
-		selectionOnly: boolean,
-		showGrid: boolean,
-	) => Promise<Uint8Array>,
-	renderPdfFunc: (
-		selectionOnly: boolean,
-		showGrid: boolean,
-	) => Promise<Uint8Array>,
+	design: PrintableDesign,
 	options: DesignPrintOptions,
 	designName: string = "design_print",
 ) {
+	const fileName = await save({
+		defaultPath: await lastDirectoryManager.defaultPath(
+			"figure",
+			`${designName}.${options.format}`,
+		),
+		title: "Save design as",
+		filters: [{ name: "Image", extensions: [options.format] }],
+	});
+	if (!fileName) return;
+
 	const showGrid = options.optionValues.get("showGrid") as boolean;
 	const selectionOnly = options.optionValues.get("selectionOnly") as boolean;
 	let binaryData: Uint8Array;
@@ -122,39 +131,15 @@ export async function printDesign(
 				options,
 			);
 			break;
-		case "png":
-			binaryData = await printDesignAsPNG(
-				await renderCanvasFunc(
-					options.optionValues.get("resolutionScale") as number,
-					selectionOnly,
-					showGrid,
-					new THREE.Color(1, 1, 1),
-				),
-				options,
-			);
-			break;
 		case "svg":
-			binaryData = await renderSvgFunc(selectionOnly, showGrid);
+			binaryData = designToSVG(design, selectionOnly, showGrid);
 			break;
 		case "pdf":
-			binaryData = await renderPdfFunc(selectionOnly, showGrid);
+			binaryData = await designToPDF(design, selectionOnly, showGrid);
 			break;
 		default:
 			throw new Error("Unsupported export format");
 	}
-
-	const figureDir = await lastDirectoryManager.getDirectory("figure");
-	const defaultPath = figureDir
-		? await join(figureDir, `${designName}.${options.format}`)
-		: `${designName}.${options.format}`;
-
-	const fileName = await save({
-		defaultPath,
-		title: "Save design as",
-		filters: [{ name: "Image", extensions: [options.format] }],
-	});
-
-	if (!fileName) return;
 
 	await writeFile(fileName, binaryData);
 	await lastDirectoryManager.setDirectoryFromFilePath("figure", fileName);
@@ -171,154 +156,40 @@ async function printDesignAsJPEG(
 	return binaryData;
 }
 
-async function printDesignAsPNG(
-	canvas: HTMLCanvasElement,
-	options: DesignPrintOptions,
-): Promise<Uint8Array> {
-	throw new Error("PNG export not implemented yet");
-}
-
-async function printDesignAsSVG(
-	canvas: HTMLCanvasElement,
-	options: DesignPrintOptions,
-): Promise<Uint8Array> {
-	throw new Error("SVG export not implemented yet");
-}
-
 export function designToSVG(
-	layers: Layer[],
-	cellArchitectures: Map<string, CellArchitecture>,
-	selectedCells: Set<any>,
+	design: PrintableDesign,
 	selectionOnly: boolean,
 	showGrid: boolean,
 ): Uint8Array {
-	const cells: {
-		cell: Cell;
-		architecture: CellArchitecture;
-		index: number;
-		layer: number;
-	}[] = [];
-	for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
-		const layer = layers[layerIndex];
-		if (!layer.visible) continue;
-		const architecture = cellArchitectures.get(layer.cell_architecture_id);
-		if (!architecture) continue;
-		layer.cells.forEach((cell, index) => {
-			const selected = isSelected(selectedCells, layerIndex, index);
-			if (!selectionOnly || selected)
-				cells.push({ cell, architecture, index, layer: layerIndex });
-		});
-	}
-
-	const margin = 10;
-	const maxSide = Math.max(
-		...cells.map(({ architecture }) => architecture.side_length),
-		20,
-	);
-	const minX = cells.length
-		? Math.min(...cells.map(({ cell }) => cell.position[0])) -
-			maxSide / 2 -
-			margin
-		: -50;
-	const maxX = cells.length
-		? Math.max(...cells.map(({ cell }) => cell.position[0])) +
-			maxSide / 2 +
-			margin
-		: 50;
-	const minY = cells.length
-		? Math.min(...cells.map(({ cell }) => cell.position[1])) -
-			maxSide / 2 -
-			margin
-		: -50;
-	const maxY = cells.length
-		? Math.max(...cells.map(({ cell }) => cell.position[1])) +
-			maxSide / 2 +
-			margin
-		: 50;
-	const width = maxX - minX;
-	const height = maxY - minY;
+	const cells = collectPrintableCells(design, selectionOnly);
+	const { minX, maxY, width, height, ...bounds } = getDesignBounds(cells);
 	const elements: string[] = [];
 
-	if (showGrid) {
-		const gridSize = maxSide;
-		for (
-			let x = Math.floor(minX / gridSize) * gridSize;
-			x <= maxX;
-			x += gridSize
-		)
+	if (showGrid)
+		for (const [x1, y1, x2, y2] of gridLines({ minX, maxY, ...bounds }))
 			elements.push(
-				`<path d="M ${x} ${minY} V ${maxY}" stroke="#d1d5db" stroke-width="0.5"/>`,
+				`<path d="M ${x1} ${y1} L ${x2} ${y2}" stroke="#d1d5db" stroke-width="0.5"/>`,
 			);
-		for (
-			let y = Math.floor(minY / gridSize) * gridSize;
-			y <= maxY;
-			y += gridSize
-		)
-			elements.push(
-				`<path d="M ${minX} ${y} H ${maxX}" stroke="#d1d5db" stroke-width="0.5"/>`,
-			);
-	}
 
-	for (const { cell, architecture, index, layer } of cells) {
-		const selected = isSelected(selectedCells, layer, index);
-		const color = selected ? SELECTED_COLOR_HEX : cellColor(cell);
-		const rotation = cell.rotation || 0;
-		const filledSide = architecture.side_length * CELL_FILL_SCALE;
-		const half = filledSide / 2;
-		const cornerRadius = filledSide * CELL_CORNER_RATIO;
+	for (const printable of cells) {
+		const { cell } = printable;
+		const figure = cellFigure(printable);
 		elements.push(
-			`<g transform="translate(${cell.position[0]} ${cell.position[1]}) rotate(${rotation})">`,
+			`<g transform="translate(${cell.position[0]} ${cell.position[1]}) rotate(${figure.rotation})">`,
 		);
-		elements.push(
-			`<path d="${roundedRectPath(half, cornerRadius)}" fill="${color}"/>`,
-		);
-		const polarization = getPolarization(cell.dot_probability_distribution);
-		const count = architecture.dot_count === 8 ? 2 : 1;
-		const polarizationSum = polarization.reduce(
-			(sum, value) => sum + Math.abs(value),
-			0,
-		);
-		const offset = (1 - polarizationSum) / (2 * count);
-		const holeRadius = architecture.side_length * 0.075;
-		for (let i = 0; i < count * 2; i++) {
-			const angle =
-				Math.PI / 4 +
-				(Math.PI / (count * 2)) *
-					(Math.floor(i / 2) + (i % 2) * count) +
-				(rotation % 180 === 90 ? Math.PI / 4 : 0);
-			const x = Math.cos(angle) * architecture.side_length * 0.3;
-			const y = Math.sin(angle) * architecture.side_length * 0.3;
-			const dotFraction =
-				Math.max(
-					0,
-					(polarization[Math.floor(i / 2)] ?? 0) * (i % 2 ? -1 : 1),
-				) + offset;
-			const dotRadius = Math.max(0.5, holeRadius * dotFraction);
-			for (const [dx, dy] of [
-				[x, y],
-				[-x, -y],
-			] as const) {
-				elements.push(
-					`<circle cx="${dx}" cy="${dy}" r="${holeRadius}" fill="#ffffff"/>`,
-				);
-				elements.push(
-					`<circle cx="${dx}" cy="${dy}" r="${dotRadius}" fill="${DOT_COLOR_HEX}"/>`,
-				);
-			}
+		elements.push(`<path d="${figure.outline}" fill="${figure.color}"/>`);
+		for (const dot of figure.dots) {
+			elements.push(
+				`<circle cx="${dot.x}" cy="${dot.y}" r="${figure.holeRadius}" fill="#ffffff"/>`,
+			);
+			elements.push(
+				`<circle cx="${dot.x}" cy="${dot.y}" r="${dot.radius}" fill="${DOT_COLOR_HEX}"/>`,
+			);
 		}
-		const labelLines = getCellLabelLines(cell);
-		if (labelLines.length) {
-			const fontSize = architecture.side_length / 5;
-			const lineHeight = fontSize * 1.15;
-			const totalHeight = (labelLines.length - 1) * lineHeight;
-			const labelColor = lightenColor(color, 0.45);
-			labelLines.forEach((line, i) => {
-				const dy = totalHeight / 2 - i * lineHeight;
-				elements.push(
-					`<text x="0" y="${dy}" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}" fill="${labelColor}">${escapeXml(line)}</text>`,
-				);
-			});
-		}
+		for (const label of figure.labels)
+			elements.push(
+				`<text x="0" y="${label.y}" text-anchor="middle" dominant-baseline="middle" font-size="${figure.fontSize}" fill="${figure.labelColor}">${escapeXml(label.text)}</text>`,
+			);
 		elements.push(`</g>`);
 	}
 
@@ -327,18 +198,11 @@ export function designToSVG(
 }
 
 export async function designToPDF(
-	layers: Layer[],
-	cellArchitectures: Map<string, CellArchitecture>,
-	selectedCells: Set<any>,
+	design: PrintableDesign,
 	selectionOnly: boolean,
 	showGrid: boolean,
 ): Promise<Uint8Array> {
-	const cells = collectPrintableCells(
-		layers,
-		cellArchitectures,
-		selectedCells,
-		selectionOnly,
-	);
+	const cells = collectPrintableCells(design, selectionOnly);
 	const bounds = getDesignBounds(cells);
 	const pdf = await PDFDocument.create();
 	const page = pdf.addPage([bounds.width, bounds.height]);
@@ -355,171 +219,114 @@ export async function designToPDF(
 		height: bounds.height,
 		color: rgb(1, 1, 1),
 	});
-	if (showGrid) {
-		const gridSize = bounds.maxSide;
-		for (
-			let x = Math.floor(bounds.minX / gridSize) * gridSize;
-			x <= bounds.maxX;
-			x += gridSize
-		) {
-			const start = toPdfPoint(x, bounds.minY);
-			const end = toPdfPoint(x, bounds.maxY);
+	if (showGrid)
+		for (const [x1, y1, x2, y2] of gridLines(bounds))
 			page.drawLine({
-				start,
-				end,
+				start: toPdfPoint(x1, y1),
+				end: toPdfPoint(x2, y2),
 				thickness: 0.5,
 				color: rgb(0.82, 0.84, 0.86),
 			});
-		}
-		for (
-			let y = Math.floor(bounds.minY / gridSize) * gridSize;
-			y <= bounds.maxY;
-			y += gridSize
-		) {
-			const start = toPdfPoint(bounds.minX, y);
-			const end = toPdfPoint(bounds.maxX, y);
-			page.drawLine({
-				start,
-				end,
-				thickness: 0.5,
-				color: rgb(0.82, 0.84, 0.86),
-			});
-		}
-	}
 
-	for (const { cell, architecture, index, layer } of cells) {
-		const selected = isSelected(selectedCells, layer, index);
-		const colorHex = selected ? SELECTED_COLOR_HEX : cellColor(cell);
-		const color = pdfColor(colorHex);
+	for (const printable of cells) {
+		const { cell } = printable;
+		const figure = cellFigure(printable);
 		const center = toPdfPoint(cell.position[0], cell.position[1]);
-		const filledSide = architecture.side_length * CELL_FILL_SCALE;
-		const half = filledSide / 2;
-		const cornerRadius = filledSide * CELL_CORNER_RATIO;
-		page.drawSvgPath(roundedRectPath(half, cornerRadius), {
+		page.drawSvgPath(figure.outline, {
 			x: center.x,
 			y: center.y,
-			rotate: degrees(cell.rotation || 0),
-			color,
+			rotate: degrees(figure.rotation),
+			color: pdfColor(figure.color),
 		});
-
-		const polarization = getPolarization(cell.dot_probability_distribution);
-		const count = architecture.dot_count === 8 ? 2 : 1;
-		const polarizationSum = polarization.reduce(
-			(sum, value) => sum + Math.abs(value),
-			0,
-		);
-		const offset = (1 - polarizationSum) / (2 * count);
-		const holeRadius = architecture.side_length * 0.075;
-		for (let i = 0; i < count * 2; i++) {
-			const angle =
-				Math.PI / 4 +
-				(Math.PI / (count * 2)) *
-					(Math.floor(i / 2) + (i % 2) * count) +
-				((cell.rotation || 0) % 180 === 90 ? Math.PI / 4 : 0);
-			const x = Math.cos(angle) * architecture.side_length * 0.3;
-			const y = Math.sin(angle) * architecture.side_length * 0.3;
-			const dotFraction =
-				Math.max(
-					0,
-					(polarization[Math.floor(i / 2)] ?? 0) * (i % 2 ? -1 : 1),
-				) + offset;
-			const dotRadius = Math.max(0.5, holeRadius * dotFraction);
-			for (const [ox, oy] of [
-				[x, y],
-				[-x, -y],
-			] as const) {
-				const dotCenter = toPdfPoint(
-					cell.position[0] + ox,
-					cell.position[1] + oy,
-				);
-				page.drawCircle({
-					x: dotCenter.x,
-					y: dotCenter.y,
-					size: holeRadius,
-					color: rgb(1, 1, 1),
-				});
-				page.drawCircle({
-					x: dotCenter.x,
-					y: dotCenter.y,
-					size: dotRadius,
-					color: DOT_COLOR_RGB,
-				});
-			}
+		for (const dot of figure.dots) {
+			const dotCenter = { x: center.x + dot.x, y: center.y + dot.y };
+			page.drawCircle({
+				...dotCenter,
+				size: figure.holeRadius,
+				color: rgb(1, 1, 1),
+			});
+			page.drawCircle({
+				...dotCenter,
+				size: dot.radius,
+				color: DOT_COLOR_RGB,
+			});
 		}
-		const labelLines = getCellLabelLines(cell);
-		if (labelLines.length) {
-			const size = architecture.side_length / 5;
-			const lineHeight = size * 1.15;
-			const totalHeight = (labelLines.length - 1) * lineHeight;
-			const labelColor = pdfColor(lightenColor(colorHex, 0.45));
-			labelLines.forEach((line, i) => {
-				const width = font.widthOfTextAtSize(line, size);
-				const y =
-					center.y + totalHeight / 2 - i * lineHeight - size / 2;
-				page.drawText(line, {
-					x: center.x - width / 2,
-					y,
-					size,
-					font,
-					color: labelColor,
-				});
+		const labelColor = pdfColor(figure.labelColor);
+		for (const label of figure.labels) {
+			const width = font.widthOfTextAtSize(label.text, figure.fontSize);
+			page.drawText(label.text, {
+				x: center.x - width / 2,
+				y: center.y + label.y - figure.fontSize / 2,
+				size: figure.fontSize,
+				font,
+				color: labelColor,
 			});
 		}
 	}
 	return pdf.save();
 }
 
+interface PrintableCell {
+	cell: Cell;
+	architecture: CellArchitecture;
+	selected: boolean;
+}
+
 function collectPrintableCells(
-	layers: Layer[],
-	cellArchitectures: Map<string, CellArchitecture>,
-	selectedCells: Set<any>,
+	{ layers, cellArchitectures, selectedCells }: PrintableDesign,
 	selectionOnly: boolean,
-) {
-	const cells: {
-		cell: Cell;
-		architecture: CellArchitecture;
-		index: number;
-		layer: number;
-	}[] = [];
-	for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
-		const layer = layers[layerIndex];
-		if (!layer.visible) continue;
+): PrintableCell[] {
+	const cells: PrintableCell[] = [];
+	layers.forEach((layer, layerIndex) => {
+		if (!layer.visible) return;
 		const architecture = cellArchitectures.get(layer.cell_architecture_id);
-		if (!architecture) continue;
+		if (!architecture) return;
 		layer.cells.forEach((cell, index) => {
-			if (!selectionOnly || isSelected(selectedCells, layerIndex, index))
-				cells.push({ cell, architecture, index, layer: layerIndex });
+			const selected = selectedCells.contains(
+				new CellIndex(layerIndex, index),
+			);
+			if (!selectionOnly || selected)
+				cells.push({ cell, architecture, selected });
 		});
-	}
+	});
 	return cells;
 }
 
-function getDesignBounds(cells: ReturnType<typeof collectPrintableCells>) {
+interface DesignBounds {
+	minX: number;
+	maxX: number;
+	minY: number;
+	maxY: number;
+	maxSide: number;
+	width: number;
+	height: number;
+}
+
+function getDesignBounds(cells: PrintableCell[]): DesignBounds {
 	const margin = 10;
-	const maxSide = Math.max(
-		...cells.map(({ architecture }) => architecture.side_length),
-		20,
-	);
-	const minX = cells.length
-		? Math.min(...cells.map(({ cell }) => cell.position[0])) -
-			maxSide / 2 -
-			margin
-		: -50;
-	const maxX = cells.length
-		? Math.max(...cells.map(({ cell }) => cell.position[0])) +
-			maxSide / 2 +
-			margin
-		: 50;
-	const minY = cells.length
-		? Math.min(...cells.map(({ cell }) => cell.position[1])) -
-			maxSide / 2 -
-			margin
-		: -50;
-	const maxY = cells.length
-		? Math.max(...cells.map(({ cell }) => cell.position[1])) +
-			maxSide / 2 +
-			margin
-		: 50;
+	let maxSide = 20;
+	let minX = Infinity,
+		maxX = -Infinity,
+		minY = Infinity,
+		maxY = -Infinity;
+	for (const { cell, architecture } of cells) {
+		maxSide = Math.max(maxSide, architecture.side_length);
+		minX = Math.min(minX, cell.position[0]);
+		maxX = Math.max(maxX, cell.position[0]);
+		minY = Math.min(minY, cell.position[1]);
+		maxY = Math.max(maxY, cell.position[1]);
+	}
+	if (!cells.length) {
+		[minX, maxX, minY, maxY] = [-50, 50, -50, 50];
+	} else {
+		const pad = maxSide / 2 + margin;
+		[minX, maxX, minY, maxY] = [
+			minX - pad,
+			maxX + pad,
+			minY - pad,
+			maxY + pad,
+		];
+	}
 	return {
 		minX,
 		maxX,
@@ -528,6 +335,79 @@ function getDesignBounds(cells: ReturnType<typeof collectPrintableCells>) {
 		maxSide,
 		width: maxX - minX,
 		height: maxY - minY,
+	};
+}
+
+/** Grid lines [x1, y1, x2, y2] spaced by the largest cell side across the bounds. */
+function gridLines(bounds: DesignBounds): [number, number, number, number][] {
+	const { minX, maxX, minY, maxY, maxSide: gridSize } = bounds;
+	const lines: [number, number, number, number][] = [];
+	for (
+		let x = Math.floor(minX / gridSize) * gridSize;
+		x <= maxX;
+		x += gridSize
+	)
+		lines.push([x, minY, x, maxY]);
+	for (
+		let y = Math.floor(minY / gridSize) * gridSize;
+		y <= maxY;
+		y += gridSize
+	)
+		lines.push([minX, y, maxX, y]);
+	return lines;
+}
+
+/** Everything needed to draw one cell, in the cell's local coordinates (y up, centered on the cell). */
+function cellFigure({ cell, architecture, selected }: PrintableCell) {
+	const color = selected ? SELECTED_COLOR_HEX : cellColor(cell);
+	const rotation = cell.rotation || 0;
+	const filledSide = architecture.side_length * CELL_FILL_SCALE;
+
+	const polarization = getPolarization(cell.dot_probability_distribution);
+	const count = architecture.dot_count === 8 ? 2 : 1;
+	const polarizationSum = polarization.reduce(
+		(sum, value) => sum + Math.abs(value),
+		0,
+	);
+	const offset = (1 - polarizationSum) / (2 * count);
+	const holeRadius = architecture.side_length * 0.075;
+	const dots: { x: number; y: number; radius: number }[] = [];
+	for (let i = 0; i < count * 2; i++) {
+		const angle =
+			Math.PI / 4 +
+			(Math.PI / (count * 2)) * (Math.floor(i / 2) + (i % 2) * count) +
+			(rotation % 180 === 90 ? Math.PI / 4 : 0);
+		const x = Math.cos(angle) * architecture.side_length * 0.3;
+		const y = Math.sin(angle) * architecture.side_length * 0.3;
+		const dotFraction =
+			Math.max(
+				0,
+				(polarization[Math.floor(i / 2)] ?? 0) * (i % 2 ? -1 : 1),
+			) + offset;
+		const radius = Math.max(0.5, holeRadius * dotFraction);
+		dots.push({ x, y, radius }, { x: -x, y: -y, radius });
+	}
+
+	const lines = getCellLabelLines(cell);
+	const fontSize = architecture.side_length / 5;
+	const lineHeight = fontSize * 1.15;
+	const totalHeight = (lines.length - 1) * lineHeight;
+
+	return {
+		color,
+		rotation,
+		outline: roundedRectPath(
+			filledSide / 2,
+			filledSide * CELL_CORNER_RATIO,
+		),
+		holeRadius,
+		dots,
+		fontSize,
+		labelColor: lightenColor(color, 0.45),
+		labels: lines.map((text, i) => ({
+			text,
+			y: totalHeight / 2 - i * lineHeight,
+		})),
 	};
 }
 
@@ -587,18 +467,6 @@ function escapeXml(value: string): string {
 				'"': "&quot;",
 			})[character]!,
 	);
-}
-
-function isSelected(
-	selectedCells: Set<any>,
-	layer: number,
-	cell: number,
-): boolean {
-	let selected = false;
-	selectedCells.forEach((index: any) => {
-		if (index?.layer === layer && index?.cell === cell) selected = true;
-	});
-	return selected;
 }
 
 export function canvasToBlob(
