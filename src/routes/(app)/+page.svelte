@@ -14,7 +14,7 @@
 	import { QCA_DESIGN_FILE_EXTENSION } from "$lib/qca-design";
 	import { get } from "svelte/store";
 
-	const GITHUB_URL = "https://github.com/mihajanez/QCAForge";
+	const GITHUB_URL = "https://github.com/mihoci10/QCAForge";
 
 	let recentFiles: RecentFile[] = $state([]);
 
@@ -27,7 +27,9 @@
 		const examplesDir = await invoke<string>("get_examples_dir");
 		const filename = await open({
 			title: "Open example",
-			filters: [{ name: "Design", extensions: [QCA_DESIGN_FILE_EXTENSION] }],
+			filters: [
+				{ name: "Design", extensions: [QCA_DESIGN_FILE_EXTENSION] },
+			],
 			defaultPath: examplesDir,
 		});
 		if (!filename) return;
