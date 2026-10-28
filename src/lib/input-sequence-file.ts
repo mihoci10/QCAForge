@@ -17,7 +17,7 @@
 
 export const INPUT_SEQUENCE_FILE_EXTENSIONS = ["csv", "txt"];
 
-const STATE_LETTERS = ["A", "B", "C", "D"];
+export const STATE_LETTERS = ["A", "B", "C", "D"];
 
 export interface InputSequenceColumn {
 	label: string;

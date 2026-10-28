@@ -16,18 +16,15 @@
 		createDefaultDesignViewProps,
 		createDesign,
 		createQCADesignFile,
+		QCA_DESIGN_FILE_EXTENSION,
 		saveDesignToFile,
-		serializeQCADesignFile,
-		type QCADesignFile,
 	} from "$lib/qca-design";
-	import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs";
 	import { save } from "@tauri-apps/plugin-dialog";
 	import { design, design_filename, visibleBottomPanels } from "$lib/globals";
 	import { page } from "$app/state";
 	import { get } from "svelte/store";
 	import { lastDirectoryManager } from "$lib/last-directory";
 	import { lastSimulationModelManager } from "$lib/last-simulation-model";
-	import { join } from "@tauri-apps/api/path";
 	import { type Layer } from "$lib/Layer.js";
 	import { type CellArchitecture } from "$lib/CellArchitecture";
 	import type { DesignViewProps } from "$lib/components/design/design-view.svelte";
@@ -144,98 +141,13 @@
 			pendingCenterCamera = false;
 		}
 
-		const unlistenSave = listen(EVENT_SAVE_FILE, () => {
-			new Promise((resolve: (value: string) => void, reject) => {
-				let filename = get(design_filename);
-				if (!filename) {
-					lastDirectoryManager
-						.getDirectory("design")
-						.then((dir) =>
-							dir
-								? join(dir, "New design.qcd")
-								: "New design.qcd",
-						)
-						.then((defaultPath) =>
-							save({
-								defaultPath,
-								title: "Save design as",
-								filters: [
-									{ name: "Design", extensions: ["qcd"] },
-								],
-							}),
-						)
-						.then((filename) =>
-							filename ? resolve(filename as string) : reject(),
-						);
-				} else resolve(filename);
-			}).then((filename) => {
-				new Promise(async (resolve: (value: QCADesignFile) => void) => {
-					const design = await createDesign(
-						layers,
-						selected_model_id,
-						simulation_models,
-						cell_architectures,
-						useCustomInputSequence,
-						customInputSequence,
-					);
-					const designFile = await createQCADesignFile(
-						design,
-						designViewProps,
-					);
-					resolve(designFile);
-				}).then((designFile) => {
-					saveDesignToFile(filename, designFile);
-					design_filename.set(filename);
-					lastDirectoryManager.setDirectoryFromFilePath(
-						"design",
-						filename,
-					);
-				});
-			});
+		const unlistenSave = listen(EVENT_SAVE_FILE, async () => {
+			const filename = get(design_filename) ?? (await pickDesignPath());
+			if (filename) await writeDesign(filename);
 		});
-		const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, () => {
-			lastDirectoryManager
-				.getDirectory("design")
-				.then((dir) =>
-					dir ? join(dir, "New design.qcd") : "New design.qcd",
-				)
-				.then((defaultPath) =>
-					save({
-						defaultPath,
-						title: "Save design as",
-						filters: [{ name: "Design", extensions: ["qcd"] }],
-					}),
-				)
-				.then((filename) => {
-					if (!filename) return;
-
-					new Promise(
-						async (resolve: (value: QCADesignFile) => void) => {
-							const design = await createDesign(
-								layers,
-								selected_model_id,
-								simulation_models,
-								cell_architectures,
-							);
-							const designFile = await createQCADesignFile(
-								design,
-								designViewProps,
-							);
-							resolve(designFile);
-						},
-					).then((designFile) => {
-						writeTextFile(
-							filename,
-							serializeQCADesignFile(designFile),
-							{ baseDir: BaseDirectory.Desktop },
-						);
-						design_filename.set(filename);
-						lastDirectoryManager.setDirectoryFromFilePath(
-							"design",
-							filename,
-						);
-					});
-				});
+		const unlistenSaveAs = listen(EVENT_SAVE_FILE_AS, async () => {
+			const filename = await pickDesignPath();
+			if (filename) await writeDesign(filename);
 		});
 		const unlistenExportFigure = listen(EVENT_EXPORT_FIGURE, () => {
 			// This page stays mounted while other views are shown.
@@ -249,6 +161,36 @@
 			unlistenExportFigure.then((f) => f());
 		};
 	});
+
+	async function pickDesignPath(): Promise<string | null> {
+		return save({
+			defaultPath: await lastDirectoryManager.defaultPath(
+				"design",
+				`New design.${QCA_DESIGN_FILE_EXTENSION}`,
+			),
+			title: "Save design as",
+			filters: [
+				{ name: "Design", extensions: [QCA_DESIGN_FILE_EXTENSION] },
+			],
+		});
+	}
+
+	async function writeDesign(filename: string) {
+		const designFile = await createQCADesignFile(
+			await createDesign(
+				layers,
+				selected_model_id,
+				simulation_models,
+				cell_architectures,
+				useCustomInputSequence,
+				customInputSequence,
+			),
+			designViewProps,
+		);
+		await saveDesignToFile(filename, designFile);
+		design_filename.set(filename);
+		lastDirectoryManager.setDirectoryFromFilePath("design", filename);
+	}
 
 	function setSimulationModels(): Promise<void> {
 		simulation_models.clear();

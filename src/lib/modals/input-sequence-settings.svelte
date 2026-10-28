@@ -12,13 +12,16 @@
 	import { toast } from "svelte-sonner";
 	import { open, save } from "@tauri-apps/plugin-dialog";
 	import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-	import { basename, join } from "@tauri-apps/api/path";
+	import { basename } from "@tauri-apps/api/path";
+	import { fileStem } from "$lib/utils/file-name";
 	import { design_filename } from "$lib/globals";
 	import { lastDirectoryManager } from "$lib/last-directory";
 	import {
 		INPUT_SEQUENCE_FILE_EXTENSIONS,
 		parseInputSequence,
 		serializeInputSequence,
+		STATE_LETTERS,
+		type InputSequenceColumn,
 	} from "$lib/input-sequence-file";
 
 	interface Props {
@@ -39,18 +42,11 @@
 		onApply,
 	}: Props = $props();
 
-	const LETTERS = ["A", "B", "C", "D"];
-
-	interface InputCellInfo {
-		label: string;
-		numStates: number;
-	}
-
 	// Must enumerate input cells in exactly the same order qca-core's
 	// get_num_inputs does (layer by layer, cell index order within a layer)
 	// so a vector's positions line up with the right inputs.
-	function getInputCells(): InputCellInfo[] {
-		const result: InputCellInfo[] = [];
+	function getInputCells(): InputSequenceColumn[] {
+		const result: InputSequenceColumn[] = [];
 		layers.forEach((layer) => {
 			const architecture = cell_architectures.get(
 				layer.cell_architecture_id,
@@ -70,7 +66,7 @@
 		return result;
 	}
 
-	let inputCells: InputCellInfo[] = $state([]);
+	let inputCells: InputSequenceColumn[] = $state([]);
 	let workingUseCustom: boolean = $state(false);
 	let workingSequence: number[][] = $state([]);
 
@@ -145,13 +141,14 @@
 	async function saveSequenceFile() {
 		const designFile = get(design_filename);
 		const defaultName = designFile
-			? (await basename(designFile)).replace(/\.[^./\\]+$/, "") +
-				"_inputs.csv"
+			? (await fileStem(designFile)) + "_inputs.csv"
 			: "inputs.csv";
-		const dir = await lastDirectoryManager.getDirectory("design");
 		const filename = await save({
 			title: "Save input sequence",
-			defaultPath: dir ? await join(dir, defaultName) : defaultName,
+			defaultPath: await lastDirectoryManager.defaultPath(
+				"design",
+				defaultName,
+			),
 			filters: FILE_FILTERS,
 		});
 		if (!filename) return;
@@ -248,7 +245,7 @@
 												)}
 										>
 											<Select.Trigger class="w-16">
-												{LETTERS[
+												{STATE_LETTERS[
 													vector[cellIndex] ?? 0
 												]}
 											</Select.Trigger>
@@ -256,7 +253,7 @@
 												{#each Array(inputCell.numStates) as _, stateIdx}
 													<Select.Item
 														value={stateIdx.toString()}
-														label={LETTERS[
+														label={STATE_LETTERS[
 															stateIdx
 														]}
 													/>
