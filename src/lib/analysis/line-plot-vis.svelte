@@ -86,6 +86,7 @@
 
 		interactionRect = svg
 			.append("rect")
+			.attr("class", "interaction-rect")
 			.on("mousemove", onMouseMove)
 			.on("wheel", onWheel)
 			.on("mouseleave", onMouseLeave);
@@ -468,7 +469,9 @@
 		stroke-dasharray: 10, 2;
 		opacity: 0;
 	}
-	:global(rect) {
+	/* Scoped to the invisible mouse-capture overlay; a bare `rect` selector
+	   leaked into every other SVG in the app. */
+	:global(.interaction-rect) {
 		pointer-events: all;
 		fill-opacity: 0;
 		stroke-opacity: 0;
